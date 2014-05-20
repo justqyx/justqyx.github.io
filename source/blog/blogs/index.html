@@ -1,0 +1,26 @@
+---
+layout: default
+title: Blogs
+---
+
+<article class="hentry" role="article">
+  <div>
+    <ul>
+      <li><a href="http://thekaiway.com/" target="_blank">The Kai Way</a></li>
+      <li><a href="http://mouseshi.com/" target="_blank">Mouseshi</a></li>
+      <li><a href="http://blog.zlxstar.me/" target="_blank">zls's Thinking</a></li>
+    </ul>
+  </div>
+  <br> <br> <br> <br> <br> <br>
+  <br> <br> <br> <br> <br> <br>
+</article>
+
+
+<aside class="sidebar">
+  {% if site.blog_index_asides.size %}
+    {% include_array blog_index_asides %}
+  {% else %}
+    {% include_array default_asides %}
+  {% endif %}
+</aside>
+

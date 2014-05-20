@@ -2,24 +2,24 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://yoursite.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
-simple_search: https://www.google.com/search
-description:
+url: http://justqyx.github.io
+title: JustQyx
+subtitle: 大道至简
+author: 邱源鑫
+simple_search: http://google.com/search
+description: 大道至简
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
 # http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
 # Additionally, %o will give you the ordinal representation of the day
-date_format: "ordinal"
+date_format: "%Y-%m-%d %H:%M:%S"
 
 # RSS / Email (optional) subscription links (change if using something like Feedburner)
 subscribe_rss: /atom.xml
-subscribe_email:
+subscribe_email: hzuqiuyuanxin@gmail.com
 # RSS feeds can list your email address if you like
-email:
+email: hzuqiuyuanxin@gmail.com
 
 # ----------------------- #
 #    Jekyll & Plugins     #
@@ -63,13 +63,13 @@ default_asides: [asides/recent_posts.html, asides/github.html, asides/delicious.
 # ----------------------- #
 
 # Github repositories
-github_user:
-github_repo_count: 0
+github_user: justqyx
+github_repo_count: 5
 github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
+twitter_user: yuanxQiu
 twitter_tweet_button: true
 
 # Google +1
@@ -90,8 +90,8 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
-disqus_show_comment_count: false
+disqus_short_name: yuanxin
+disqus_show_comment_count: true
 
 # Google Analytics
 google_analytics_tracking_id:

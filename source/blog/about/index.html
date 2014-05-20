@@ -1,0 +1,21 @@
+---
+layout: default
+---
+
+<article class="hentry" role="article">
+  <div>
+    关于我，不告诉你。
+  </div>
+  <br> <br> <br> <br> <br> <br>
+  <br> <br> <br> <br> <br> <br>
+</article>
+
+
+<aside class="sidebar">
+  {% if site.blog_index_asides.size %}
+    {% include_array blog_index_asides %}
+  {% else %}
+    {% include_array default_asides %}
+  {% endif %}
+</aside>
+

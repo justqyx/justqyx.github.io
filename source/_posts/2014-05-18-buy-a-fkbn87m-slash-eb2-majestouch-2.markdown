@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "入手一个机械键盘"
+title: "Buy a Mechanical Keyboard"
 date: 2014-05-18 17:04:58 +0800
 comments: true
 categories: [keyboard]

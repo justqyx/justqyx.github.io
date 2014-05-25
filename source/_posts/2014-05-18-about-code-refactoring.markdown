@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "关于代码重构"
+title: "About Code Refactoring"
 date: 2014-05-18 17:46:10 +0800
 comments: true
 categories: [bullsh]

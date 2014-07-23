@@ -8,3 +8,10 @@
 // $heading-font-family: "Fjalla One", "Georgia", "Helvetica Neue", Arial, sans-serif !default;
 // $header-title-font-family: $heading-font-family !default;
 // $header-subtitle-font-family: $serif !default;
+
+$sans: "Open Sans", Arial, sans-serif, STXihei, "Microsoft YaHei" !default;
+$serif: "PT Serif", Georgia, Times, "Times New Roman", serif, STXihei, "Microsoft YaHei" !default;
+$mono: Menlo, Monaco, "Andale Mono", "lucida console", "Courier New", monospace, STXihei, "Microsoft YaHei" !default;
+$heading-font-family: "Fjalla One", "Georgia", "Helvetica Neue", Arial, sans-serif, STXihei, "Microsoft YaHei" !default;
+$header-title-font-family: $heading-font-family !default;
+$header-subtitle-font-family: $serif !default;

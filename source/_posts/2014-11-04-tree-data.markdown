@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Get tree data from DB by one sql"
+title: "tree data"
 date: 2014-11-04 12:50:00 +0800
 comments: true
 categories: ["rails", "数据库"]
@@ -74,10 +74,13 @@ SELECT id, name FROM departments WHERE ancestry LIKE '1/%'
 
 `ancestry` 提供了一些好用的函数，让你能够直接做一些数据查询。[乖，往这里走](https://github.com/stefankroes/ancestry#navigating-your-tree)
 
-## 一次查询
+## arrange_serializable
 
-而对于一次性以一个结构化的形式，将一个企业的所有部门查询出来，则并没有提供一个良好的接口。<br/>
-虽然我们一次性可以把一个企业所有的部门从数据库里查出来，然后在业务代码这边对这组数据进行转换成结构化的数据。 类似下面的结构：
+ancestry 提供的 `arrange_serializable` 可以在业务代码这边对拿到的数据进行转换成我们实际所需要的数据结构。
+
+```ruby
+Department.where(client_id: 1).arrange_serializable
+```
 
 ```json
 {
@@ -90,11 +93,9 @@ SELECT id, name FROM departments WHERE ancestry LIKE '1/%'
 }
 ```
 
-或者，在业务代码这边利用递归的方式去得到，但是这样终归感觉有点不舒服，你在 log 里面就会看到一整个页面的 SQL 查询。
+## 使用数据库函数实现
 
-实际上，我们可以在数据库里创建一个函数，让其能够去收集它的子节点数据，我们就能够一次性就得到上面所讲的数据结构。
-
-虽然其原理也是递归运算，但是这个事情是数据库去做，单纯从性能上来讲肯定要快些。
+实际上，我们可以在数据库里创建一个函数（），让其能够去收集它的子节点数据（递归查询），我们就能够一次性就得到上面所讲的数据结构。
 
 {% include_code 20141104/select_subtree.sql %}
 
@@ -120,7 +121,7 @@ children | [{ "id": 2, "name": "产品研发中心", "children":[{ "id": 5, "nam
 DROP FUNCTION collect_childs_func(dept_id INTEGER, ancestry CHARACTER VARYING(255))
 ```
 
-## 应用到 production
+** 应用到 production **
 
 因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
 如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。

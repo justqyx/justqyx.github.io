@@ -133,3 +133,12 @@ DROP FUNCTION collect_childs_func(dept_id INTEGER, ancestry CHARACTER VARYING(25
 
 因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
 如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。
+
+
+## 参考资料
+
+- http://www.cnblogs.com/yuyang-DataAnalysis/archive/2013/03/25/2981154.html
+- http://www.postgresql.org/docs/9.3/static/functions.html
+- http://www.postgresql.org/docs/9.1/static/sql-createaggregate.html
+- http://www.felixgers.de/teaching/sql/sql_custom_aggregate.html
+- http://www.cottinghams.com/david/aggregatePlPerl.shtml

@@ -1,0 +1,133 @@
+---
+layout: post
+title: "Get tree data from DB by one sql"
+date: 2014-11-04 12:50:00 +0800
+comments: true
+categories: ["rails", "数据库"]
+---
+
+对于树形结构的数据存储，sheme 的设计通常很简单，难的是其查询是否简单、方便。
+这里我所选用的数据库为：PostgreSQL，版本为：`9.3.5`。
+
+## 数据结构设计
+
+对于树结构数据的存储，如一个企业的部门，我们通常采用以下的 scheme 来存储数据：
+
+```sql
+   Column   |            Type             |                        Modifiers
+------------+-----------------------------+----------------------------------------------------------
+ id         | integer                     | not null default nextval('departments_id_seq'::regclass)
+ name       | character varying(255)      |
+ parent_id  | integer                     |
+```
+
+理论上，这样的设计可以支持无限级，但，这里我不针对这种设计做讨论。
+
+## ancestry，a rails gem
+
+官方的一句话介绍
+
+> Organise ActiveRecord model into a tree structure
+
+Ruby 已经有一些专门针对树形结构数据的 Gem，上 `Ruby Toolbox` 即可搜到一堆。<br />
+因为公司项目里采用了 [ancestry](https://github.com/stefankroes/ancestry)，所以我也只是分享我在这方面的实践。
+
+用了 ancestry 后，表的 scheme 变成：
+
+```
+   Column   |            Type             |                        Modifiers
+------------+-----------------------------+----------------------------------------------------------
+ id         | integer                     | not null default nextval('departments_id_seq'::regclass)
+ name       | character varying(255)      |
+ ancestry   | character varying(255)      |
+Indexes:
+    "departments_id_pkey" PRIMARY KEY, btree (id)
+    "departments_ancestry" btree (ancestry)
+```
+
+```
+  id  |     name     | ancestry
+------+--------------+----------
+    1 | root        |
+    2 | 产品研发中心  | 1
+    5 | 研发部       | 1/2
+    6 | 产品部       | 1/2
+   11 | 运营部       | 1/2
+   12 | 内容开发中心  | 1
+   13 | 内容部       | 1/12
+   15 | 视频部       | 1/12
+   16 | 行政中心     | 1
+   19 | 财务部       | 1/16
+   21 | 人力资源部   | 1/16
+   25 | 行政部      | 1/16
+    8 | 品牌市场中心 | 1
+```
+
+用字符串类型的 `ancestry` 字段类替代常用的 `parent_id`，用以说明它从根结点到它的直接父结点的路径。 例如：
+id 为 11 的记录，ancestry 的值为 `1/2`，它的父结点的路径为：`root/产品研发中心`。
+
+使用这种规则，你可以很方便地查询一些数据，如产品研发中心这个节点下面的所有子结点：
+
+```sql
+SELECT id, name FROM departments WHERE ancestry LIKE '1/%'
+```
+
+`ancestry` 提供了一些好用的函数，让你能够直接做一些数据查询。[乖，往这里走](https://github.com/stefankroes/ancestry#navigating-your-tree)
+
+## 一次查询
+
+而对于一次性以一个结构化的形式，将一个企业的所有部门查询出来，则并没有提供一个良好的接口。<br/>
+虽然我们一次性可以把一个企业所有的部门从数据库里查出来，然后在业务代码这边对这组数据进行转换成结构化的数据。 类似下面的结构：
+
+```json
+{
+    id: 1,
+    name: "root",
+    children: [
+        { id: 2, name: "产品研发中心", children: [{...},{...}] },
+        { id: 12, name: "内容开发中心", children: [{...},{...}] }
+    ]
+}
+```
+
+或者，在业务代码这边利用递归的方式去得到，但是这样终归感觉有点不舒服，你在 log 里面就会看到一整个页面的 SQL 查询。
+
+实际上，我们可以在数据库里创建一个函数，让其能够去收集它的子节点数据，我们就能够一次性就得到上面所讲的数据结构。
+
+虽然其原理也是递归运算，但是这个事情是数据库去做，单纯从性能上来讲肯定要快些。
+
+{% include_code 20141104/select_subtree.sql %}
+
+通过`psql -d dbname`打开一个 session，然后执行上面的代码，然后通过下面的SQL语句即可实现（项目里的 departments 表实际还有一个 `client_id` 字段）：
+
+```sql
+SELECT id, name, collect_childs_func(id, NULL) AS children FROM departments WHERE client_id = 1 AND ancestry IS NULL;
+```
+
+得到的结果差不多是下面这样子的：
+
+```
+id       | 1
+name     | root
+children | [{ "id": 2, "name": "产品研发中心", "children":[{ "id": 5, "name": "研发部", "children":[]},{ "id": 6, "name": "产品部", "children":[]},{ "id": 11, "name": "运营部", "children":[]}]},{ "id": 8, "name": "品牌市场中心", "children":[]},{ "id": 12, "name": "内容开发中心", "children":[{ "id": 13, "name": "内容部", "children":[]},{ "id": 15, "name": "视频部", "children":[]}]},{ "id": 16, "name": "行政中心", "children":[{ "id": 19, "name": "财务部", "children":[]},{ "id": 21, "name": "人力资源部", "children":[]},{ "id": 25, "name": "行政部", "children":[]},{ "id": 6237, "name": "新增部门", "children":[]},{ "id": 6238, "name": "新增部门", "children":[]}]},{ "id": 31, "name": "体验客户", "children":[]},{ "id": 2597, "name": "专家组", "children":[]},{ "id": 5846, "name": "测试部门", "children":[]},{ "id": 6390, "name": "质检部门", "children":[{ "id": 6391, "name": "质检一组", "children":[]}]}]
+```
+
+得到的 children 是一个字符串类型，只需要简单 parse 一下，或者直接返回给客户端即可。
+
+**删除**
+
+```
+DROP FUNCTION collect_childs_func(dept_id INTEGER, ancestry CHARACTER VARYING(255))
+```
+
+## 应用到 production
+
+因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
+如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。
+
+## 后话
+
+像我这种在一开始接触 web 开发就用 rails 框架的人，在相当长的一段时间里面，（从现在看来）思维方式很容易被限定在 rails 的框架里。
+包含代码的组织方式、还有数据库一般只用它默认提供的东西，否则需要的额外的特殊的逻辑就想尽一切办法在 ruby 里实现。
+
+计算机系统，是为人服务而生的。

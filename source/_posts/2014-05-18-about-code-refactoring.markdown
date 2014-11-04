@@ -3,7 +3,7 @@ layout: post
 title: "Code Refactoring"
 date: 2014-05-18 17:46:10 +0800
 comments: true
-categories: [bullsh]
+categories: ["扯淡"]
 ---
 
 无论是代码的编写者还是阅读者，对于一段程序本身就有很强的主观性。<br>

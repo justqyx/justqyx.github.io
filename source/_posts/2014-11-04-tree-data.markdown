@@ -6,12 +6,12 @@ comments: true
 categories: ["rails", "数据库"]
 ---
 
-对于树形结构的数据存储，sheme 的设计通常很简单，难的是其查询是否简单、方便。
+对于树形结构的数据存储，scheme 的设计通常很简单，难的是其查询是否简单、方便。<br/>
 这里我所选用的数据库为：PostgreSQL，版本为：`9.3.5`。
 
 ## 数据结构设计
 
-对于树结构数据的存储，如一个企业的部门，我们通常采用以下的 scheme 来存储数据：
+对于树形结构数据的存储，如一个企业的部门，scheme 通常设计成这样子：
 
 ```sql
    Column   |            Type             |                        Modifiers
@@ -29,10 +29,10 @@ categories: ["rails", "数据库"]
 
 > Organise ActiveRecord model into a tree structure
 
-Ruby 已经有一些专门针对树形结构数据的 Gem，上 `Ruby Toolbox` 即可搜到一堆。<br />
-因为公司项目里采用了 [ancestry](https://github.com/stefankroes/ancestry)，所以我也只是分享我在这方面的实践。
+RUBY 有几个专门处理树形结构的 GEM，上 [RUBY TOOLBOX](https://www.ruby-toolbox.com/projects/ancestry) 一搜就可知道有哪些。<br/>
+因为公司项目里采用了 [ancestry](https://github.com/stefankroes/ancestry)，所以这里也只是分享在这方面的实践。
 
-用了 ancestry 后，表的 scheme 变成：
+采用 ancestry 后，我们的表 scheme 变成：
 
 ```
    Column   |            Type             |                        Modifiers
@@ -44,6 +44,8 @@ Indexes:
     "departments_id_pkey" PRIMARY KEY, btree (id)
     "departments_ancestry" btree (ancestry)
 ```
+
+这是一些 Demo Data： 
 
 ```
   id  |     name     | ancestry
@@ -63,8 +65,8 @@ Indexes:
     8 | 品牌市场中心 | 1
 ```
 
-用字符串类型的 `ancestry` 字段类替代常用的 `parent_id`，用以说明它从根结点到它的直接父结点的路径。 例如：
-id 为 11 的记录，ancestry 的值为 `1/2`，它的父结点的路径为：`root/产品研发中心`。
+用字符串类型的 ancestry 字段类替代常用的 parent_id，用以说明它从根结点到它的直接父结点的路径。<br/>
+例如：id 为 11 的记录，ancestry 的值为 `1/2`，它的父结点的路径为：`root/产品研发中心`。
 
 使用这种规则，你可以很方便地查询一些数据，如产品研发中心这个节点下面的所有子结点：
 
@@ -72,40 +74,46 @@ id 为 11 的记录，ancestry 的值为 `1/2`，它的父结点的路径为：`
 SELECT id, name FROM departments WHERE ancestry LIKE '1/%'
 ```
 
-`ancestry` 提供了一些好用的函数，让你能够直接做一些数据查询。[乖，往这里走](https://github.com/stefankroes/ancestry#navigating-your-tree)
+ancestry 提供了一些好用的函数，让你能够直接做一些数据查询。[乖，点这里](https://github.com/stefankroes/ancestry#navigating-your-tree)
 
 ## arrange_serializable
 
-ancestry 提供的 `arrange_serializable` 可以在业务代码这边对拿到的数据进行转换成我们实际所需要的数据结构。
+ancestry 提供的 `arrange_serializable` 方法，可以将查询出来的数据，转换成数据结构的数据。
 
 ```ruby
 Department.where(client_id: 1).arrange_serializable
 ```
 
 ```json
-{
+[{
     id: 1,
     name: "root",
     children: [
         { id: 2, name: "产品研发中心", children: [{...},{...}] },
         { id: 12, name: "内容开发中心", children: [{...},{...}] }
     ]
+},
+{
+  #...
 }
+]
 ```
 
 ## 使用数据库函数实现
 
-实际上，我们可以在数据库里创建一个函数（），让其能够去收集它的子节点数据（递归查询），我们就能够一次性就得到上面所讲的数据结构。
+除了上面 ancestry 所提供的方法，我们还可以在数据库里创建 `FUNCTION`，让其能够去收集一个结点的子结点的数据。<br/>
+使用 `PL/pgSQL` 脚本，代码如下：
 
 {% include_code 20141104/select_subtree.sql %}
 
-通过`psql -d dbname`打开一个 session，然后执行上面的代码，然后通过下面的SQL语句即可实现（项目里的 departments 表实际还有一个 `client_id` 字段）：
+通过 `psql -d dbname` 打开一个会话（即连接到数据库），执行上面的代码，然后就可以使用我们刚创建的 `FUNCTION` 了
+如下（项目里的 departments 表实际还有一个 `client_id` 字段）：
 
 ```sql
 SELECT id, name, collect_childs_func(id, NULL) AS children FROM departments WHERE client_id = 1 AND ancestry IS NULL;
 ```
 
-得到的结果差不多是下面这样子的：
+出来的结果大概是这样子的：
 
 ```
 id       | 1
@@ -121,14 +129,7 @@ children | [{ "id": 2, "name": "产品研发中心", "children":[{ "id": 5, "nam
 DROP FUNCTION collect_childs_func(dept_id INTEGER, ancestry CHARACTER VARYING(255))
 ```
 
-** 应用到 production **
+**应用到 production**
 
 因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
 如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。
-
-## 后话
-
-像我这种在一开始接触 web 开发就用 rails 框架的人，在相当长的一段时间里面，（从现在看来）思维方式很容易被限定在 rails 的框架里。
-包含代码的组织方式、还有数据库一般只用它默认提供的东西，否则需要的额外的特殊的逻辑就想尽一切办法在 ruby 里实现。
-
-计算机系统，是为人服务而生的。

@@ -3,7 +3,7 @@ layout: post
 title: "Buy a Mechanical Keyboard"
 date: 2014-05-18 17:04:58 +0800
 comments: true
-categories: ["扯淡"]
+categories: ["che_dan"]
 ---
 
 在长达一个月的犹豫纠结里，上周终于下定决心在京东上买了[斐尔可（FILCO） FKBN87M/EB2 Majestouch 2「87圣手二代」黑色茶轴 机械键盘](http://item.jd.com/959148.html)。

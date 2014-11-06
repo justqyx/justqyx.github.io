@@ -3,7 +3,7 @@ layout: post
 title: "Reading"
 date: 2013-08-12 10:13
 comments: true
-categories: ["扯淡"]
+categories: ["che_dan"]
 ---
 
 - [别把自己当个超人——给初级程序员的一点小小建议](http://www.ituring.com.cn/article/1361)

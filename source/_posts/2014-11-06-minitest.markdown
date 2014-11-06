@@ -1,0 +1,65 @@
+---
+layout: post
+title: "Stub and Mock in Minitest"
+date: 2014-11-06 20:32:48 +0800
+comments: true
+categories: ["ruby"]
+---
+
+Stubs 和 Mocks 在写测试时，经常会需要用到，
+而 minitest（5.4.x） 文档在这两个地方有点难懂。
+
+官方的对 Stub 的实现很弱，基本不可用，
+有个 *minitest-stub_any_instance* 扩展可以满足我们的需要，
+
+```
+gem install minitest-stub_any_instance -v '1.0.0'
+```
+
+来看例子：
+
+```ruby
+require "minitest/autorun"
+require "minitest/stub_any_instance"
+
+class Book
+  def initialize name; @name = name; end;
+  def name; @name; end
+end
+
+describe Book do
+  it "stub example" do
+    Book.stub_any_instance :name, "Computer Systems" do
+      book = Book.new "SICP"
+      book.name.must_equal "Computer Systems"
+    end
+  end
+end
+```
+
+而对于 mock，官方的实现不错，下面是一个例子：
+
+```ruby
+require "minitest/autorun"
+
+class Book
+  def initialize name; @name = name; end;
+  def name; @name; end
+end
+
+describe Book do
+  it "mock example" do
+    book = MiniTest::Mock.new
+    book.expect :name, "Computer Systems"
+    book.expect :price, 100
+    book.expect :can_buy?, false, [80]
+
+    book.name.must_equal "Computer Systems"
+    book.price.must_equal 100
+    book.can_buy?(80)
+    book.verify
+  end
+end
+```
+
+[官方的文档](http://docs.seattlerb.org/minitest/Minitest/Mock.html#method-i-expect)里有 `expect` 和 `verify` 这两个函数的文档。

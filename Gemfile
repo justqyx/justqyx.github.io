@@ -3,7 +3,7 @@ source 'http://ruby.taobao.org'
 
 group :development do
   gem 'thin'
-  gem 'rake', '~> 10.2.2'
+  gem 'rake', '~> 10.3.2'
   gem 'jekyll', '~> 0.12'
   gem 'rdiscount', '~> 2.0.7'
   gem 'pygments.rb', '~> 0.3.4'

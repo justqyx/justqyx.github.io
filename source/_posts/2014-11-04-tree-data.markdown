@@ -6,12 +6,12 @@ comments: true
 categories: ["rails", "database"]
 ---
 
-对于树形结构的数据存储，scheme 的设计通常很简单，难的是其查询是否简单、方便。<br/>
+对于树形结构的数据存储，schema 的设计通常很简单，难的是其查询是否简单、方便。<br/>
 这里我所选用的数据库为：PostgreSQL，版本为：`9.3.5`。
 
 ## 数据结构设计
 
-对于树形结构数据的存储，如一个企业的部门，scheme 通常设计成这样子：
+对于树形结构数据的存储，如一个企业的部门，schema 通常设计成这样子：
 
 ```sql
    Column   |            Type             |                        Modifiers
@@ -32,7 +32,7 @@ categories: ["rails", "database"]
 RUBY 有几个专门处理树形结构的 GEM，上 [RUBY TOOLBOX](https://www.ruby-toolbox.com/projects/ancestry) 一搜就可知道有哪些。<br/>
 因为公司项目里采用了 [ancestry](https://github.com/stefankroes/ancestry)，所以这里也只是分享在这方面的实践。
 
-采用 ancestry 后，我们的表 scheme 变成：
+采用 ancestry 后，我们的表 schema 变成：
 
 ```
    Column   |            Type             |                        Modifiers

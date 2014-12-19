@@ -3,7 +3,7 @@ layout: post
 title: "Crontab"
 date: 2013-10-18 09:39
 comments: true
-categories: ["deploy"]
+categories: ["tool"]
 ---
 
 ## 需求

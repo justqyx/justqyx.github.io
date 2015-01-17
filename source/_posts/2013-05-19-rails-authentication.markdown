@@ -14,7 +14,7 @@ categories: [rails]
 天啊，以前的日子究竟都在干什么呀！
 
 
-## Idear
+## 想法
 
 一个小小的web app，分为前台和后台。前台的页面都不需要登录，后台的页面需要登录。
 
@@ -42,7 +42,7 @@ categories: [rails]
 {% include_code authentication/base_controller.rb %}
 
 
-## Epilogue
+## 总结
   
   现在有一些关于登录校验一些不错的插件，最熟悉的莫过于`devise`。
 

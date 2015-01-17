@@ -84,7 +84,7 @@ config.vm.network :forwarded_port, guest: 3000, host: 3000
     up              starts and provisions the vagrant environment
     version         prints current and latest Vagrant version
 
-### Relative Materials
+### References
 
 - [Vagrant Doc](https://docs.vagrantup.com/v2/getting-started/index.html)
 - [Vagrant Boxes](http://www.vagrantbox.es/)

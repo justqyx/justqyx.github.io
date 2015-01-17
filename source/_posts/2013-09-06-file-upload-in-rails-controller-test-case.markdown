@@ -56,6 +56,6 @@ end
 
 ```
 
-# 参考
+# References
 
 [How I test a file upload in Rails 3](http://edgar.tumblr.com/post/2841931378/how-i-test-a-file-upload-in-rails-3)

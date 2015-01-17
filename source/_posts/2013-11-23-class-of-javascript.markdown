@@ -199,7 +199,7 @@ Javascript 就是弱化了 class 的概念，但是在现代的编程中，随�
 出现了许多好用的东西，如 jQuery，还有许多的 MVC框架，如：Backbone, EmberJS, AugularJS。
 
 
-## 推荐阅读
+## References
 
 - [Javascript继承机制的设计思想](http://www.ruanyifeng.com/blog/2011/06/designing_ideas_of_inheritance_mechanism_in_javascript.html)
 - [构造函数的继承](http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html)

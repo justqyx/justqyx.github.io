@@ -3,7 +3,7 @@ layout: post
 title: Sass learning (revised)
 date: 2013-07-29 23:01
 comments: true
-categories: [fontend]
+categories: ['CSS']
 ---
 
 ## 为什么写？

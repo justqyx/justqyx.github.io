@@ -1,9 +1,9 @@
 ---
 layout: post
-title: Javascript 类、原型、对象与继承
+title: JavaScript Prototype
 date: 2013-11-23 10:36
 comments: true
-categories: [fontend]
+categories: ["JavaScript"]
 ---
 
 虽然 Javascript 一开始就为浏览器而生，但是从现在开始，请不要把 Javascript 和浏览器联系起来，

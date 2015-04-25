@@ -3,7 +3,7 @@ layout: post
 title: "Hello World"
 date: 2013-05-18 19:58
 comments: true
-categories: ["che_dan"]
+categories: ["Thinking"]
 ---
 
 从今天起，就在这安家了。

@@ -6,8 +6,6 @@ comments: true
 categories: ["rails"]
 ---
 
-本文旨在深入剖析 SimpleForm(v3.1.0) 的内部是如何工作的，并不是使用教程。
-
 ## Table of Content
 
 - 简单介绍 SimpleForm 做了什么事情
@@ -131,7 +129,7 @@ end
 
 至此， SimpleForm 最基本的工作流我们已经掌握了，接下来，让我们深入 Wrapper 的内部。
 
-## 不对，我们漏了一个很重要的点
+## 从 SimpleForm.setup 开始
 
 ```ruby
 SimpleForm.setup do |config|

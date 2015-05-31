@@ -9,9 +9,9 @@ categories: ["rails"]
 ## Table of Content
 
 - 简单介绍 SimpleForm 做了什么事情
-- 如何编写一个简单的 Wrapper
+- 如何编写一个简单的 wrapper
 - 从 simple_form_for 这个入口了解 SimpleForm 的基本工作原理
-- 深入了解 Wraper 的实现
+- 深入了解 wrapper 的实现
 
 ## 简介
 
@@ -123,8 +123,8 @@ end
 
 这个方法里做了三件事：
 
-1. 找到 attribute 对于的控件（如 String Input, File Input, etc）
-2. 找到对应的 wrapper （还记得上面的代码中在 simple_form_for 这行代码里我们指定了 wrapper: :horizontal_form 吗?）
+1. 找到 attribute 对应的控件（如 String Input, File Input, etc）
+2. 找到对应的 wrapper（如 config.wrapper :horizontal ...）
 3. 让 wrapper 来将表单控件进行包裹式的渲染，得到我们最终想要的效果
 
 至此， SimpleForm 最基本的工作流我们已经掌握了，接下来，让我们深入 Wrapper 的内部。

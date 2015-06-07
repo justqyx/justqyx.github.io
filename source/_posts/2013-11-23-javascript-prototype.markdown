@@ -3,7 +3,7 @@ layout: post
 title: JavaScript Prototype
 date: 2013-11-23 10:36
 comments: true
-categories: ["JavaScript"]
+categories: ['前端']
 ---
 
 虽然 Javascript 一开始就为浏览器而生，但是从现在开始，请不要把 Javascript 和浏览器联系起来，

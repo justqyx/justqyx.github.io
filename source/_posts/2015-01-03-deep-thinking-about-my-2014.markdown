@@ -3,7 +3,7 @@ layout: post
 title: "2014 沉思录"
 date: 2015-01-03 11:30:51 +0800
 comments: true
-categories: ["Thinking"]
+categories: ["思考"]
 ---
 
 这是我第一次在博客里写总结，在以往的几年里，都是写了然后发布在QQ空间里，都是以“XXXX 沉思录”命名。<br/>

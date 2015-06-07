@@ -3,7 +3,7 @@ layout: post
 title: "审视自己"
 date: 2015-04-25 10:33:03 +0800
 comments: true
-categories: ["Thinking"]
+categories: ["思考"]
 ---
 
 ## 工作两年零一个月

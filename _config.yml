@@ -94,7 +94,7 @@ disqus_short_name: yuanxin
 disqus_show_comment_count: true
 
 # Google Analytics
-google_analytics_tracking_id: UA-65882934-1
+google_analytics_tracking_id:
 
 # Facebook Like
 facebook_like: false

@@ -1,5 +1,5 @@
 GEM
-  remote: http://ruby.taobao.org/
+  remote: https://ruby.taobao.org/
   specs:
     RedCloth (4.2.9)
     chunky_png (1.2.5)
@@ -75,4 +75,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   1.10.4
+   1.10.5

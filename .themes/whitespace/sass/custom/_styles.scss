@@ -122,3 +122,19 @@ article {
 aside {
 	display: none;
 }
+
+@media only screen and (min-width: 992px) {
+    article blockquote {
+        font-size: 1em;
+        font-style: normal;
+        background: #f9f9f9;
+        border-left: 10px solid #ccc;
+        margin: 1.5em 0;
+        padding: 0.5em 10px;
+        color: #888;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+}

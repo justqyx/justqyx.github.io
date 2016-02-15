@@ -3,16 +3,20 @@ layout: post
 title: 快速排序
 date: 2016-02-14 17:38:13 +0800
 comments: true
-categories: ["排序"]
+categories: []
 ---
 
 快速排序使用分治法（Divide and conquer）策略来把一个序列（list）分为两个子序列（sub-lists）。
 
-步骤为：
+## 算法步骤
+
+**递归法**
 
 1. 从数列中挑出一个元素，称为基准（pivot）
 2. 重新排序数列，所有比 pivot 小的元素摆放在 pivot 左边，大的摆放在 pivot 右边。这个操作称为分割（partition）
 3. 递归地把 pivot 两边的子数列按 1 和 2 步骤继续排序
+
+要点：通过 pivot 不断地将数列分割成两个数列，达到分治的目的。
 
 ## 时间复杂度
 
@@ -23,6 +27,10 @@ categories: ["排序"]
 空间复杂度，不同实现不同。
 
 快排在实践中，执行速度明显比其他具有相同时间复杂度的排序算法快。
+
+## gif 演示图
+
+{% img /downloads/images/Quicksort-example.gif %}
 
 ## 实现
 
@@ -36,7 +44,7 @@ def quick_sort arr
 end
 ```
 
-C 语言实现（递归）
+**C 实现（递归）**
 
 ```c
 void swap(int *x, int *y) {
@@ -51,41 +59,26 @@ void quick_sort(int arr[], int start, int end) {
     }
 
     int pivot = arr[end];
+    int left = start, right = end - 1;
 
-    int left_index = start;
-    int right_index = end - 1;
-
-    while (left_index < right_index) {
-        // 找到比 pivot 大的元素
-        while (arr[left_index] < pivot && left_index < right_index) {
+    while (left < right) {
+        while (arr[left] < pivot && left < right)
             left++;
-        }
-
-        // 找到比 pivot 小的元素
-        while (arr[right_index] >= pivot && left_index < right_index) {
-            right--;
-        }
-
-        // 交换
-        swap(&arr[left_index], &arr[right_index]);
+        while (arr[right] >= pivot && left < right)
+            right++;
+        swap(&arr[left], &arr[right]);
     }
 
-    // 如果 pivot 较小，则放至最左边
-    if (arr[left_index] >= arr[end]) {
-        swap(&arr[left_index], &arr[end]);
+    if (arr[left] >= arr[end]) {
+        swap(&arr[left], &arr[end]);
     } else {
         left++;
     }
 
-    quick_sort(arr, start, left-1);
-    quick_sort(arr, left + 1, end);
+    quick_sort(arr, start, left - 1);
+    quick_sort(arr, left+1, end);
 }
 ```
-
-## gif 演示图
-
-{% img /downloads/images/Quicksort-example.gif %}
-
 
 ## 参考
 

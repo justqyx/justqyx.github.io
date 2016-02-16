@@ -63,7 +63,7 @@ end
 load './questions.qm'
 ```
 
-编译语言里的 Parse Phase，最终都是为了得到 AST（抽象语法树）这样类型的数据结构，所以，我们
+编译的 Parse Phase，最终都是为了得到 AST（抽象语法树）这样类型的数据结构，所以，我们
 先定义我们的数据结构：`Question` 和 `Answer`
 
 ``` ruby

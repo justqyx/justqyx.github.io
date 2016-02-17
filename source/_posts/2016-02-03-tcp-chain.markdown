@@ -41,7 +41,7 @@ categories: ["cs"]
 
 **Persistent**
 
-与 HTTP/1.0+ 的 Keep-Alive 连接不同，HTTP/1.1 之久连接在默认情况下是激活的，
+与 HTTP/1.0+ 的 Keep-Alive 连接不同，HTTP/1.1 的连接在默认情况下是激活的，
 除非特别指明，否则 HTTP/1.1 假定所有连接都是持久的。要在事务处理结束之后将
 连接关闭，HTTP/1.1 应用程序必须向报文中显示地增加一个 `Connection: Close` 首部。
 这是与以前的 HTTP 协议版本很重要的区别，在以前的版本中，Kepp-Alive 连接要么是可选的，

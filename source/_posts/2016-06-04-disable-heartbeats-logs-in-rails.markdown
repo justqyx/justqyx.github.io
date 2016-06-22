@@ -58,3 +58,47 @@ end
 ```
 
 Done.
+
+---------------------------------
+
+**2016-06-21 更新**
+
+上面那段代码，在生产环境跑仍然会有问题，这里提供使用 middleware 的方式解决
+
+```
+# lib/quiet_heartbeats_middleware.rb
+class QuietHeartbeatsMiddleware
+  PATH_PREFIX_REGEX = /\A(\/heartbeats)/
+
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    if env['PATH_INFO'] =~ PATH_PREFIX_REGEX
+      [200, { 'Context-Type' => 'text/plain' }, ['']]
+      # 如果你仅仅只是想不打印 log，那么可以这样写
+      # Rails.logger.silence do
+      #   @app.call(env)
+      # end
+    else
+      @app.call(env)
+    end
+  end
+end
+```
+
+然后在 `config/application.rb` 初始化
+
+```
+module Your_App
+  class Application < Rails::Application
+    # ...
+
+    require 'quiet_heartbeats_middleware'
+    config.middleware.insert_before Rack::Lock, QuietHeartbeatsMiddleware
+
+    # ...
+  end
+end
+```

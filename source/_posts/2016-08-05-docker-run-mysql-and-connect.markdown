@@ -1,7 +1,23 @@
-# 使用 docker 来运行 MySQL
+---
+layout: post
+title: "Run MySQL on Docker machine"
+date: 2016-08-05 23:59:59 +0800
+comments: true
+categories: ['docker']
+---
+
+## 使用 docker 来运行 MySQL
+
+把 Docker Container 的 3306 端口映射到宿主机的端口 3306，这样我们的计算机就可以连接到虚拟机里的 3006 端口，
+从而能够连接到 Docker Container 里的 MySQL 服务。
 
 ```
-docker run --name djistore_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql:5.6.27 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+docker run --name djistore_mysql \
+           -p 3306:3306 \
+           -e MYSQL_ROOT_PASSWORD=root
+           -d mysql:5.6.27 \
+           --character-set-server=utf8mb4 \
+           --collation-server=utf8mb4_unicode_ci
 ```
 
 连接到该 MySQL 服务

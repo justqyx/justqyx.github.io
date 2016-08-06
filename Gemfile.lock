@@ -11,7 +11,7 @@ GEM
       sass (~> 3.1)
     daemons (1.1.9)
     directory_watcher (1.4.1)
-    eventmachine (1.0.3)
+    eventmachine (1.2.0.1)
     fast-stemmer (1.0.1)
     fssm (0.2.9)
     haml (3.1.7)
@@ -75,4 +75,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   1.10.5
+   1.12.5

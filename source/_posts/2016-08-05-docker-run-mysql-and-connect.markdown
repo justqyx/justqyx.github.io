@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Run MySQL on Docker machine"
-date: 2016-08-05 23:59:59 +0800
+date: 2016-08-05 23:59:58 +0800
 comments: true
 categories: ['docker']
 ---

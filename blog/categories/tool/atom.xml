@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: tool | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/tool/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2016-08-06T16:40:31+08:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[vagrant]]></title>
+    <link href="http://www.justqyx.me/blog/2014/12/19/vagrant/"/>
+    <updated>2014-12-19T14:42:37+08:00</updated>
+    <id>http://www.justqyx.me/blog/2014/12/19/vagrant</id>
+    <content type="html"><![CDATA[<blockquote><p>Create and configure lightweight, reproducible, and portable development environments.<br/>
+创建和配置轻量级的、可复制的和便于携带的开发环境。</p></blockquote>
+
+<p><a href="https://www.vagrantup.com/">Vagrant</a> 是一个工具，可以快速地构建、重建一个干净的或配置好的虚拟机环境，以供开发和测试。 <br/>
+同时还可以将虚拟机打包，并复制分发给其他人使用，这样能保证所有开发环境是完全一致，<br/>
+无论他们是在 Linux 还是 Windows 下，还是 OSX 下。</p>
+
+<h2>基本操作</h2>
+
+<p>在项目根目录下，通过 <code>vagrant init {box_name}</code> 可初始化一切基本的配置，并再通过 <code>vagrant up</code> 即可启动虚拟机。<br/></p>
+
+<p>至此，就拥有了一个只与当前项目相关的完整的虚拟机环境。例如，如果你选择的是 ubuntu 的话，<br/>
+那么你就拥有了一个 ubuntu 环境，通过<code>vagrant ssh</code>即可登陆到虚拟机。</p>
+
+<p>另外，它还会自动地把项目目录挂载到虚拟机的 <code>/vagrant</code> 目录下，<br/>
+你当前项目目录下所有目录文件修改，都会实时反馈到虚拟机里。</p>
+
+<p>例如，我们正在开发一个 rails 项目，那么我们可以在虚拟机里，启动一个 rails server，<br/>
+并通过在 Vagrantfile 配置文件里设置端口映射，我们就可以在本机的浏览器直接访问虚拟机里的服务了，<br/>
+而写代码，则可以在我们的主机里写，想想还是挺鸡冻的 😄，Mac 用户可直接无视。</p>
+
+<pre><code class="ruby"># 将本机的3000端口映射到虚拟机里的3000端口
+config.vm.network :forwarded_port, guest: 3000, host: 3000
+</code></pre>
+
+<p>当虚拟机的环境被搞烂了，我们还可以<br/>
+通过 <code>vagrant destroy</code> 即可删除 box，即虚拟机。<br/>
+通过 <code>vagrant up</code> 即可重新启动，并载入干净的 box。</p>
+
+<p>当我们在调试 chef app 的时候，经常就需要这么干！这整个过程一般在一两分钟内即可完成。<br/>
+并且如果选择 Virtual Box 作为虚拟机平台的时候，我们还可以禁用掉了窗口，这酸爽啊！</p>
+
+<pre><code class="ruby"># 在 Vagrantfile 配置文件里注释掉这几行代码
+# config.vm.provider :virtualbox do |vb|
+#   # Don't boot with headless mode
+#   vb.gui = true
+#
+#   # Use VBoxManage to customize the VM. For example to change memory:
+#   vb.customize ["modifyvm", :id, "--memory", "1024"]
+# end
+</code></pre>
+
+<p>下面是 vagrant 的全部命令，通过 vagrant list-commands 即可获得。</p>
+
+<pre><code>➜  chef_pratice git:(master) vagrant list-commands
+Below is a listing of all available Vagrant commands and a brief
+description of what they do.
+
+box             manages boxes: installation, removal, etc.
+connect         connect to a remotely shared Vagrant environment
+destroy         stops and deletes all traces of the vagrant machine
+docker-logs     outputs the logs from the Docker container
+docker-run      run a one-off command in the context of a container
+global-status   outputs status Vagrant environments for this user
+halt            stops the vagrant machine
+help            shows the help for a subcommand
+init            initializes a new Vagrant environment by creating a Vagrantfile
+list-commands   outputs all available Vagrant subcommands, even non-primary ones
+login           log in to HashiCorp's Atlas
+package         packages a running vagrant environment into a box
+plugin          manages plugins: install, uninstall, update, etc.
+provision       provisions the vagrant machine
+push            deploys code in this environment to a configured destination
+rdp             connects to machine via RDP
+reload          restarts vagrant machine, loads new Vagrantfile configuration
+resume          resume a suspended vagrant machine
+rsync           syncs rsync synced folders to remote machine
+rsync-auto      syncs rsync synced folders automatically when files change
+share           share your Vagrant environment with anyone in the world
+ssh             connects to machine via SSH
+ssh-config      outputs OpenSSH valid configuration to connect to the machine
+status          outputs status of the vagrant machine
+suspend         suspends the machine
+up              starts and provisions the vagrant environment
+version         prints current and latest Vagrant version
+</code></pre>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://docs.vagrantup.com/v2/getting-started/index.html">Vagrant Doc</a></li>
+<li><a href="http://www.vagrantbox.es/">Vagrant Boxes</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Crontab]]></title>
+    <link href="http://www.justqyx.me/blog/2013/10/18/crontab/"/>
+    <updated>2013-10-18T09:39:00+08:00</updated>
+    <id>http://www.justqyx.me/blog/2013/10/18/crontab</id>
+    <content type="html"><![CDATA[<h2>需求</h2>
+
+<p>盛大云的服务器，其时间每隔一段时间后，便会慢于世界标准时间，因此需要每天定时去更新服务器的时间。</p>
+
+<h2>方案</h2>
+
+<p>这种采用 <code>cron</code> 来做是最合适的，<a href="http://mouse-lin.github.io/system/2013/08/09/crontab/">这里有简单的介绍</a></p>
+
+<p>1、NTP 从授时服务器获取时间</p>
+
+<pre><code> sudo ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>2、添加 crontab 任务</p>
+
+<pre><code> 02 12 * * * root ntpdate asia.pool.ntp.org
+
+ 59 23 * * * root ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>3、重启 crond</p>
+
+<pre><code> sudo service cron reload
+
+ sudo service cron restart
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

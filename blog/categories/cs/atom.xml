@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: cs | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/cs/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2016-08-06T16:40:31+08:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[TCP 链路是如何 Keep-Alive 的]]></title>
+    <link href="http://www.justqyx.me/blog/2016/02/03/tcp-chain/"/>
+    <updated>2016-02-03T13:51:50+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/02/03/tcp-chain</id>
+    <content type="html"><![CDATA[<p>之前一直没有搞明白，HTTP 链路（即 TCP 链路）是如何 Keep-Alive 的。
+这其实只是一个基础知识，只有知道与不知道的区别而已。</p>
+
+<h2>如何定义一条 TCP 连接</h2>
+
+<pre><code>&lt;源IP地址、源端口号、目的IP地址、目的端口号&gt;
+</code></pre>
+
+<p>这四个值一起唯一地定义了一条连接。两条不同的 TCP 连接不能拥有 4 个完全相同
+的地址组件值。</p>
+
+<h2>TCP 链路</h2>
+
+<p>数据从我们的计算机发出，在到达目标机器之前，需要经过许多其他结点。
+这其中的每一个结点，需要维护两个 TCP 连接对象，使其能够与上一个结点和下一个结点通讯，
+类似双向链表。</p>
+
+<p>于是，一条链路就这么形成了。</p>
+
+<p>一旦其中某个结点断开了连接，即移除了 TCP 连接对象，那么整条链路也就断开了，
+并以主动断开或主动探测或超时断开的机制，对整条链路的 TCP 连接对象进行回收。</p>
+
+<h2>TCP 连接是昂贵的</h2>
+
+<p>建立 TCP 连接需要首先建立起通讯链路，并完成三次握手，故建立 TCP 连接的操作是昂贵的。
+因此，以下依次出现的三种机制，是为了对 TCP 链路资源有更高效率的使用。</p>
+
+<p><strong>Keep-Alive</strong></p>
+
+<p>这是 HTTP/1.0 规范中增加的，但 HTTP/1.1 已经废弃。
+为的是在完成 HTTP 事务操作之后保持 TCP 连接不关闭，使得下一个请求发起时，不再需要重新建立 TCP 连接。</p>
+
+<p><strong>Persistent</strong></p>
+
+<p>与 HTTP/1.0+ 的 Keep-Alive 连接不同，HTTP/1.1 的连接在默认情况下是激活的，
+除非特别指明，否则 HTTP/1.1 假定所有连接都是持久的。要在事务处理结束之后将
+连接关闭，HTTP/1.1 应用程序必须向报文中显示地增加一个 <code>Connection: Close</code> 首部。
+这是与以前的 HTTP 协议版本很重要的区别，在以前的版本中，Kepp-Alive 连接要么是可选的，
+要么根本就不支持。</p>
+
+<p><strong>管道化连接</strong></p>
+
+<p>HTTP/1.1 允许在持久连接上可选地使用请求管道。这是相对于 Keep-Alive 连接的又一次性能优化。
+在响应到达之前，可以将多条请求放入队列。当第一条请求通过网络流向地球另一端的服务器时，
+第二条和第三条请求也可以开始发送了。在高时延网络条件下，这样做可以降低网络的环回时间，
+提高性能。</p>
+
+<p>无论是 Keep-Alive 还是 Persistent 还是管道，HTTP 客户端都必须做好所有可能出错的情况，
+因为在网络的世界里，每个结点都无法保证连接在那一刻是可用的，每个结点都可能随时关闭 TCP 连接。</p>
+
+<h2>参考</h2>
+
+<ul>
+<li>《HTTP 权威指南》</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Thread]]></title>
+    <link href="http://www.justqyx.me/blog/2014/12/30/thread/"/>
+    <updated>2014-12-30T18:44:05+08:00</updated>
+    <id>http://www.justqyx.me/blog/2014/12/30/thread</id>
+    <content type="html"><![CDATA[<h2>进程、线程</h2>
+
+<p>进程是指操作系统中正在运行的一个程序；线程是系统分配处理器时间的基本单元，或者说进程之类独立执行的一个单元。</p>
+
+<p>对于操作系统而言，其调度单元是线程。</p>
+
+<p>一个进程至少包括一个线程，通常将该线程称为主线程。进程从主线程的执行开始，进而创建一个或多个附加线程，这就是所谓的基于多线程的多任务。</p>
+
+<p>进程是对正在运行程序的一个抽象，是一组资源（处理器、内存以及I/O设备）的集合体，进程把资源集中到一块，而线程才是 CPU 调度的实体。</p>
+
+<p>进程与进程之间，内存空间是独立的，而线程与线程之间内存是共享的。</p>
+
+<p>在单处理器的系统中，多线程是按时间片方式运行，即并发；
+在多处理器的系统中，多个线程可以同时运行，即并行。</p>
+
+<h2>线程模型</h2>
+
+<ul>
+<li><p><strong>内核级别线程（kernel-level threads）</strong></p>
+
+<p>内核级别线程，是内核调度的基本单元，在每个进程中，至少存在一个内核级别线程。</p></li>
+<li><p><strong>用户级别线程（user-level threads）</strong></p>
+
+<p>用户进程自己实现的进程机制。在这种情况下，内核是不知道有多少线程存在的，同时线程上下文切换更快，而且在不支持多线程的操作系统上也能实现多线程。但是这种线程无法充分利用多处理器系统，如果进程中的一个线程执行阻塞的I/O请求，那么整个进程就会被阻塞。现在，大部分应用程序起来之后，其主线程就是一个用户级别的线程，它所能访问的资源是有限制的。</p></li>
+<li><p><strong>混合线程（hybrid threads）</strong></p>
+
+<p>混合线程，是内核级别线程和用户级别线程的混合体，提供了以上两种模型的优点，但带来很大的复杂性。</p></li>
+</ul>
+
+
+<p>另外，不得不提的是另一个模型：<strong>绿色线程</strong>。</p>
+
+<p>绿色线程是指有虚拟机（VM）调度的线程，而不是通过内核调度，所以绿色线程是用户级别的线程。</p>
+
+<h2>线程安全</h2>
+
+<p>  线程安全是多线程编程里的一个概念。一片代码段，当多个线程能以一种保证安全的方式同时操纵共享的数据结构时，那么这片代码段是线程安全的。</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Thread_(computing)">Thread</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Thread_safety">Thread Safety</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

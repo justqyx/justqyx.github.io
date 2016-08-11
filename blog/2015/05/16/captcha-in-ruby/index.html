@@ -9,7 +9,8 @@
   <meta name="author" content="邱源鑫">
 
   
-  <meta name="description" content="图片验证码的使用场景就不用说了，在这里分享一下我是如何做登录图片验证码的。 图片验证码的生成的简单流程 生成验证码字符 &ndash;> 生成图片验证码 [&ndash;> 使用] 第三步的意思是，当你拿到图片验证码时，看你的具体需求了，是直接随着 form 表单渲染， &hellip;">
+  <meta name="description" content="图片验证码的使用场景就不用说了，在这里分享一下我是如何做登录图片验证码的。 图片验证码的生成的简单流程 生成验证码字符 -> 生成图片验证码 [-> 使用] 第三步的意思是，当你拿到图片验证码时，看你的具体需求了，是直接随着 form 表单渲染，
+还是浏览器异步地请求图片验证码，或者其它什么的， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://justqyx.me/blog/2015/05/16/captcha-in-ruby">
+  <link rel="canonical" href="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
@@ -70,7 +71,7 @@
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:justqyx.me" />
+    <input type="hidden" name="q" value="site:www.justqyx.me" />
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
@@ -106,7 +107,7 @@
   
 
 
-<time datetime="2015-05-16T11:35:41+08:00" pubdate data-updated="true">2015-05-16 11:35:41</time>
+<time datetime="2015-05-16T11:35:41+08:00" pubdate data-updated="true"></time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -119,7 +120,7 @@
 
 <h2>图片验证码的生成的简单流程</h2>
 
-<p><code>生成验证码字符</code> &ndash;> <code>生成图片验证码</code> [&ndash;> <code>使用</code>]</p>
+<p><code>生成验证码字符</code> -> <code>生成图片验证码</code> [-> <code>使用</code>]</p>
 
 <p>第三步的意思是，当你拿到图片验证码时，看你的具体需求了，是直接随着 form 表单渲染，
 还是浏览器异步地请求图片验证码，或者其它什么的，反正无所谓了。</p>
@@ -137,7 +138,7 @@
 
 <p><strong>实现原理</strong></p>
 
-<p>simple_captcha2 基于数据库维护了一对 key &ndash;> value 数据，数据结构如下：</p>
+<p>simple_captcha2 基于数据库维护了一对 key -> value 数据，数据结构如下：</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -518,7 +519,7 @@
   
 
 
-<time datetime="2015-05-16T11:35:41+08:00" pubdate data-updated="true">2015-05-16 11:35:41</time>
+<time datetime="2015-05-16T11:35:41+08:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
@@ -532,7 +533,7 @@
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://justqyx.me/blog/2015/05/16/captcha-in-ruby/" data-via="yuanxQiu" data-counturl="http://justqyx.me/blog/2015/05/16/captcha-in-ruby/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/" >Tweet</a>
   
   
   
@@ -640,8 +641,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://justqyx.me/blog/2015/05/16/captcha-in-ruby/';
-        var disqus_url = 'http://justqyx.me/blog/2015/05/16/captcha-in-ruby/';
+        var disqus_identifier = 'http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/';
+        var disqus_url = 'http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/';
         var disqus_script = 'embed.js';
       
     (function () {

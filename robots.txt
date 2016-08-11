@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: http://justqyx.me/sitemap.xml
+Sitemap: http://www.justqyx.me/sitemap.xml

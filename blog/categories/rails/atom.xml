@@ -4,7 +4,7 @@
   <title><![CDATA[Category: rails | JustQyx]]></title>
   <link href="http://www.justqyx.me/blog/categories/rails/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2016-08-13T15:45:43+08:00</updated>
+  <updated>2016-08-13T18:03:34+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -12,6 +12,224 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-2]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/"/>
+    <updated>2016-08-13T17:48:30+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection</id>
+    <content type="html"><![CDATA[<p>本节将会阐述 ActionCable 浏览器端是如何建立连接、以及收发消息的。</p>
+
+<h2>Cable.Consumer</h2>
+
+<p>Cable.Consumer 维护了下面三个类的实例对象</p>
+
+<p>1、 Cable.Subscriptions</p>
+
+<blockquote><p>维护多个 subscription，是消息的发布者和消费者。</p></blockquote>
+
+<p>2、 Cable.Connection</p>
+
+<blockquote><p>维护与服务端的连接，给 subscription 提供基础的服务。</p></blockquote>
+
+<p>3、 Cable.ConnectionMonitor</p>
+
+<blockquote><p>用来监控连接的健康状态。</p></blockquote>
+
+<p><strong>具体源码如下</strong></p>
+
+<pre><code class="coffeescript">class Cable.Consumer
+  constructor: (@url) -&gt;
+    @subscriptions = new Cable.Subscriptions this
+    @connection = new Cable.Connection this
+    @connectionMonitor = new Cable.ConnectionMonitor this
+
+  send: (data) -&gt;
+    @connection.send(data)
+
+  inspect: -&gt;
+    JSON.stringify(this, null, 2)
+
+  toJSON: -&gt;
+    {@url, @subscriptions, @connection, @connectionMonitor}
+</code></pre>
+
+<p><strong>架构</strong></p>
+
+<p><img src="/downloads/images/actioncable_frontend_arch.png"></p>
+
+<h2>建立 WebSocket 连接</h2>
+
+<p>创建一个 Connection 实例</p>
+
+<pre><code class="coffeescript">new Cable.Connection(this)
+</code></pre>
+
+<p>调用构造方法</p>
+
+<pre><code class="coffeescript">constructor: (@consumer) -&gt;
+    @open()
+</code></pre>
+
+<p>打开 <code>WebSocket</code> 连接</p>
+
+<pre><code class="coffeescript">open: =&gt;
+    if @webSocket and not @isState('closed')
+        throw new Error('Existing connection must be closed before opening')
+    else
+        @webSocket = new WebSocket(@consumer.url)
+        @installEventHandlers()
+        true
+</code></pre>
+
+<p>注册事件处理器</p>
+
+<pre><code class="coffeescript">installEventHandlers: -&gt;
+    for eventName of @events
+        handler = @events[eventName].bind(this)
+        @webSocket["on#{eventName}"] = handler
+    return
+</code></pre>
+
+<p>我们来看看 <code>@events</code> 究竟是哪些</p>
+
+<pre><code class="coffeescript">events:
+    message: (event) -&gt;
+      {identifier, message, type} = JSON.parse(event.data)
+
+      switch type
+        when message_types.confirmation
+          @consumer.subscriptions.notify(identifier, "connected")
+        when message_types.rejection
+          @consumer.subscriptions.reject(identifier)
+        else
+          @consumer.subscriptions.notify(identifier, "received", message)
+
+    open: -&gt;
+      @disconnected = false
+      @consumer.subscriptions.reload()
+
+    close: -&gt;
+      @disconnect()
+
+    error: -&gt;
+      @disconnect()
+</code></pre>
+
+<p>从上面的源码可以看到，最后 <code>@webSocket</code> 注册的事件回调有</p>
+
+<pre><code>onmessage
+onopen
+onclose
+onerror
+</code></pre>
+
+<p>这些回调，本身就是浏览器 <code>WebSocket</code> 实例对象所提供的，<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Attributes">可以从这里查询到</a>。</p>
+
+<h2>发送消息</h2>
+
+<p>从上一篇的例子可以知道，通过 <code>@perform('appear', { message: "Hello, John" })</code> 可以发送消息到服务器并调用服务器相应的 <code>AppearanceChannel</code> 类的实例对象的 <code>appear</code> 方法。</p>
+
+<p>所以我们来看看 <code>Cable.Subscription</code> 相关的函数体</p>
+
+<pre><code class="coffeescript">perform: (action, data = {}) -&gt;
+    data.action = action
+    @send(data)
+
+send: (data) -&gt;
+    @consumer.send(command: "message", identifier: @identifier, data:   JSON.stringify(data))
+</code></pre>
+
+<p>继续看 Cable.Consumer 里的 <code>send</code> 函数体</p>
+
+<pre><code class="coffeescript">send: (data) -&gt;
+    @connection.send(data)
+</code></pre>
+
+<p>所以它是通过 <code>Cable.Connection</code> 的实例对象 <code>@connection</code> 来发送数据的</p>
+
+<pre><code class="coffeescript">send: (data) -&gt;
+    if @isOpen()
+        @webSocket.send(JSON.stringify(data))
+        true
+    else
+        false
+</code></pre>
+
+<p>到此已经结束，通过浏览器 <code>WebSocket</code> 实例对象的 <code>send</code> 方法来发送消息到服务端。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-1]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/"/>
+    <updated>2016-08-13T17:37:26+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello</id>
+    <content type="html"><![CDATA[<p>本节将会简单阐述如何使用 ActionCable 收发消息，着重前端部分。</p>
+
+<h2>Cable.Consumer</h2>
+
+<p><strong>基本概念</strong></p>
+
+<p>负责建立到服务端的连接。
+在连接建立之后，<code>Cable.ConnectionMonitor</code> 会通过心跳检测来确保连接的状态。
+Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一个连接到特定频道的订阅。</p>
+
+<p><strong>例子</strong></p>
+
+<pre><code class="js">window.App = {};
+App.cable = Cable.createConsumer('ws://example.com/accounts/1');
+App.appearance = App.cable.subscriptions.create('AppearanceChannel');
+</code></pre>
+
+<p>这样就可以通过 <code>App.appearance</code> 来发送消息到服务器，同样其也可以接收来自服务器的消息。</p>
+
+<h2>Cable.Subscription</h2>
+
+<p>对应着服务端的 Channel 实例，通过提供 <code>callbacks</code>、<code>methods</code> 来实现远程过程调用（RPC, Remote Procedure Calls）。</p>
+
+<p>如果你在浏览器创建了一个 <code>AppearanceChannel</code> 的 <code>subcription</code>，那么 <code>subscription</code> 的调用将会直接等同于调用服务端的 <code>AppearanceChannel</code> 示例里相应的方法。</p>
+
+<p><strong>例子</strong></p>
+
+<pre><code class="coffeescript">// 前端
+App.appearance = App.cable.subscription.create('AppearanceChannel', {
+    connected: -&gt;
+        console.info("连接已经建立好啦");
+
+    received: (data) -&gt;
+        console.info("接收到了来自服务端的消息");
+
+    appear: (data) -&gt;
+        this.perform('appear', data);
+});
+</code></pre>
+
+<pre><code class="ruby"># 服务端代码
+class AppearanceChannel &lt; ApplicationCable::Channel
+  def subscribed
+    stop_all_streams
+    stream_from 'appearance_channel'
+  end
+
+  def unsubscribed
+    stop_all_streams
+  end
+
+  def appear data
+    # do something
+  end
+end
+</code></pre>
+
+<p>上面中，如果你这么使用</p>
+
+<pre><code class="js">App.appearance.appear({ message: "Hello, John" });
+</code></pre>
+
+<p>那么对应着服务端，<code>appear</code> 方法将会调用，并且你可以用过 <code>ActionCable.server.broadcast('appearance_channel', message: 'Hello, Katy')</code> 来响应，这样浏览器端的 <code>received</code> 回调将会被调用。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Disable heartbeats logs in Rails]]></title>
@@ -400,564 +618,6 @@ Quiz.instance.run_quiz
 <li><a href="http://jroller.com/rolsen/entry/building_a_dsl_in_ruby">Building a DSL in Ruby</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Inspect SimpleForm (2)]]></title>
-    <link href="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/"/>
-    <updated>2015-05-31T01:24:37+08:00</updated>
-    <id>http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2</id>
-    <content type="html"><![CDATA[<p>上一篇阐述了 SimpleForm 的基本原理，以及阐述了 Wrapper 内部的一个基本的渲染过程，
-这一篇，我将基于上文中的 :horizontal_form 这个 wrapper 例子来阐述清楚 Wrapper 的整个渲染过程。</p>
-
-<h2>Wrapper 包含着对 Component 的一个管理。</h2>
-
-<p>上一篇我们在 Rails Console 输出了下面这么一段内容，从这段内容我们可以看到，
-我们的 Root 实例中有两个实例变量： @components 和 @defaults。</p>
-
-<p><figure class='code'><figcaption><span> (simple_form.rb)</span> <a href='/downloads/code/20150531/simple_form.rb'>download</a></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="o">=&gt;</span> <span class="c1">#&lt;SimpleForm::Wrappers::Root:0x007fedd7263b18</span>
-</span><span class='line'> <span class="vi">@components</span><span class="o">=</span>
-</span><span class='line'>  <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298660 @namespace=:html5, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72985e8 @namespace=:placeholder, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298598 @namespace=:maxlength, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298520 @namespace=:pattern, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72984d0 @namespace=:min_max, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298458 @namespace=:readonly, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72983b8 @namespace=:label, @options={:class=&gt;&quot;col-sm-3 control-label&quot;}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Many:0x007fedd7263be0</span>
-</span><span class='line'>    <span class="vi">@components</span><span class="o">=</span>
-</span><span class='line'>     <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;&quot;form-control&quot;}&gt;,</span>
-</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263fa0</span>
-</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;,</span>
-</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;],</span>
-</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;span&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:error</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263cf8</span>
-</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;,</span>
-</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;],</span>
-</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:hint</span><span class="o">&gt;]</span><span class="p">,</span>
-</span><span class='line'>    <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;col-sm-9&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>    <span class="vi">@namespace</span><span class="o">=</span><span class="kp">nil</span><span class="o">&gt;]</span><span class="p">,</span>
-</span><span class='line'> <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;form-group&quot;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:error_class</span><span class="o">=&gt;</span><span class="s2">&quot;has-error&quot;</span><span class="p">,</span> <span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">},</span>
-</span><span class='line'> <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:wrapper</span><span class="p">,</span>
-</span><span class='line'> <span class="vi">@options</span><span class="o">=</span><span class="p">{</span><span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">}</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>@components 包含了一些 Leaf、Single、Many，这些东西将决定着最后的输出内容，例如</p>
-
-<p>```html
-<label class="col-sm-3">Email</label></p>
-
-<div class="col-sm-9">
-    <input type="email" class="form-control" />
-</div>
-
-
-<pre><code>
-而 @defaults 一看就知道，它是整个表单控件最外层的包裹。
-</code></pre>
-
-<div class="form-group">
-  <!--- ...... -->
-</div>
-
-
-<pre><code>
-我们上篇就已经提到了 Wrapper 内部是如何渲染的，即递归地调用 component.render 得到每个 component 的输出内容，
-然后拼接起来，最后用 wrap 完成最后的包裹后输出。
-</code></pre>
-
-<h1>lib/simple_form/wrappers/many.rb</h1>
-
-<p>def render(input)
-  content = &ldquo;&rdquo;.html_safe
-  options = input.options</p>
-
-<p>  components.each do |component|
-    next if options[component.namespace] == false
-    rendered = component.render(input)
-    content.safe_concat rendered.to_s if rendered
-  end</p>
-
-<p>  wrap(input, options, content)
-end
-```</p>
-
-<p>现在让我们来详细看一看两件事情</p>
-
-<ol>
-<li>input 是什么</li>
-<li>component.render(input) 的执行过程</li>
-</ol>
-
-
-<h2>Input</h2>
-
-<p>前面我们也提到过 f.input 这一段代码，请阅读 <code>lib/simple_form/form_builder.rb</code> 这个文件里的代码，
-通过阅读，循着 find_input -> find_mapping 这两个方法，最终它是根据 attribute 的类型来找到对应的
-类并实例化，例如是 String 类型，就返回一个 StringInput 类的实例，其他的如 Boolean、Numeric、File 都是如此。
-我们从源码文件目录里的 <code>lib/simple_form/inputs</code> 也可以看到一系列的 Input，而这些 Input 全部都继承与 Base 这个类。</p>
-
-<p>但是先到此为此，我们现在只需要了解 input 是什么，至于内部还有什么东西，我们需要在了解 component.render(input)
-之后再来看会更好，顺着渲染的流程走更容易理解。</p>
-
-<h2>component.render(input)</h2>
-
-<p>同样的，在上文中的 <code>lib/simple_form/form_builder.rb</code> 这个文件里我们继续寻找 component 是什么，
-继续阅读，循着 find_wrapper -> find_wrapper_mapping 这两个方法，最终我们可以发现，它根据 input.input_type
-来找到合适 wrapper，即 SimpleForm.wrapper_mappings[input_type]，而 SimpleForm.wrapper_mappings 是我们在
-项目里所配置的。即 <code>config/initializers/simple_form_bootstrap3.rb</code> 里的这么一段代码</p>
-
-<pre><code class="ruby">SimpleForm.setup do |config|
-  # ...
-  config.wrapper_mappings = {
-    check_boxes: :vertical_radio_and_checkboxes,
-    radio_buttons: :vertical_radio_and_checkboxes,
-    file: :vertical_file_input,
-    boolean: :vertical_boolean,
-    datetime: :multi_select,
-    date: :multi_select,
-    time: :multi_select
-  }
-end
-</code></pre>
-
-<p>因此，它所找到的就是我们一开始所配置的 wrapper，他们全部保存在 SimpleForm.wrappers 这个类变量里。
-现在让我们来看一看三个例子。</p>
-
-<h2>SimpleForm::Inputs::Base</h2>
-
-<p>在进入例子之前，有必要阐述 SimpleForm::Inputs::Base 这个类，它是所有 SimpleForm 抽象出来的表单控件的一个基类。</p>
-
-<pre><code class="ruby">module SimpleForm
-  module Inputs
-    class Base
-      include ERB::Util
-      include ActionView::Helpers::TranslationHelper
-
-      extend I18nCache
-
-      include SimpleForm::Helpers::Autofocus
-      include SimpleForm::Helpers::Disabled
-      include SimpleForm::Helpers::Readonly
-      include SimpleForm::Helpers::Required
-      include SimpleForm::Helpers::Validators
-
-      include SimpleForm::Components::Errors
-      include SimpleForm::Components::Hints
-      include SimpleForm::Components::HTML5
-      include SimpleForm::Components::LabelInput
-      include SimpleForm::Components::Maxlength
-      include SimpleForm::Components::MinMax
-      include SimpleForm::Components::Pattern
-      include SimpleForm::Components::Placeholders
-      include SimpleForm::Components::Readonly
-
-      # ...
-    end
-  end
-end
-</code></pre>
-
-<p>从上面的代码我们可以看到，其 include 了许多 Components，这些 Components 其实是为 SimpleForm::Inputs::StringInput、
-SimpleForm::Inputs::FileInput 这些真正的表单控件注入一些方法，这些方法可能是用来改变 Input 实例的一些配置，
-也可能是生成一段 HTML 文本，下面的例子会阐述这么一点。</p>
-
-<h2>b.use :input</h2>
-
-<p>从之前的讲解我们知道 <code>b.use :input</code> 将会生成一个 SimpleForm::Wrappers::Root 实例，
-然后其 @compoennts 就会存储着与此相关的 SimpleForm::Wrappers::Leaf 实例。</p>
-
-<p>假如我们这里的 input 是一个 SimpleForm::Inputs::StringInput 的一个实例，而 component 就是
-SimpleForm::Wrappers::Leaf 的一个实例，那么我们来看看 component.render 里的这个方法定义：</p>
-
-<pre><code class="ruby"># lib/simple_form/wrappers/leaf.rb
-def render(input)
-  # 我们先前在 Rails Console 中打出来的文本里有这么一段
-  # &lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;"form-control"}&gt;
-  # 所以这里的 @namespace 的值为 :input
-  method = input.method(@namespace)
-
-  if method.arity == 0
-    ActiveSupport::Deprecation.warn(SimpleForm::CUSTOM_INPUT_DEPRECATION_WARN % { name: @namespace })
-
-    method.call
-  else
-    method.call(@options)
-  end
-end
-</code></pre>
-
-<p>我们可以看到，这个 render 方法其实是让 input 这个 StringInput 实例去调用自己的 input 方法，
-找到 StringInput 的 input 方法定义：</p>
-
-<pre><code class="ruby"># lib/simple_form/inputs/strin_input.rb
-def input(wrapper_options = nil)
-  unless string?
-    input_html_classes.unshift("string")
-    input_html_options[:type] ||= input_type if html5?
-  end
-
-  merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
-
-  @builder.text_field(attribute_name, merged_input_options)
-end
-</code></pre>
-
-<p>所以我们可以看到，最后的输出内容其实是使用 @builder (SimpleForm::FormBuilder 的一个实例) 的 text_field 方法
-来生成一个类似这样的 <code>&lt;input type="text" name='resource[attribute_name]' /&gt;</code> 一段文本。</p>
-
-<h2>b.use :label</h2>
-
-<p>同理， Label 标签的生成也是类似。 SimpleForm::Component::Label 的里 label 方法定义如下：</p>
-
-<pre><code class="ruby">  def label(wrapper_options = nil)
-    label_options = merge_wrapper_options(label_html_options, wrapper_options)
-
-    if generate_label_for_attribute?
-      @builder.label(label_target, label_text, label_options)
-    else
-      template.label_tag(nil, label_text, label_options)
-    end
-  end
-</code></pre>
-
-<p>也是让 @builder 调用 label 来生成类似这样的 <code>&lt;label class="col-sm-3"&gt;Email&lt;/label&gt;</code> 一段文本。</p>
-
-<h2>b.use :placeholder</h2>
-
-<p>placeholder，html5，readonly 这一类的 Component，并没有实际的 HTML 文本输出，而是修改 input 这种表单控件的
-一些配置，我们来看看 placholder 的代码。</p>
-
-<pre><code class="ruby"># lib/simple_form/components/placeholders.rb
-module SimpleForm
-  module Components
-    # Needs to be enabled in order to do automatic lookups.
-    module Placeholders
-      def placeholder(wrapper_options = nil)
-        input_html_options[:placeholder] ||= placeholder_text
-        nil
-      end
-
-      def placeholder_text
-        placeholder = options[:placeholder]
-        placeholder.is_a?(String) ? placeholder : translate_from_namespace(:placeholders)
-      end
-    end
-  end
-end
-</code></pre>
-
-<p>我们可以看到，它修改的是 input 这个 StringInput 实例的 input_html_options 里的 placeholder 配置，然后返回 nil，
-即没有 HTML 文本输出。</p>
-
-<p>之所以能修改，是因为 component.render(input) 在这里是让 input 自己去调用自己的 placeholder 方法，
-而 SimpleForm::Inputs::StringInput 继承了 SimpleForm::Inputs::Base， SimpleForm::Inputs::Base 这个类引用了
-众多的 Components，因此 input 实例有了这些 components 所定义的方法。</p>
-
-<h2>总结</h2>
-
-<p>第一篇我们主要阐述了 SimpleForm 在 Rails 渲染表单这整个工作流的一个基本原理，
-而这一篇我们主要从 SimpleForm::Wrappers、 SimpleForm::Inputs、SimpleForm::Components 这几个 namespace 下面
-相关的类阐述了这几者在 wrapper 对表单控件进行包裹式地渲染这个过程所扮演的角色。</p>
-
-<p>至此，你可以通过详细阅读 SimpleForm::Inputs::Base 的代码和一些 Components 的代码，并做一些练习，
-即可完全掌握如何去编写一个 SimpleForm 的扩展。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Inspect SimpleForm (1)]]></title>
-    <link href="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-1/"/>
-    <updated>2015-05-31T00:02:37+08:00</updated>
-    <id>http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-1</id>
-    <content type="html"><![CDATA[<h2>Table of Content</h2>
-
-<ul>
-<li>简单介绍 SimpleForm 做了什么事情</li>
-<li>如何编写一个简单的 wrapper</li>
-<li>从 simple_form_for 这个入口了解 SimpleForm 的基本工作原理</li>
-<li>深入了解 wrapper 的实现</li>
-</ul>
-
-
-<h2>简介</h2>
-
-<p>SimpleForm 是 Rails 项目最常用的插件之一，通过抽象出 wrapper 这个概念来简化表单的编写。</p>
-
-<p>通常情况下，网页上的表单都需要经过各种美化，这使得最后的表单控件会被
-各种各样的标签所包裹，例如套用了 Bootstrap 的 Horizontal Form 的样式：</p>
-
-<pre><code class="erb">&lt;% form_for resource, html: { class: 'form-horizontal' } do |f| %&gt;
-  &lt;div class="form-group"&gt;
-    &lt;label for="inputEmail3" class="col-sm-2 control-label"&gt;Email&lt;/label&gt;
-    &lt;div class="col-sm-10"&gt;
-      &lt;%= f.text_field :email, class: 'form-control', placeholder: 'Email' %&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;% end %&gt;
-</code></pre>
-
-<p>如果我们不做进一步的抽象，那么在每个地方，我们都会重复地写这些代码，而且一旦需要修改，那么就是大面积的查找和替换了。
-但如果你使用了 SimpleForm 之后，那么就会变成：</p>
-
-<pre><code class="erb">&lt;%= simple_form_for resource, wrapper: :horizontal_form, html: { class: 'horizontal_form' } do |f| %&gt;
-  &lt;%= f.input :email %&gt;
-  &lt;%= f.input :password %&gt;
-  &lt;%= f.button :submit %&gt;
-&lt;% end %&gt;
-</code></pre>
-
-<p>SimpleForm 会根据你所写的配置（<a href="https://github.com/plataformatec/simple_form/blob/master/lib%2Fgenerators%2Fsimple_form%2Ftemplates%2Fconfig%2Finitializers%2Fsimple_form_bootstrap.rb">例子</a>）
-所指定的 wrapper 来对表单控件进行一层包裹，从而达到代码重用的效果。<br/>
-wrapper 对于 SimpleForm 来讲是最核心的东西，现在我们来看看关于它的一些东西。</p>
-
-<h2>如何编写 wrapper</h2>
-
-<p>我们看看上面的 horizontal_form 这个 wrapper 是如何编写的。</p>
-
-<pre><code class="ruby"># config/initializers/simple_form_bootstrap3.rb
-SimpleForm.setup do |config|
-  config.wrapper :horizontal_form, tag: 'div', class: 'form-group', error_class: 'has-error' do |b|
-    b.use :html5
-    b.use :placeholder
-    b.optional :maxlength
-    b.optional :pattern
-    b.optional :min_max
-    b.optional :readonly
-    b.use :label, class: 'control-label'
-
-    b.use :input, class: 'form-control'
-    b.use :error, wrap_with: { tag: 'span', class: 'help-block' }
-    b.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
-  end
-end
-</code></pre>
-
-<p>乍一看还挺多东西的，但是不怕，我们通过对比一些最终的输出内容我们就可以知道，最核心的下面这两行代码：</p>
-
-<pre><code class="ruby">    b.use :label, class: 'control-label'
-    b.use :input, class: 'form-control'
-</code></pre>
-
-<p>所以，通过看一下文档和例子我们马上就可以掌握编写一个简单的 wrapper 了。<br/>
-好了，最基本的介绍也到此为止了，而关于其他几行代码，究竟是什么意思，
-究竟是如何工作的，接下来我会一一讲解。</p>
-
-<h2>simple_form_for</h2>
-
-<p>在对 wrapper 进行剖析之前，还是需要先来看看整个程序的入口：simple_form_for。这也是读源代码的方法，我们不能一下子就
-把头埋进浩瀚的代码海洋中，我们要从入口来理清楚整个程序的逻辑。下面就是我找到的关键代码片段：</p>
-
-<pre><code># lib/simple_form/active_view_extensions/form_helper.rb
-module SimpleForm
-  module ActionViewExtensions
-    module FormHelper
-      def simple_form_for(record, options = {}, &amp;block)
-        options[:builder] ||= SimpleForm::FormBuilder
-        # 中间代码省略
-        with_simple_form_field_error_proc do
-          form_for(record, options, &amp;block)
-        end
-      end
-    end
-  end
-end
-ActionView::Base.send :include, SimpleForm::ActionViewExtensions::FormHelper
-</code></pre>
-
-<p>从上面的代码也就可以看出，这个方法做了两件事：</p>
-
-<ol>
-<li>设置 form_for 的 builder 为 SimpleForm::FormBuilder，即 f 是这个类的实例</li>
-<li>调用 Rails 原生提供的 form_for 这个 helper 来渲染整个表单</li>
-</ol>
-
-
-<p>所以，接下来就是找到 SimpleForm::FormBuilder 这个文件了，在这个文件里，我们就可以找到关键的接口 <code>input</code> 了：</p>
-
-<pre><code class="ruby">def input(attribute_name, options = {}, &amp;block)
-  options = @defaults.deep_dup.deep_merge(options) if @defaults
-
-  input   = find_input(attribute_name, options, &amp;block)
-  wrapper = find_wrapper(input.input_type, options)
-
-  wrapper.render input
-end
-</code></pre>
-
-<p>这个方法里做了三件事：</p>
-
-<ol>
-<li>找到 attribute 对应的控件（如 String Input, File Input, etc）</li>
-<li>找到对应的 wrapper（如 config.wrapper :horizontal &hellip;）</li>
-<li>让 wrapper 来将表单控件进行包裹式的渲染，得到我们最终想要的效果</li>
-</ol>
-
-
-<p>至此， SimpleForm 最基本的工作流我们已经掌握了，接下来，让我们深入 Wrapper 的内部。</p>
-
-<h2>从 SimpleForm.setup 开始</h2>
-
-<pre><code class="ruby">SimpleForm.setup do |config|
-  config.wrappers :horizontal_form, tag: 'div', class: 'form-group', error_class: 'has-error' do |b|
-    #...
-  end
-end
-</code></pre>
-
-<p><code>config.wrappers ...</code> 发生了什么事情， 即 SimpleForm 是如何维护这些 wrappers，其实秘密就藏在这里面。</p>
-
-<pre><code class="ruby"># lib/simple_form.rb
-  # ...
-  mattr_accessor :default_wrapper
-  @@default_wrapper = :default
-  @@wrappers = {} #:nodoc:
-  # Define a new wrapper using SimpleForm::Wrappers::Builder
-  # and store it in the given name.
-  def self.wrappers(*args, &amp;block)
-    if block_given?
-      options                 = args.extract_options!
-      name                    = args.first || :default
-      @@wrappers[name.to_s]   = build(options, &amp;block)
-    else
-      @@wrappers
-    end
-  end
-  # Builds a new wrapper using SimpleForm::Wrappers::Builder.
-  def self.build(options = {})
-    options[:tag] = :div if options[:tag].nil?
-    builder = SimpleForm::Wrappers::Builder.new(options)
-    yield builder
-    SimpleForm::Wrappers::Root.new(builder.to_a, options)
-  end
-  #...
-</code></pre>
-
-<p>从上面的源代码可以看出，这些 wrapper 被放在了类变量 wrappers 这个 Hash 实例对象里了。
-它是一个 wrapper_name 对应着 SimpleForm::Wrapper::Root 实例的形式，也就是说，我们可以通过这样的形式访问到我们刚配置的
-horizontal_form 这个内容，我们到 rails console 试着把这个打印出来</p>
-
-<pre><code>Loading development environment (Rails 4.2.0)
-
-Frame number: 0/5
-[1] pry(main)&gt;SimpleForm.wrappers['horizontal_form']
-=&gt; #&lt;SimpleForm::Wrappers::Root:0x007fedd7263b18
- @components=
-  [#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298660 @namespace=:html5, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd72985e8 @namespace=:placeholder, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298598 @namespace=:maxlength, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298520 @namespace=:pattern, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd72984d0 @namespace=:min_max, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298458 @namespace=:readonly, @options={}&gt;,
-   #&lt;SimpleForm::Wrappers::Leaf:0x007fedd72983b8 @namespace=:label, @options={:class=&gt;"col-sm-3 control-label"}&gt;,
-   #&lt;SimpleForm::Wrappers::Many:0x007fedd7263be0
-    @components=
-     [#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;"form-control"}&gt;,
-      #&lt;SimpleForm::Wrappers::Single:0x007fedd7263fa0
-       @component=#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;,
-       @components=[#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;],
-       @defaults={:tag=&gt;"span", :class=&gt;["help-block"]},
-       @namespace=:error&gt;,
-      #&lt;SimpleForm::Wrappers::Single:0x007fedd7263cf8
-       @component=#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;,
-       @components=[#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;],
-       @defaults={:tag=&gt;"p", :class=&gt;["help-block"]},
-       @namespace=:hint&gt;],
-    @defaults={:tag=&gt;"div", :class=&gt;["col-sm-9"]},
-    @namespace=nil&gt;],
- @defaults={:tag=&gt;"div", :class=&gt;["form-group"], :error_class=&gt;"has-error", :maxlength=&gt;false, :pattern=&gt;false, :min_max=&gt;false, :readonly=&gt;false},
- @namespace=:wrapper,
- @options={:maxlength=&gt;false, :pattern=&gt;false, :min_max=&gt;false, :readonly=&gt;false}&gt;
-</code></pre>
-
-<p>所以我们找到了关键的点了，那就是 <code>SimpleForm::Wrappers::Root</code> ，打开这个源代码文件之后，我们可以发现它继承了
-<code>SimpleForm::Wrappers::Many</code>，并且主要的方法 <code>render</code> 也是在这个类里面。</p>
-
-<h2>SimpleForm::Wrappers::Many</h2>
-
-<p>找到 render 方法</p>
-
-<pre><code class="ruby">def render(input)
-  content = "".html_safe
-  options = input.options
-
-  components.each do |component|
-    next if options[component.namespace] == false
-    rendered = component.render(input)
-    content.safe_concat rendered.to_s if rendered
-  end
-
-  wrap(input, options, content)
-end
-</code></pre>
-
-<p>我们可以看到，它是将每个 component 通过传入 input （上面讲 simple_form_for 的那段代码的 input） 这个变量后渲染并拼接
-所有 component 的输出内容后，通过 wrapper 方法，再将这个内容包括并输入渲染到 view 里去的。例如</p>
-
-<pre><code class="ruby">    b.use :label, class: 'control-label'
-    b.use :input, class: 'form-control'
-</code></pre>
-
-<p>这段代码套在这个思路上就是</p>
-
-<ol>
-<li>输出 label 的 HTML 内容</li>
-<li>输出表单控件的 HTML 内容</li>
-<li>拼接这两段 HTML</li>
-<li>用一个 div 将这段拼接后的 HTML 包裹起来然后输出到 view 里</li>
-</ol>
-
-
-<p>所以， SimpleForm 内部 wrapper 的工作原理就大致如此，但我们掌握得还远远不够，我们还需要深挖下去。<br/>
-例如除了上面那两行代码，其他的代码是做什么的，又是怎么样做的。</p>
-
-<pre><code class="ruby">b.use :html5
-b.use :placeholder
-b.optional :maxlength
-b.optional :pattern
-</code></pre>
-
-<p>例如从 Rails Console 里的输出我们还看到了几个类，它们又是什么。</p>
-
-<ul>
-<li>SimpleForm::Wrappers::Leaf</li>
-<li>SimpleForm::Wrappers::Single</li>
-<li>SimpleForm::Wrappers::Builder</li>
-</ul>
-
-
-<p>这些我将在下一篇阐述清楚。</p>
 ]]></content>
   </entry>
   

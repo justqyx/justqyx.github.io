@@ -5,28 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Generate a self-signed CA certificate - JustQyx</title>
+  <title>ActionCable 源码阅读笔记-前端部分-1 - JustQyx</title>
   <meta name="author" content="邱源鑫">
 
   
-  <meta name="description" content="生成根证书 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-mkdir -p test/demoCA &amp;&amp; cd test/demoCA
-mkdir certs crl newcerts private
-chmod 700 private
-touch index. &hellip;">
+  <meta name="description" content="本节将会简单阐述如何使用 ActionCable 收发消息，着重前端部分。 Cable.Consumer 基本概念 负责建立到服务端的连接。
+在连接建立之后，Cable.ConnectionMonitor 会通过心跳检测来确保连接的状态。
+Consumer 实例对象通过 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -50,7 +35,7 @@ touch index. &hellip;">
   <!-- End of Google Analytics Content Experiment code -->
 
   
-  <link rel="canonical" href="http://www.justqyx.me/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca">
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
@@ -123,7 +108,7 @@ touch index. &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Generate a Self-signed CA Certificate</h1>
+      <h1 class="entry-title">ActionCable 源码阅读笔记-前端部分-1</h1>
     
     
       <p class="meta">
@@ -139,7 +124,7 @@ touch index. &hellip;">
   
 
 
-<time datetime="2016-08-05T23:59:59+08:00" pubdate data-updated="true"></time>
+<time datetime="2016-08-13T17:37:26+08:00" pubdate data-updated="true"></time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -148,7 +133,36 @@ touch index. &hellip;">
   </header>
 
 
-<div class="entry-content"><h2>生成根证书</h2>
+<div class="entry-content"><p>本节将会简单阐述如何使用 ActionCable 收发消息，着重前端部分。</p>
+
+<h2>Cable.Consumer</h2>
+
+<p><strong>基本概念</strong></p>
+
+<p>负责建立到服务端的连接。
+在连接建立之后，<code>Cable.ConnectionMonitor</code> 会通过心跳检测来确保连接的状态。
+Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一个连接到特定频道的订阅。</p>
+
+<p><strong>例子</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nb">window</span><span class="p">.</span><span class="nx">App</span> <span class="o">=</span> <span class="p">{};</span>
+</span><span class='line'><span class="nx">App</span><span class="p">.</span><span class="nx">cable</span> <span class="o">=</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">createConsumer</span><span class="p">(</span><span class="s1">&#39;ws://example.com/accounts/1&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="nx">App</span><span class="p">.</span><span class="nx">appearance</span> <span class="o">=</span> <span class="nx">App</span><span class="p">.</span><span class="nx">cable</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="s1">&#39;AppearanceChannel&#39;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样就可以通过 <code>App.appearance</code> 来发送消息到服务器，同样其也可以接收来自服务器的消息。</p>
+
+<h2>Cable.Subscription</h2>
+
+<p>对应着服务端的 Channel 实例，通过提供 <code>callbacks</code>、<code>methods</code> 来实现远程过程调用（RPC, Remote Procedure Calls）。</p>
+
+<p>如果你在浏览器创建了一个 <code>AppearanceChannel</code> 的 <code>subcription</code>，那么 <code>subscription</code> 的调用将会直接等同于调用服务端的 <code>AppearanceChannel</code> 示例里相应的方法。</p>
+
+<p><strong>例子</strong></p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -161,91 +175,21 @@ touch index. &hellip;">
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p <span class="nb">test</span>/demoCA <span class="o">&amp;&amp;</span> <span class="nb">cd test</span>/demoCA
-</span><span class='line'>mkdir certs crl newcerts private
-</span><span class='line'>chmod 700 private
-</span><span class='line'>touch index.txt
-</span><span class='line'><span class="nb">echo </span>1000 &gt; serial
-</span><span class='line'>vim openssl.cnf
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="o">//</span> <span class="err">前端</span>
+</span><span class='line'><span class="nv">App.appearance = </span><span class="nx">App</span><span class="p">.</span><span class="nx">cable</span><span class="p">.</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="s">&#39;AppearanceChannel&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nv">connected: </span><span class="nf">-&gt;</span>
+</span><span class='line'>        <span class="nx">console</span><span class="p">.</span><span class="nx">info</span><span class="p">(</span><span class="s">&quot;连接已经建立好啦&quot;</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>openssl genrsa -aes256 -out private/ca.key.pem 4096
-</span><span class='line'>chmod 400 private/ca.key.pem
+</span><span class='line'>    <span class="nv">received: </span><span class="nf">(data) -&gt;</span>
+</span><span class='line'>        <span class="nx">console</span><span class="p">.</span><span class="nx">info</span><span class="p">(</span><span class="s">&quot;接收到了来自服务端的消息&quot;</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>openssl req -config openssl.cnf <span class="se">\</span>
-</span><span class='line'>        -key private/ca.key.pem <span class="se">\</span>
-</span><span class='line'>        -new -x509 -days 7300 -sha256 -extensions v3_ca <span class="se">\</span>
-</span><span class='line'>        -out certs/ca.cert.pem
+</span><span class='line'>    <span class="nv">appear: </span><span class="nf">(data) -&gt;</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="nx">perform</span><span class="p">(</span><span class="s">&#39;appear&#39;</span><span class="p">,</span> <span class="nx">data</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><strong>验证</strong></p>
 
-<pre><code>openssl x509 -noout -text -in certs/ca.cert.pem
-</code></pre>
-
-<h2>生成服务器证书，并用根证书签名</h2>
-
-<p>1、生成服务器私钥</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd test</span>
-</span><span class='line'>openssl genrsa -aes256 -out server.key 2048
-</span><span class='line'>openssl rsa -in server.key -out server.key
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>2、生成服务器请求证书</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl req -new -key server.key -out server.csr
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>3、用 CA 证书给服务器请求证书签名</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl ca -config ./demoCA/openssl.cnf <span class="se">\</span>
-</span><span class='line'>           -in server.csr -out server.crt <span class="se">\</span>
-</span><span class='line'>           -cert ./demoCA/certs/ca.cert.pem <span class="se">\</span>
-</span><span class='line'>           -keyfile ./demoCA/private/ca.key.pem <span class="se">\</span>
-</span><span class='line'>           -startdate 100707000000Z <span class="se">\</span>
-</span><span class='line'>           -enddate 300707000000Z
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>输入之后会要求你输入一些信息，其中最为重要的便是 <code>Server Name</code> 这个必须与域名一直，否则即使设置了信任，浏览器仍然会提示证书有问题。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Country Name <span class="o">(</span>2 letter code<span class="o">)</span> <span class="o">[</span>AU<span class="o">]</span>:CN
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[</span>Some-State<span class="o">]</span>:Guangdong
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[]</span>:Shenzhen
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Internet Widgits Pty Ltd<span class="o">]</span>:随便填
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:随便填
-</span><span class='line'>Common Name <span class="o">(</span>e.g. server FQDN or YOUR name<span class="o">)</span> <span class="o">[]</span>:localhost（这里一定要是你要签的域名）
-</span><span class='line'>Email Address <span class="o">[]</span>:hzuqiuyuanxin@gmail.com
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>DEMO</h2>
-
-<p>拿到上面的根证书 <code>ca.cert.pem</code>，导入浏览器并设置为信任，然后取得 <code>server.crt</code> 以及 <code>server.key</code> 放到某个位置，
-是的 nginx 可以读取到，nginx 配置例子如下：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -262,42 +206,32 @@ touch index. &hellip;">
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>   server <span class="o">{</span>
-</span><span class='line'>        listen 443;
-</span><span class='line'>        server_name localhost;
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 服务端代码</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">AppearanceChannel</span> <span class="o">&lt;</span> <span class="no">ApplicationCable</span><span class="o">::</span><span class="no">Channel</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">subscribed</span>
+</span><span class='line'>    <span class="n">stop_all_streams</span>
+</span><span class='line'>    <span class="n">stream_from</span> <span class="s1">&#39;appearance_channel&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
 </span><span class='line'>
-</span><span class='line'>        ssl                   on;
-</span><span class='line'>        ssl_certificate       /usr/local/etc/nginx/ca/server.crt;
-</span><span class='line'>        ssl_certificate_key   /usr/local/etc/nginx/ca/server.key;
+</span><span class='line'>  <span class="k">def</span> <span class="nf">unsubscribed</span>
+</span><span class='line'>    <span class="n">stop_all_streams</span>
+</span><span class='line'>  <span class="k">end</span>
 </span><span class='line'>
-</span><span class='line'>        ssl_session_timeout   5m;
-</span><span class='line'>
-</span><span class='line'>        location / <span class="o">{</span>
-</span><span class='line'>            root /Users/yuanxin/www;
-</span><span class='line'>            index index.html index.htm;
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">appear</span> <span class="n">data</span>
+</span><span class='line'>    <span class="c1"># do something</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>检查 nginx 的语法，如果没有问题则 reload 配置</p>
+<p>上面中，如果你这么使用</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo nginx -t
-</span><span class='line'>sudo nginx -s reload
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">App</span><span class="p">.</span><span class="nx">appearance</span><span class="p">.</span><span class="nx">appear</span><span class="p">({</span> <span class="nx">message</span><span class="o">:</span> <span class="s2">&quot;Hello, John&quot;</span> <span class="p">});</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>打开浏览器访问：<code>https://localhost</code></p>
-
-<h2>参考</h2>
-
-<ul>
-<li><a href="https://jamielinux.com/docs/openssl-certificate-authority/create-the-root-pair.html">Create the root pair</a></li>
-<li><a href="http://walkerqt.blog.51cto.com/1310630/946122">OpenSSL证书生成(Windows环境)</a></li>
-</ul>
-
+<p>那么对应着服务端，<code>appear</code> 方法将会调用，并且你可以用过 <code>ActionCable.server.broadcast('appearance_channel', message: 'Hello, Katy')</code> 来响应，这样浏览器端的 <code>received</code> 回调将会被调用。</p>
 </div>
 
 
@@ -320,12 +254,12 @@ touch index. &hellip;">
   
 
 
-<time datetime="2016-08-05T23:59:59+08:00" pubdate data-updated="true"></time>
+<time datetime="2016-08-13T17:37:26+08:00" pubdate data-updated="true"></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/https/'>https</a>
+    <a class='category' href='/blog/categories/rails/'>rails</a>
   
 </span>
 
@@ -334,7 +268,7 @@ touch index. &hellip;">
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/" >Tweet</a>
   
   
   
@@ -343,10 +277,10 @@ touch index. &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/08/05/docker-run-mysql-and-connect/" title="Previous Post: Run MySQL on Docker machine">&laquo; Run MySQL on Docker machine</a>
+        <a class="basic-alignment left" href="/blog/2016/08/13/fast/" title="Previous Post: 快">&laquo; 快</a>
       
       
-        <a class="basic-alignment right" href="/blog/2016/08/13/fast/" title="Next Post: 快">快 &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/" title="Next Post: ActionCable 源码阅读笔记-前端部分-2">ActionCable 源码阅读笔记-前端部分-2 &raquo;</a>
       
     </p>
   </footer>
@@ -442,8 +376,8 @@ touch index. &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.justqyx.me/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca/';
-        var disqus_url = 'http://www.justqyx.me/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca/';
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/';
         var disqus_script = 'embed.js';
       
     (function () {

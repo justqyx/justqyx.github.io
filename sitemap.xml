@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/</loc>
+<lastmod>2016-08-13T17:48:30+08:00</lastmod>
+</url>
+<url>
+<loc>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/</loc>
+<lastmod>2016-08-13T17:37:26+08:00</lastmod>
+</url>
+<url>
 <loc>http://www.justqyx.me/blog/2016/08/13/fast/</loc>
 <lastmod>2016-08-13T14:17:52+08:00</lastmod>
 </url>

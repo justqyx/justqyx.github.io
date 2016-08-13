@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Categories - JustQyx</title>
+  <title>ActionCable 源码阅读笔记-前端部分-3 - JustQyx</title>
   <meta name="author" content="邱源鑫">
 
   
-  <meta name="description" content="Categories Thought [ 13 ] Rails [ 27 ] Frontend [ 2 ] Linux [ 1 ] Db [ 1 ] Computer [ 4 ] Dsl [ 1 ] Https [ 2 ] Docker [ 1 ] Comments Please enable &hellip;">
+  <meta name="description" content="本节将会阐述 ActionCable 浏览器端源码部分的 Monitor 是如何共走的。 抱歉，还在整理中&hellip;
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +34,7 @@
   <!-- End of Google Analytics Content Experiment code -->
 
   
-  <link rel="canonical" href="http://www.justqyx.me/blog/categories">
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
@@ -102,52 +103,15 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Categories</h1>
-    <p class="meta">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-07-28T23:11:00+08:00" pubdate data-updated="true"></time></p>
-  </header>
-  
-  <ul>
-
-    <li><a href="/blog/categories/thought/">Thought</a> [ 13 ]</li>
-
-    <li><a href="/blog/categories/rails/">Rails</a> [ 27 ]</li>
-
-    <li><a href="/blog/categories/frontend/">Frontend</a> [ 2 ]</li>
-
-    <li><a href="/blog/categories/linux/">Linux</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/db/">Db</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/computer/">Computer</a> [ 4 ]</li>
-
-    <li><a href="/blog/categories/dsl/">Dsl</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/https/">Https</a> [ 2 ]</li>
-
-    <li><a href="/blog/categories/docker/">Docker</a> [ 1 ]</li>
-
-</ul>
-
-  
-    <footer>
+    
+      <h1 class="entry-title">ActionCable 源码阅读笔记-前端部分-3</h1>
+    
+    
       <p class="meta">
         
-        
 
 
 
@@ -159,12 +123,68 @@
   
 
 
-<time datetime="2013-07-28T23:11:00+08:00" pubdate data-updated="true"></time>
+<time datetime="2016-08-13T17:48:30+08:00" pubdate data-updated="true"></time>
+        
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>本节将会阐述 ActionCable 浏览器端源码部分的 Monitor 是如何共走的。</p>
+
+<p>抱歉，还在整理中&hellip;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
       
-    </footer>
   
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-08-13T17:48:30+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/" title="Previous Post: ActionCable 源码阅读笔记-前端部分-2">&laquo; ActionCable 源码阅读笔记-前端部分-2</a>
+      
+      
+    </p>
+  </footer>
 </article>
 
   <section>
@@ -257,8 +277,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://www.justqyx.me/blog/categories/index.html';
-        var disqus_url = 'http://www.justqyx.me/blog/categories/index.html';
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/';
         var disqus_script = 'embed.js';
       
     (function () {

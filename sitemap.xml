@@ -2,7 +2,7 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/</loc>
-<lastmod>2016-08-13T17:48:30+08:00</lastmod>
+<lastmod>2016-08-13T18:06:30+08:00</lastmod>
 </url>
 <url>
 <loc>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/</loc>
@@ -245,20 +245,5 @@
 </url>
 <url>
 <loc>http://www.justqyx.me/blog/categories/docker/</loc>
-</url>
-<url>
-<loc>http://www.justqyx.me/posts/2/</loc>
-</url>
-<url>
-<loc>http://www.justqyx.me/posts/3/</loc>
-</url>
-<url>
-<loc>http://www.justqyx.me/posts/4/</loc>
-</url>
-<url>
-<loc>http://www.justqyx.me/posts/5/</loc>
-</url>
-<url>
-<loc>http://www.justqyx.me/posts/6/</loc>
 </url>
 </urlset>

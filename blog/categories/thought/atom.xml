@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: 思考 | JustQyx]]></title>
-  <link href="http://www.justqyx.me/blog/categories/si-kao/atom.xml" rel="self"/>
+  <title><![CDATA[Category: thought | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/thought/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2016-08-11T10:07:00+08:00</updated>
+  <updated>2016-08-13T14:27:46+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[快]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/kuai/"/>
+    <updated>2016-08-13T14:17:52+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/kuai</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How do I collect tech infomation]]></title>
@@ -45,6 +54,90 @@
 <p>真正的干货，永远只存在于好的书籍里，推荐《如何阅读一本书》，它可以指导你如何阅读一本书，同时也指导你如何去选一本好书。</p>
 
 <p>好的书籍则能够让你更加脚踏实地地进步，它相当于这本书的作者在非常认真地跟你讲 ta 在这个领域所掌握的知识，这是花多少钱都买不来的。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[今年要读的书]]></title>
+    <link href="http://www.justqyx.me/blog/2016/02/16/books-reading-this-year/"/>
+    <updated>2016-02-16T14:37:35+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/02/16/books-reading-this-year</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>得益于如今的互联网和技术圈的氛围，使得我可以不断地修正自己的方向。</p>
+
+<h2>List</h2>
+
+<ul>
+<li><strong>《批判性思维：带你走出思维的误区》</strong></li>
+</ul>
+
+
+<blockquote><p>出生在农村的我，先天教育的落后，导致我智商、情商都落后，加上信息透明度不够，<br/>
+在这社会行走，太容易被人忽悠。<br/>
+人傻要多读书，人傻要多读书，人傻要多读书。</p></blockquote>
+
+<ul>
+<li><strong>《垃圾回收的算法与实现》</strong></li>
+</ul>
+
+
+<blockquote><p>今年将要出版的一本书，<a href="https://twitter.com/_kaichen">@陈恺</a>师兄介绍，他正在帮忙审查这本书。<br/>
+Ruby 的 GC 话题在 2014 和 2015 年都非常火，最新几个版本的重点也都在于对虚拟机性能的提升。</p></blockquote>
+
+<ul>
+<li><strong>《HTTP 权威指南》</strong></li>
+<li><strong>《Webkit 技术内幕》</strong></li>
+<li><strong>《白帽子讲 Web 安全》</strong></li>
+</ul>
+
+
+<blockquote><p>与其在网上看一堆文章（特别是百度搜出来的），还不如静下心来看看书，这才是精华。<br/>
+另外，我只用谷歌，最差也是 global.bing.com。</p></blockquote>
+
+<ul>
+<li><strong>《领域特定语言》</strong></li>
+<li><strong>《企业应用架构模式》</strong></li>
+</ul>
+
+
+<blockquote><p>这两年或多或少接触这些领域的概念，但一直没有迈开脚步，有许多原因，现在就先迈出一步吧。<br/>
+工程化，是我接下来需要修习的一门课。</p></blockquote>
+
+<ul>
+<li><strong>《写给大家看的设计书》</strong></li>
+</ul>
+
+
+<blockquote><p>我讨厌不好看的 UI，就跟我用了 Mac 之后再也回不去 Windows 一样。<br/>
+另外这篇扯淡博文，我调了四五次格式，但还是丑 &hellip;</p></blockquote>
+
+<ul>
+<li><strong>《创业维艰》</strong></li>
+<li><strong>《从0到1：开启商业与未来的秘密》</strong></li>
+</ul>
+
+
+<blockquote><p>某一天，我也希望有自己的工作室或者公司，当老板的都是苦逼的，能不苦逼的，干的都是写在宪法里的事情。</p></blockquote>
+
+<ul>
+<li><strong>《激荡三十年（上）》</strong></li>
+<li><strong>《激荡三十年（上）》</strong></li>
+<li><strong>《货币战争：真相与未来》</strong></li>
+</ul>
+
+
+<blockquote><p>没错，我对财经也感兴趣。<br/>
+前两本是前老板写的，没错，就是那个财经界的吴晓波，据说有一段时间，杭州武林门有一条街都是他的。<br/>
+最后一本也许是个坑，还有也许三本都是坑。</p></blockquote>
+
+<ul>
+<li><strong>《失控》</strong></li>
+<li><strong>《必然》</strong></li>
+</ul>
+
+
+<blockquote><p>还来，你以为我这么喜欢看书的啊，但是凯文•凯利的，那就勉强看看吧。</p></blockquote>
 ]]></content>
   </entry>
   
@@ -111,127 +204,6 @@
 
 <blockquote><p>一：只有极少数程序员是通过这个路线成功的；<br/>
 二：这条线其实需要太多非程序员职位的技能，比如产品设计能力和销售能力。</p></blockquote>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[关于最近的前端界吵架]]></title>
-    <link href="http://www.justqyx.me/blog/2016/02/03/frontend-talk/"/>
-    <updated>2016-02-03T14:53:12+08:00</updated>
-    <id>http://www.justqyx.me/blog/2016/02/03/frontend-talk</id>
-    <content type="html"><![CDATA[<p>前阵子，尤雨溪和真阿当在微博上吵架的事情，估计已经传播到
-整个技术界了。其实真没什么好吵的，但是我那几天还是乐滋滋地
-每天上微博刷。</p>
-
-<h2>争论的方法</h2>
-
-<p>真阿当更多地是凭借自己所接触到的所以为的客观事实地下结论，
-没有足够的数据支撑，且带着过了度的情绪在争论。
-而尤雨溪则更多地想去阐述每个工具的出现都有其背景历史以及想要解决的问题。</p>
-
-<p>离开技术的范畴，我支持尤雨溪的争论方法和态度。</p>
-
-<h2>没有必要的争论</h2>
-
-<p>真阿当所主张的基础很重要，与工具的出现其实并没有冲突，
-工具的出现主要解决软件开发过程中所出现的工程学问题，
-并不是为了解决初学者基础不足的问题。</p>
-
-<h2>我认同张克军的观点</h2>
-
-<p><a href="https://www.zhihu.com/question/38924821#answer-26964768">https://www.zhihu.com/question/38924821#answer-26964768</a></p>
-
-<blockquote><p>对待技术发展要保持开放的心态，保持好奇心，持续学习。
-如前面所述，要分清哪些是玩玩，哪些是工作需要，哪些需要深入学习</p></blockquote>
-
-<p>这话点醒了我，因为目前，我在技术学习的时间分配上非常不合理。
-日常保持着对不同技术领域资讯的跟进，由于时间分配不合理，
-加上工作上也没有此方面的实践机会，始终有一种看了这么多但究竟有什么用的心态。</p>
-
-<h2>对待争论</h2>
-
-<ul>
-<li>识别两方争论的点</li>
-<li>识别两方争论的方法以及其论据</li>
-<li>不站队，只获取对自己有益的信息即可</li>
-</ul>
-
-
-<p>这是个最坏的时代，也是最好的时代。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[职业定位]]></title>
-    <link href="http://www.justqyx.me/blog/2015/06/07/my-career-roadmap/"/>
-    <updated>2015-06-07T10:51:22+08:00</updated>
-    <id>http://www.justqyx.me/blog/2015/06/07/my-career-roadmap</id>
-    <content type="html"><![CDATA[<h2>寻找的过程</h2>
-
-<p>今年一月份，我对于我自己的职业规划做了一个初步的想象，我阐述了自己未来想在哪一个城市，
-做什么样的工作，过什么样的生活，需要我在什么样的阶段做好什么样的准备。
-但这么一些想象离现实有些远或者说现阶段的我想了也只能是想了，无法有实际性东西的输出。</p>
-
-<p>三月份的时候，我在 Evernote 写了一篇《我的焦虑》，阐述了我在职业上、生活上所面对的疑惑，
-而现在的状态，只能在工作上向前迈进，而生活方面则很难。</p>
-
-<p>五月底的时候，又特意重新看了乔布斯在斯坦福大学的演讲，觉得对于现在的我有着重要的指导意义：
-我必须去确定我喜欢什么。无论花多长时间，这都是值得去探索的话题。
-我期望在某一天我也能够进入这样的一种状态：把每一天当成生命的最后一天来过。</p>
-
-<p>这几天，翻开了之前 evernote 记录的一些零散的笔记，看到了「决定不做什么」。大意是建议人们，
-在面对选择但又不是那么确定的时候,决定不做什么，比决定做什么更重要。
-因为决定不做的那些一定是自己不想要的，而无法决定的那些，最起码自己不拒绝。
-这也是跟师兄聊了之后对我几点建议之一。</p>
-
-<h2>确定</h2>
-
-<p>昨天，2015-06-06，一年一度高考正式开始的日子。</p>
-
-<p>这几天，跟一些人聊职业、聊人生的话题，感触越来越多，感觉对于自己来讲也越来越清楚。
-想起了之前同事推荐的一篇文章「程序员的四个象限和两条主线」，于是重新看了一遍。</p>
-
-<p>这篇文章里，主要阐述的是程序员的职业规划问题，更深入一点来讲，阐述的是作者多年来，在接触各种各样的程序员后，
-总结出的程序员的职业发展大致有几种：</p>
-
-<ul>
-<li>雇员，即普通的上班族</li>
-<li>自由职业者和小企业主</li>
-<li>以规模化为前提的企业主</li>
-<li>投资人</li>
-</ul>
-
-
-<p>最后又总结为两条线：</p>
-
-<ul>
-<li>技术线</li>
-<li>管理线</li>
-</ul>
-
-
-<p>我从这里面，找到了自己的位置。想想之前其实最大的困惑还是，不知道自己究竟有多少种选择，
-于是日子充满着对现在的不安分，对未来的迷茫。</p>
-
-<p>「全栈」二字，如今的我有着更为深刻的理解，不在仅仅是计算机领域的只是，还涉及到其他领域的知识。
-而这也是我接下来三年，五年，甚至十年的目标，努力让自己成为一个 T 字形的人。
-纵向方面，基础的有计算机基础知识、程序语言设计，进一步的有前后端框架、数据库、架构等等;
-横向方面，关注产品和设计、经济和金融领域。同时学习观察技术潮流，关注投资市场和细分市场。
-但随着时间的推移，自身知识面的扩展，这些可以被修正或者推倒。
-今年的目标就是踏出第一步，把这些变成我生活的一部分。</p>
-
-<p>上面阐述的这些并不是实际的、可以执行的计划，而是我接下来所有决定和努力的指导思想。
-它将辅助我看清更多事物之间的联系，不再为新事物的出现而感到力不从心，不再为旧事物的淘汰而感到不安。</p>
-
-<h2>任何事情都不是一触而就的</h2>
-
-<p>这是两年工作下来最为深刻的体会。从上大学开始，就一直在想自己的人生将何去何从的问题，
-毕业后这种思考更为强烈和频繁，今天的这些内容它只是我寻找答案的一个过程，绝不是最终的答案。
-而对于过程，或许可以用我看到过的一句话来看待：</p>
-
-<blockquote><p>人之所以不成功，或许不是因为缺乏足够的毅力，而是没有掌握科学的方法。</p></blockquote>
-
-<p>如今的我在面对一个目标时，更加注重耐心和付出。</p>
 ]]></content>
   </entry>
   

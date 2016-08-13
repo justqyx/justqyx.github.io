@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dsl | JustQyx]]></title>
   <link href="http://www.justqyx.me/blog/categories/dsl/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2016-08-11T10:07:00+08:00</updated>
+  <updated>2016-08-13T14:27:46+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -159,7 +159,7 @@ Quiz.instance.run_quiz
 
 <h2>Gif 效果图</h2>
 
-<p>{% img /downloads/images/dsl.gif %}</p>
+<p><img src="/downloads/images/dsl.gif"></p>
 
 <h2>Ref</h2>
 

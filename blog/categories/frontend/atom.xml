@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: 前端 | JustQyx]]></title>
-  <link href="http://www.justqyx.me/blog/categories/qian-duan/atom.xml" rel="self"/>
+  <title><![CDATA[Category: frontend | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/frontend/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2016-08-11T10:07:00+08:00</updated>
+  <updated>2016-08-13T14:27:46+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -331,7 +331,7 @@ NB.extend(Cat, Animal);
 
 <p>在 <a href="http://thesassway.com/beginner/how-to-structure-a-sass-project">How to structure a Sass project</a> 文中，阐述了这样的一个基本目录结构</p>
 
-<p>{% img /downloads/images/sass.png %}</p>
+<p><img src="/downloads/images/sass.png"></p>
 
 <ul>
 <li><p><code>modules</code></p>

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "ActionCable 源码阅读笔记-前端部分-3"
-date: 2016-08-13 17:48:30 +0800
+date: 2016-08-13 18:06:30 +0800
 comments: true
 categories: ['rails']
 ---

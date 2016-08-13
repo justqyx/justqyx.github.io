@@ -3,7 +3,7 @@ layout: post
 title: "Building a DSL in Ruby"
 date: 2016-02-16 10:23:27 +0800
 comments: true
-categories: ['dsl', 'ruby']
+categories: ['rails', 'DSL']
 ---
 
 DSL（领域专用语言，Domain Specific Language）不是一个新的技术概念，并且构建是困难的。

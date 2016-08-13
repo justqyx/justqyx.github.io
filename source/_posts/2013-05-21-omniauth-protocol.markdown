@@ -3,7 +3,7 @@ layout: post
 title: "Oauth2.0 Protocol"
 date: 2013-05-21 00:05
 comments: true
-categories: [ruby]
+categories: ['rails']
 ---
 
 有关 `Oauth2` 协议的，这里有几份文档。

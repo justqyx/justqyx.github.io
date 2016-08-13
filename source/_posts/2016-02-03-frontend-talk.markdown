@@ -3,7 +3,7 @@ layout: post
 title: "关于最近的前端界吵架"
 date: 2016-02-03 14:53:12 +0800
 comments: true
-categories: ["思考"]
+categories: ["thought"]
 ---
 
 前阵子，尤雨溪和真阿当在微博上吵架的事情，估计已经传播到

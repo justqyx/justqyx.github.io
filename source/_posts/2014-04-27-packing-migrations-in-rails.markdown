@@ -3,7 +3,7 @@ layout: post
 title: Packing migrations in Rails
 date: 2014-04-27 18:00:00 +0800
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 经过长时间的开发后，项目里的迁移文件就会积累很多，可能有上百个，有些表经过许多次的修改和迁移，

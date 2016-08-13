@@ -3,7 +3,7 @@ layout: post
 title: "Thinking about education"
 date: 2016-02-15 15:18:32 +0800
 comments: true
-categories: ["思考"]
+categories: ["thought"]
 ---
 
 前阵子在即刻上面订阅了「任志强写了新的长文章」，

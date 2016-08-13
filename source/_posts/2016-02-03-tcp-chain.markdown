@@ -3,7 +3,7 @@ layout: post
 title: "TCP 链路是如何 Keep-Alive 的"
 date: 2016-02-03 13:51:50 +0800
 comments: true
-categories: ["cs"]
+categories: ["computer"]
 ---
 
 之前一直没有搞明白，HTTP 链路（即 TCP 链路）是如何 Keep-Alive 的。

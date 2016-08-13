@@ -3,7 +3,7 @@ layout: post
 title: "Ruby App Server 常用的三种 I/O 模型"
 date: 2016-02-17 11:06:27 +0800
 comments: true
-categories: ['ruby']
+categories: ['rails']
 ---
 
 所有的 Web 应用都遵循着一个基本模型。首先，它们需要从一些 I/O 通道接收 HTTP 请求，

@@ -3,7 +3,7 @@ layout: post
 title: "Rails admin authentication"
 date: 2013-05-19 11:37
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 今天想学习一下 omniauth 的使用，但是使用前，想重新整理出以前在做登录时是怎么做的。

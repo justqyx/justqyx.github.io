@@ -3,7 +3,7 @@ layout: post
 title: "Threads in Ruby（译）"
 date: 2014-12-31 14:27:04 +0800
 comments: true
-categories: [ruby]
+categories: ['rails']
 ---
 
 [这是原文](http://www.sitepoint.com/threads-ruby/)

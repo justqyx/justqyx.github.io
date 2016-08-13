@@ -3,7 +3,7 @@ layout: post
 title: Redis Learning Note
 date: 2013-10-26 14:23
 comments: true
-categories: [database]
+categories: ['db']
 ---
 
 ## 安装

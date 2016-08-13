@@ -3,7 +3,7 @@ layout: post
 title: "What is config.threadsafe!（译）"
 date: 2014-12-31 16:37:32 +0800
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 [原文](http://www.sitepoint.com/config-threadsafe/)

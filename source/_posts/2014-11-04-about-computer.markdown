@@ -3,7 +3,7 @@ layout: post
 title: "About Computer"
 date: 2014-11-04 12:49:44 +0800
 comments: true
-categories: ["思考"]
+categories: ["thought"]
 ---
 
 在互联网开始崛起的时候，「学习」和「沟通」是人们使用电脑的主旋律。<br/>

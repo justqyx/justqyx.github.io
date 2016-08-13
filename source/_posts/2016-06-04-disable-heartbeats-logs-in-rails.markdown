@@ -3,7 +3,7 @@ layout: post
 title: "Disable heartbeats logs in Rails"
 date: 2016-06-04 13:15:18 +0800
 comments: true
-categories: ['Rails']
+categories: ['rails']
 ---
 
 为了监测我们的 Rails 应用是否存活，我们在应用里会提供一个接口，让监控服务调用。如：

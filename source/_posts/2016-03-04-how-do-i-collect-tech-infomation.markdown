@@ -3,7 +3,7 @@ layout: post
 title: "How do I collect tech infomation"
 date: 2016-03-04 10:55:14 +0800
 comments: true
-categories: ['思考']
+categories: ['thought']
 ---
 
 作为一个「图样图森破」的人，向前辈学习是我的主旋律，以下是我获取信息和知识的主要渠道。

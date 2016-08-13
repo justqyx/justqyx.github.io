@@ -3,7 +3,7 @@ layout: post
 title: About test
 date: 2013-07-14 17:23
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 ## 基础

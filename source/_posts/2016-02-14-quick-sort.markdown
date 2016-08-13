@@ -3,7 +3,7 @@ layout: post
 title: 快速排序
 date: 2016-02-14 17:38:13 +0800
 comments: true
-categories: []
+categories: ['computer']
 ---
 
 快速排序使用分治法（Divide and conquer）策略来把一个序列（list）分为两个子序列（sub-lists）。

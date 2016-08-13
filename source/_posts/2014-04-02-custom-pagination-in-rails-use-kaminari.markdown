@@ -3,7 +3,7 @@ layout: post
 title: Custom pagination in Rails use Kaminari
 date: 2014-04-02 15:47:55 +0800
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 在 Rails App 中，我们使用 `kaminari` 去做分页的时候，我们的代码大概是这样子的：

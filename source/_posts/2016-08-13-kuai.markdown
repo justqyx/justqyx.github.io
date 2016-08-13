@@ -1,0 +1,7 @@
+---
+layout: post
+title: "快"
+date: 2016-08-13 14:17:52 +0800
+comments: true
+categories: ['thought']
+---

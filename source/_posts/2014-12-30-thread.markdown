@@ -3,7 +3,7 @@ layout: post
 title: "Thread"
 date: 2014-12-30 18:44:05 +0800
 comments: true
-categories: ["cs"]
+categories: ["computer"]
 ---
 
 ## 进程、线程

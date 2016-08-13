@@ -3,7 +3,7 @@ layout: post
 title: "Kill Postgres Hang Query"
 date: 2014-12-10 16:20:05 +0800
 comments: true
-categories: [database]
+categories: ['rails']
 ---
 
 今天，在服务器上面拉了一份数据后，导入了单张表的数据，但发现索引都没有了。

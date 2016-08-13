@@ -3,7 +3,7 @@ layout: post
 title: "Upload file in Rails Test Case"
 date: 2013-09-06 18:07
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 ## 正确的代码

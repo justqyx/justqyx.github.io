@@ -3,7 +3,7 @@ layout: post
 title: "归并排序"
 date: 2016-02-15 09:23:24 +0800
 comments: true
-categories: []
+categories: ['computer']
 ---
 
 归并排序（Merge sort），是建立在归并操作上的一种有效排序算法，时间复杂度为 O(n*log(n))。1945 年由约翰•冯•诺依曼首次提出。

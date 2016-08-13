@@ -3,7 +3,7 @@ layout: post
 title: "Run MySQL on Docker machine"
 date: 2016-08-05 23:59:58 +0800
 comments: true
-categories: ['docker']
+categories: ['Docker']
 ---
 
 ## 使用 docker 来运行 MySQL

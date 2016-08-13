@@ -3,7 +3,7 @@ layout: post
 title: "今年要读的书"
 date: 2016-02-16 14:37:35 +0800
 comments: true
-categories:
+categories: ['thought']
 ---
 
 ## 前言

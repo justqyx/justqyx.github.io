@@ -3,7 +3,7 @@ layout: post
 title: Using oauth in Ruby Project
 date: 2013-05-19 21:40
 comments: true
-categories: [ruby]
+categories: ['rails']
 ---
 
 现在，很多网站和手机app都支持使用第三方帐号登录，如 QQ、微博、Yammer、Github等。 而在这其中，最为重要的就是 `Oauth` 协议，即“开放授权”协议。

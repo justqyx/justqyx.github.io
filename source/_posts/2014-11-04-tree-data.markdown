@@ -3,7 +3,7 @@ layout: post
 title: "tree data"
 date: 2014-11-04 12:50:00 +0800
 comments: true
-categories: ["rails", "database"]
+categories: ['rails']
 ---
 
 对于树形结构的数据存储，schema 的设计通常很简单，难的是其查询是否简单、方便。<br/>

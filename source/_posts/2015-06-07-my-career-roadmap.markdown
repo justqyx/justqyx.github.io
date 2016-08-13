@@ -3,7 +3,7 @@ layout: post
 title: "职业定位"
 date: 2015-06-07 10:51:22 +0800
 comments: true
-categories: ['思考']
+categories: ['thought']
 ---
 
 ## 寻找的过程

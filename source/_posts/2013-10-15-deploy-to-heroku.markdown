@@ -3,7 +3,7 @@ layout: post
 title: "the problem of deploying app to Heroku"
 date: 2013-10-15 23:41
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 Heroku，要是不因为 GFW 的原因，国内还应该是蛮多人用的。

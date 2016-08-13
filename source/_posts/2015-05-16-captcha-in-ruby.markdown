@@ -3,7 +3,7 @@ layout: post
 title: "Captcha in Ruby"
 date: 2015-05-16 11:35:41 +0800
 comments: true
-categories: [ruby,rails]
+categories: ['rails']
 ---
 
 图片验证码的使用场景就不用说了，在这里分享一下我是如何做登录图片验证码的。

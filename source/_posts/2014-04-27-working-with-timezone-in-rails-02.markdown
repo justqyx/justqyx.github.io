@@ -3,7 +3,7 @@ layout: post
 title: Working with timezone in Rails(02)
 date: 2014-04-27 20:30:00 +0800
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 在 [上一篇](/blog/2014/04/27/working-with-timezone-in-rails-01) 里，

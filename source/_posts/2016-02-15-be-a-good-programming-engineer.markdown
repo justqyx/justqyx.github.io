@@ -3,7 +3,7 @@ layout: post
 title: "A good programming engineer"
 date: 2016-02-15 14:19:26 +0800
 comments: true
-categories: ['思考']
+categories: ['thought']
 ---
 
 接上次的一篇短博文，张克军的观点给了我接下来的学习指明了方向。

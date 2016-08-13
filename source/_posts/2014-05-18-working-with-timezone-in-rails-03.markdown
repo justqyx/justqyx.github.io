@@ -3,7 +3,7 @@ layout: post
 title: Working with timezone in Rails(03)
 date: 2014-05-18 16:17:30 +0800
 comments: true
-categories: [rails]
+categories: ['rails']
 ---
 
 前面两篇分别阐述了数据库对时区的不同处理处理方式和Rails中有关时区的两个选项设置。

@@ -1,0 +1,82 @@
+---
+layout: post
+title: "Use Rubocop to control your Ruby code's quality"
+date: 2017-02-19 15:18:35 +0800
+comments: true
+categories: ['Ruby']
+---
+
+代码质量控制，是项目自始至终都应该去掌控的事情。
+虽然每个团队的风格总会有一些出入，但是达成共识是一件并不困难的事情。
+达成共识以后，我们需要借助工具，以及达成一套流程来帮助我们半自动化或自动化地做这样的一件事情。
+
+在 Ruby 社区里，目前最广泛使用的是 [Rubocop](https://github.com/bbatsov/rubocop)。
+
+
+## Rubocop
+
+Rubocop 是一个 Ruby 静态代码分析。
+其默认遵循的是一个由社区驱动的 [Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide)。
+
+**优点**
+
+1. 配置简单，定制化好，快速集成
+2. 遵循 Rails 所提倡的 COC 原则
+3. 兼容性好，支持 Ruby 2.0+
+
+**缺点**
+
+1. 无法做到像编译性语言那么准确，这当然也跟 Ruby 语言本身的灵活性有关系
+
+## Rails 集成 Rubocop
+
+在 Gemfile 增加
+
+```ruby
+group :develop do
+  gem 'rubocop', require: false
+end
+```
+
+运行
+
+```bash
+bundle install
+bundle exec rubocop
+```
+
+### 自定义
+
+每个团队的风格不一样，一定会有自定义的需求，只需要 Rails 项目根目录下，新建文件
+
+`.rubocop.yml`
+
+```yaml
+AllCops:
+  Exclude:
+    - 'vendor/**/*'
+    - 'spec/fixtures/**/*'
+    - 'tmp/**/*'
+  TargetRubyVersion: 2.1
+
+Style/Encoding:
+  EnforcedStyle: when_needed
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: always
+
+Style/IndentHeredoc:
+  EnforcedStyle: powerpack
+
+Metrics/BlockLength:
+  Exclude:
+    - 'Rakefile'
+    - '**/*.rake'
+    - 'spec/**/*.rb'
+```
+
+如果想要自定义，可以参考文件 `https://github.com/bbatsov/rubocop/blob/master/config/default.yml`
+然后在 `.rubocop.yml` 添加即可。
+
+

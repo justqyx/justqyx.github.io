@@ -183,7 +183,7 @@ require &#39;test_helper&#39; class PicturesControllerTest &lt; ActionController
 <span class='line-number'>24</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;test_helper&#39;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:TestCase</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">TestCase</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="n">setup</span> <span class="k">do</span>
 </span><span class='line'>    <span class="vi">@user</span> <span class="o">=</span> <span class="n">create</span> <span class="ss">:user</span>
@@ -201,7 +201,7 @@ require &#39;test_helper&#39; class PicturesControllerTest &lt; ActionController
 </span><span class='line'>  <span class="kp">private</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">def</span> <span class="nf">test_file</span>
-</span><span class='line'>      <span class="vi">@file</span> <span class="o">||=</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Test</span><span class="o">::</span><span class="no">UploadedFile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;test/fixtures/images/test.png&quot;</span><span class="p">,</span> <span class="s2">&quot;image/png&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="vi">@file</span> <span class="o">||=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Test</span><span class="o">::</span><span class="no">UploadedFile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;test/fixtures/images/test.png&quot;</span><span class="p">,</span> <span class="s2">&quot;image/png&quot;</span><span class="p">)</span>
 </span><span class='line'>    <span class="k">end</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">end</span>
@@ -227,7 +227,7 @@ require &#39;test_helper&#39; class PicturesControllerTest &lt; ActionController
 <span class='line-number'>13</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;test_helper&#39;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:TestCase</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">TestCase</span>
 </span><span class='line'>
 </span><span class='line'><span class="c1"># ...</span>
 </span><span class='line'>

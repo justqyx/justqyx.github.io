@@ -4,7 +4,7 @@
   <title><![CDATA[JustQyx]]></title>
   <link href="http://www.justqyx.me/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2017-11-26T15:49:26+08:00</updated>
+  <updated>2017-11-26T15:51:36+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -1180,17 +1180,17 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p <span class="nb">test</span>/demoCA <span class="o">&amp;&amp;</span> <span class="nb">cd test</span>/demoCA
 </span><span class='line'>mkdir certs crl newcerts private
-</span><span class='line'>chmod 700 private
+</span><span class='line'>chmod <span class="m">700</span> private
 </span><span class='line'>touch index.txt
-</span><span class='line'><span class="nb">echo </span>1000 &gt; serial
+</span><span class='line'><span class="nb">echo </span><span class="m">1000</span> &gt; serial
 </span><span class='line'>vim openssl.cnf
 </span><span class='line'>
 </span><span class='line'>openssl genrsa -aes256 -out private/ca.key.pem 4096
-</span><span class='line'>chmod 400 private/ca.key.pem
+</span><span class='line'>chmod <span class="m">400</span> private/ca.key.pem
 </span><span class='line'>
 </span><span class='line'>openssl req -config openssl.cnf <span class="se">\</span>
 </span><span class='line'>        -key private/ca.key.pem <span class="se">\</span>
-</span><span class='line'>        -new -x509 -days 7300 -sha256 -extensions v3_ca <span class="se">\</span>
+</span><span class='line'>        -new -x509 -days <span class="m">7300</span> -sha256 -extensions v3_ca <span class="se">\</span>
 </span><span class='line'>        -out certs/ca.cert.pem
 </span></code></pre></td></tr></table></div></figure>
 
@@ -1246,7 +1246,7 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Country Name <span class="o">(</span>2 letter code<span class="o">)</span> <span class="o">[</span>AU<span class="o">]</span>:CN
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>AU<span class="o">]</span>:CN
 </span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[</span>Some-State<span class="o">]</span>:Guangdong
 </span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[]</span>:Shenzhen
 </span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Internet Widgits Pty Ltd<span class="o">]</span>:随便填
@@ -1277,18 +1277,18 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>   server <span class="o">{</span>
-</span><span class='line'>        listen 443;
-</span><span class='line'>        server_name localhost;
+</span><span class='line'>        listen 443<span class="p">;</span>
+</span><span class='line'>        server_name localhost<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>        ssl                   on;
-</span><span class='line'>        ssl_certificate       /usr/local/etc/nginx/ca/server.crt;
-</span><span class='line'>        ssl_certificate_key   /usr/local/etc/nginx/ca/server.key;
+</span><span class='line'>        ssl                   on<span class="p">;</span>
+</span><span class='line'>        ssl_certificate       /usr/local/etc/nginx/ca/server.crt<span class="p">;</span>
+</span><span class='line'>        ssl_certificate_key   /usr/local/etc/nginx/ca/server.key<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>        ssl_session_timeout   5m;
+</span><span class='line'>        ssl_session_timeout   5m<span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'>        location / <span class="o">{</span>
-</span><span class='line'>            root /Users/yuanxin/www;
-</span><span class='line'>            index index.html index.htm;
+</span><span class='line'>            root /Users/yuanxin/www<span class="p">;</span>
+</span><span class='line'>            index index.html index.htm<span class="p">;</span>
 </span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>    <span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -1448,14 +1448,14 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>22</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/quiet_heartbeats.rb</span>
 </span><span class='line'><span class="k">module</span> <span class="nn">QuietHeartbeats</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Railtie</span> <span class="o">&lt;</span> <span class="o">::</span><span class="ss">Rails</span><span class="p">:</span><span class="ss">:Railtie</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Railtie</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Railtie</span>
 </span><span class='line'>    <span class="n">initializer</span> <span class="s1">&#39;quiet_heartbeat.initialize&#39;</span> <span class="k">do</span> <span class="o">|</span><span class="n">app</span><span class="o">|</span>
 </span><span class='line'>      <span class="no">PATH_PREFIX_REGEX</span> <span class="o">=</span> <span class="sr">/\A(\/heartbeats)/</span>
-</span><span class='line'>      <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Rack</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
+</span><span class='line'>      <span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
 </span><span class='line'>        <span class="k">def</span> <span class="nf">call_with_quiet_heartbeat_request</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </span><span class='line'>          <span class="k">if</span> <span class="n">env</span><span class="o">[</span><span class="s1">&#39;PATH_INFO&#39;</span><span class="o">]</span> <span class="o">=~</span> <span class="no">PATH_PREFIX_REGEX</span>
 </span><span class='line'>            <span class="n">previous_level</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span>
-</span><span class='line'>            <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="ss">Logger</span><span class="p">:</span><span class="ss">:ERROR</span>
+</span><span class='line'>            <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="no">Logger</span><span class="o">::</span><span class="no">ERROR</span>
 </span><span class='line'>            <span class="n">call_without_quiet_heartbeat_request</span><span class="p">(</span><span class="n">env</span><span class="p">)</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span>
 </span><span class='line'>              <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">previous_level</span>
 </span><span class='line'>            <span class="k">end</span>
@@ -1479,7 +1479,7 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">YourApplicationName</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Application</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
 </span><span class='line'>    <span class="nb">require</span> <span class="s1">&#39;quiet_heartbeats&#39;</span>
 </span><span class='line'>  <span class="k">end</span>
 </span><span class='line'><span class="k">end</span>
@@ -1550,11 +1550,11 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Your_App</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Application</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
 </span><span class='line'>    <span class="c1"># ...</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="nb">require</span> <span class="s1">&#39;quiet_heartbeats_middleware&#39;</span>
-</span><span class='line'>    <span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">insert_before</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Lock</span><span class="p">,</span> <span class="no">QuietHeartbeatsMiddleware</span>
+</span><span class='line'>    <span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">insert_before</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Lock</span><span class="p">,</span> <span class="no">QuietHeartbeatsMiddleware</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="c1"># ...</span>
 </span><span class='line'>  <span class="k">end</span>
@@ -1609,7 +1609,7 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <p>Generate a self-signed certificate from a certificate signing request valid for some number of days:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>openssl x509 -req -days <span class="m">365</span> -in server.csr -signkey server.key -out server.crt
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1633,18 +1633,18 @@ Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一�
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>server <span class="o">{</span>
-</span><span class='line'>    listen 443;
-</span><span class='line'>    server_name https.example.com;
+</span><span class='line'>    listen 443<span class="p">;</span>
+</span><span class='line'>    server_name https.example.com<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>    ssl                   on;
-</span><span class='line'>    ssl_certificate       /opt/www/https-example/server.crt;
-</span><span class='line'>    ssl_certificate_key   /opt/www/https-example/server.key;
+</span><span class='line'>    ssl                   on<span class="p">;</span>
+</span><span class='line'>    ssl_certificate       /opt/www/https-example/server.crt<span class="p">;</span>
+</span><span class='line'>    ssl_certificate_key   /opt/www/https-example/server.key<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>    ssl_session_timeout   5m;
+</span><span class='line'>    ssl_session_timeout   5m<span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'>    location / <span class="o">{</span>
-</span><span class='line'>        root /opt/www/https-example;
-</span><span class='line'>        index index.html index.htm;
+</span><span class='line'>        root /opt/www/https-example<span class="p">;</span>
+</span><span class='line'>        index index.html index.htm<span class="p">;</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -2461,7 +2461,7 @@ Ruby 的 GC 话题在 2014 和 2015 年都非常火，最新几个版本的重�
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
 </pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">min</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span> <span class="o">?</span> <span class="n">x</span> <span class="o">:</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span> <span class="o">?</span> <span class="nl">x</span> <span class="p">:</span> <span class="n">y</span><span class="p">;</span>
 </span><span class='line'><span class="p">}</span>
 </span><span class='line'><span class="kt">void</span> <span class="nf">merge_sort</span><span class="p">(</span><span class="kt">int</span> <span class="n">arr</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">len</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>  <span class="kt">int</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="n">arr</span><span class="p">;</span>

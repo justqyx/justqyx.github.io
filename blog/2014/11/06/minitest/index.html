@@ -212,7 +212,7 @@ gem install minitest &hellip;">
 </span><span class='line'>
 </span><span class='line'><span class="n">describe</span> <span class="no">Book</span> <span class="k">do</span>
 </span><span class='line'>  <span class="n">it</span> <span class="s2">&quot;mock example&quot;</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">book</span> <span class="o">=</span> <span class="ss">MiniTest</span><span class="p">:</span><span class="ss">:Mock</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>    <span class="n">book</span> <span class="o">=</span> <span class="no">MiniTest</span><span class="o">::</span><span class="no">Mock</span><span class="o">.</span><span class="n">new</span>
 </span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:name</span><span class="p">,</span> <span class="s2">&quot;Computer Systems&quot;</span>
 </span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:price</span><span class="p">,</span> <span class="mi">100</span>
 </span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:can_buy?</span><span class="p">,</span> <span class="kp">false</span><span class="p">,</span> <span class="o">[</span><span class="mi">80</span><span class="o">]</span>

@@ -207,7 +207,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="c1"># encoding: utf-8</span>
-</span><span class='line'><span class="k">class</span> <span class="nc">Admin</span><span class="o">::</span><span class="no">BaseController</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Admin</span><span class="o">::</span><span class="no">BaseController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
 </span><span class='line'>  <span class="kp">include</span> <span class="no">AuthenticateUser</span>
 </span><span class='line'>  <span class="n">protect_from_forgery</span> <span class="ss">with</span><span class="p">:</span> <span class="ss">:exception</span>
 </span><span class='line'>  <span class="n">before_filter</span> <span class="ss">:require_login</span>

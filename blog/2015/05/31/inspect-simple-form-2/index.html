@@ -294,8 +294,8 @@
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SimpleForm</span><span class="o">.</span><span class="n">setup</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
 </span><span class='line'>  <span class="c1"># ...</span>
 </span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">wrapper_mappings</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">check_boxes</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">radio_buttons</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">check_boxes</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">radio_buttons</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
 </span><span class='line'>    <span class="ss">file</span><span class="p">:</span> <span class="ss">:vertical_file_input</span><span class="p">,</span>
 </span><span class='line'>    <span class="ss">boolean</span><span class="p">:</span> <span class="ss">:vertical_boolean</span><span class="p">,</span>
 </span><span class='line'>    <span class="ss">datetime</span><span class="p">:</span> <span class="ss">:multi_select</span><span class="p">,</span>
@@ -344,26 +344,26 @@
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">SimpleForm</span>
 </span><span class='line'>  <span class="k">module</span> <span class="nn">Inputs</span>
 </span><span class='line'>    <span class="k">class</span> <span class="nc">Base</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">ERB</span><span class="p">:</span><span class="ss">:Util</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">ActionView</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">TranslationHelper</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">ERB</span><span class="o">::</span><span class="no">Util</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">ActionView</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">TranslationHelper</span>
 </span><span class='line'>
 </span><span class='line'>      <span class="kp">extend</span> <span class="no">I18nCache</span>
 </span><span class='line'>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Autofocus</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Disabled</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Readonly</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Required</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Validators</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Autofocus</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Disabled</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Readonly</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Required</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Validators</span>
 </span><span class='line'>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Errors</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Hints</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">HTML5</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">LabelInput</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Maxlength</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">MinMax</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Pattern</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Placeholders</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Readonly</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Errors</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Hints</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">HTML5</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">LabelInput</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Maxlength</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">MinMax</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Pattern</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Placeholders</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Readonly</span>
 </span><span class='line'>
 </span><span class='line'>      <span class="c1"># ...</span>
 </span><span class='line'>    <span class="k">end</span>
@@ -407,7 +407,7 @@ SimpleForm::Wrappers::Leaf 的一个实例，那么我们来看看 component.ren
 </span><span class='line'>  <span class="nb">method</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="vi">@namespace</span><span class="p">)</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">if</span> <span class="nb">method</span><span class="o">.</span><span class="n">arity</span> <span class="o">==</span> <span class="mi">0</span>
-</span><span class='line'>    <span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Deprecation</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:CUSTOM_INPUT_DEPRECATION_WARN</span> <span class="o">%</span> <span class="p">{</span> <span class="nb">name</span><span class="p">:</span> <span class="vi">@namespace</span> <span class="p">})</span>
+</span><span class='line'>    <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Deprecation</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="no">SimpleForm</span><span class="o">::</span><span class="no">CUSTOM_INPUT_DEPRECATION_WARN</span> <span class="o">%</span> <span class="p">{</span> <span class="nb">name</span><span class="p">:</span> <span class="vi">@namespace</span> <span class="p">})</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="nb">method</span><span class="o">.</span><span class="n">call</span>
 </span><span class='line'>  <span class="k">else</span>

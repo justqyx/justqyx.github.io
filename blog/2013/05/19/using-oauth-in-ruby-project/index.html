@@ -163,7 +163,7 @@
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;oauth2&#39;</span>
-</span><span class='line'><span class="n">client</span> <span class="o">=</span> <span class="ss">OAuth2</span><span class="p">:</span><span class="ss">:Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">,</span> <span class="s1">&#39;client_secret&#39;</span><span class="p">,</span> <span class="ss">:site</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://example.org&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">client</span> <span class="o">=</span> <span class="no">OAuth2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">,</span> <span class="s1">&#39;client_secret&#39;</span><span class="p">,</span> <span class="ss">:site</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://example.org&#39;</span><span class="p">)</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">client</span><span class="o">.</span><span class="n">auth_code</span><span class="o">.</span><span class="n">authorize_url</span><span class="p">(</span><span class="ss">:redirect_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;http://localhost:8080/oauth2/callback&#39;</span><span class="p">)</span>
 </span><span class='line'><span class="c1"># =&gt; &quot;https://example.org/oauth/authorization?response_type=code&amp;client_id=client_id&amp;redirect_uri=http://localhost:8080/oauth2/callback&quot;</span>
@@ -200,7 +200,7 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">use</span> <span class="ss">OmniAuth</span><span class="p">:</span><span class="ss">:Builder</span> <span class="k">do</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">use</span> <span class="no">OmniAuth</span><span class="o">::</span><span class="no">Builder</span> <span class="k">do</span>
 </span><span class='line'>  <span class="n">provider</span> <span class="ss">:developer</span> <span class="k">unless</span> <span class="no">Rails</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">production?</span>
 </span><span class='line'>  <span class="n">provider</span> <span class="ss">:twitter</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;TWITTER_KEY&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;TWITTER_SECRET&#39;</span><span class="o">]</span>
 </span><span class='line'>  <span class="n">provider</span> <span class="ss">:weibo</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;WEIBO_KEY&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;WEIBO_SECRET&#39;</span><span class="o">]</span>
@@ -249,7 +249,7 @@
 </span><span class='line'>
 </span><span class='line'><span class="k">module</span> <span class="nn">OmniAuth</span>
 </span><span class='line'>  <span class="k">module</span> <span class="nn">Strategies</span>
-</span><span class='line'>    <span class="k">class</span> <span class="nc">SomeSite</span> <span class="o">&lt;</span> <span class="ss">OmniAuth</span><span class="p">:</span><span class="ss">:Strategies</span><span class="o">::</span><span class="no">OAuth2</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">SomeSite</span> <span class="o">&lt;</span> <span class="no">OmniAuth</span><span class="o">::</span><span class="no">Strategies</span><span class="o">::</span><span class="no">OAuth2</span>
 </span><span class='line'>      <span class="n">option</span> <span class="ss">:name</span><span class="p">,</span> <span class="s2">&quot;some_site&quot;</span>
 </span><span class='line'>      <span class="n">uid</span><span class="p">{</span> <span class="n">raw_info</span><span class="o">[</span><span class="s1">&#39;id&#39;</span><span class="o">]</span> <span class="p">}</span>
 </span><span class='line'>      <span class="n">info</span> <span class="k">do</span>

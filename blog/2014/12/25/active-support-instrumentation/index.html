@@ -187,7 +187,7 @@ events occur inside their application or another piece of Ruby code.</p></blockq
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;process_action.action_controller&quot;</span> <span class="k">do</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;process_action.action_controller&quot;</span> <span class="k">do</span>
 </span><span class='line'>  <span class="o">|</span><span class="nb">name</span><span class="p">,</span> <span class="n">started</span><span class="p">,</span> <span class="n">finished</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">data</span><span class="o">|</span>
 </span><span class='line'>  <span class="c1"># name 即 event 的名字</span>
 </span><span class='line'>  <span class="c1"># started 即 event 的开始时间</span>
@@ -206,8 +206,8 @@ events occur inside their application or another piece of Ruby code.</p></blockq
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;process_action.action_controller&quot;</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
-</span><span class='line'>  <span class="n">event</span> <span class="o">=</span> <span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">::</span><span class="no">Event</span><span class="o">.</span><span class="n">new</span> <span class="o">*</span><span class="n">args</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;process_action.action_controller&quot;</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="o">.</span><span class="n">new</span> <span class="o">*</span><span class="n">args</span>
 </span><span class='line'>  <span class="n">event</span><span class="o">.</span><span class="n">name</span>     <span class="c1"># =&gt; &quot;process_action.action_controller&quot;</span>
 </span><span class='line'>  <span class="n">event</span><span class="o">.</span><span class="n">duration</span> <span class="c1"># =&gt; 整个事件所花费的时间，单位是毫秒(ms)</span>
 </span><span class='line'>  <span class="n">event</span><span class="o">.</span><span class="n">payload</span>  <span class="c1"># =&gt; 上文的 data</span>
@@ -220,7 +220,7 @@ events occur inside their application or another piece of Ruby code.</p></blockq
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="sr">/action_controller/</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="sr">/action_controller/</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
 </span><span class='line'>  <span class="c1"># inspect all ActionController events</span>
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -233,7 +233,7 @@ events occur inside their application or another piece of Ruby code.</p></blockq
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">.</span><span class="n">instrument</span> <span class="s2">&quot;custom.event&quot;</span><span class="p">,</span> <span class="ss">extra</span><span class="p">:</span> <span class="ss">:hello_world</span> <span class="k">do</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">.</span><span class="n">instrument</span> <span class="s2">&quot;custom.event&quot;</span><span class="p">,</span> <span class="ss">extra</span><span class="p">:</span> <span class="ss">:hello_world</span> <span class="k">do</span>
 </span><span class='line'>  <span class="c1"># do your custom stuff code</span>
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -249,7 +249,7 @@ events occur inside their application or another piece of Ruby code.</p></blockq
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;custom.event&quot;</span> <span class="k">do</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">.</span><span class="n">subscribe</span> <span class="s2">&quot;custom.event&quot;</span> <span class="k">do</span>
 </span><span class='line'>  <span class="o">|</span><span class="nb">name</span><span class="p">,</span> <span class="n">started</span><span class="p">,</span> <span class="n">finished</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">data</span><span class="o">|</span>
 </span><span class='line'>  <span class="nb">puts</span> <span class="n">data</span><span class="o">.</span><span class="n">inspect</span> <span class="c1"># =&gt; { :extra =&gt; :hello_world }</span>
 </span><span class='line'><span class="k">end</span>

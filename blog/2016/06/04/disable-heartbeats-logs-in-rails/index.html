@@ -178,14 +178,14 @@ Rails.application.routes.draw do get &#39;/heartbeats&#39;, to: proc { [200, { &
 <span class='line-number'>22</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/quiet_heartbeats.rb</span>
 </span><span class='line'><span class="k">module</span> <span class="nn">QuietHeartbeats</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Railtie</span> <span class="o">&lt;</span> <span class="o">::</span><span class="ss">Rails</span><span class="p">:</span><span class="ss">:Railtie</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Railtie</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Railtie</span>
 </span><span class='line'>    <span class="n">initializer</span> <span class="s1">&#39;quiet_heartbeat.initialize&#39;</span> <span class="k">do</span> <span class="o">|</span><span class="n">app</span><span class="o">|</span>
 </span><span class='line'>      <span class="no">PATH_PREFIX_REGEX</span> <span class="o">=</span> <span class="sr">/\A(\/heartbeats)/</span>
-</span><span class='line'>      <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Rack</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
+</span><span class='line'>      <span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
 </span><span class='line'>        <span class="k">def</span> <span class="nf">call_with_quiet_heartbeat_request</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </span><span class='line'>          <span class="k">if</span> <span class="n">env</span><span class="o">[</span><span class="s1">&#39;PATH_INFO&#39;</span><span class="o">]</span> <span class="o">=~</span> <span class="no">PATH_PREFIX_REGEX</span>
 </span><span class='line'>            <span class="n">previous_level</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span>
-</span><span class='line'>            <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="ss">Logger</span><span class="p">:</span><span class="ss">:ERROR</span>
+</span><span class='line'>            <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="no">Logger</span><span class="o">::</span><span class="no">ERROR</span>
 </span><span class='line'>            <span class="n">call_without_quiet_heartbeat_request</span><span class="p">(</span><span class="n">env</span><span class="p">)</span><span class="o">.</span><span class="n">tap</span> <span class="k">do</span>
 </span><span class='line'>              <span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">previous_level</span>
 </span><span class='line'>            <span class="k">end</span>
@@ -209,7 +209,7 @@ Rails.application.routes.draw do get &#39;/heartbeats&#39;, to: proc { [200, { &
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">YourApplicationName</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Application</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
 </span><span class='line'>    <span class="nb">require</span> <span class="s1">&#39;quiet_heartbeats&#39;</span>
 </span><span class='line'>  <span class="k">end</span>
 </span><span class='line'><span class="k">end</span>
@@ -280,11 +280,11 @@ Rails.application.routes.draw do get &#39;/heartbeats&#39;, to: proc { [200, { &
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Your_App</span>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="ss">Rails</span><span class="p">:</span><span class="ss">:Application</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
 </span><span class='line'>    <span class="c1"># ...</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="nb">require</span> <span class="s1">&#39;quiet_heartbeats_middleware&#39;</span>
-</span><span class='line'>    <span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">insert_before</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Lock</span><span class="p">,</span> <span class="no">QuietHeartbeatsMiddleware</span>
+</span><span class='line'>    <span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">insert_before</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Lock</span><span class="p">,</span> <span class="no">QuietHeartbeatsMiddleware</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="c1"># ...</span>
 </span><span class='line'>  <span class="k">end</span>

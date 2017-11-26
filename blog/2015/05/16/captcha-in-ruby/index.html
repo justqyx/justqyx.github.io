@@ -194,7 +194,7 @@
 <p>key 的生成算法如下：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Digest</span><span class="p">:</span><span class="ss">:SHA1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="o">[</span><span class="n">session</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">,</span> <span class="s2">&quot;captcha&quot;</span><span class="p">,</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_s</span><span class="o">].</span><span class="n">join</span><span class="p">)</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Digest</span><span class="o">::</span><span class="no">SHA1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="o">[</span><span class="n">session</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">,</span> <span class="s2">&quot;captcha&quot;</span><span class="p">,</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_s</span><span class="o">].</span><span class="n">join</span><span class="p">)</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -264,11 +264,11 @@
 </span><span class='line'>    <span class="c1"># ...</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">def</span> <span class="nf">make_image</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">status</span> <span class="o">=</span> <span class="mi">404</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">request</span> <span class="o">=</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Request</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">request</span> <span class="o">=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Request</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </span><span class='line'>      <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="o">[</span><span class="s2">&quot;code&quot;</span><span class="o">]</span>
 </span><span class='line'>      <span class="n">body</span> <span class="o">=</span> <span class="o">[]</span>
 </span><span class='line'>
-</span><span class='line'>      <span class="k">if</span> <span class="o">!</span><span class="n">code</span><span class="o">.</span><span class="n">blank?</span> <span class="o">&amp;&amp;</span> <span class="ss">Utils</span><span class="p">:</span><span class="ss">:simple_captcha_value</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">if</span> <span class="o">!</span><span class="n">code</span><span class="o">.</span><span class="n">blank?</span> <span class="o">&amp;&amp;</span> <span class="no">Utils</span><span class="o">::</span><span class="n">simple_captcha_value</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 </span><span class='line'>        <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">generate_simple_captcha_image</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">,</span> <span class="ss">:disposition</span> <span class="o">=&gt;</span> <span class="s1">&#39;inline&#39;</span><span class="p">,</span> <span class="ss">:filename</span> <span class="o">=&gt;</span>  <span class="s1">&#39;simple_captcha.jpg&#39;</span><span class="p">)</span>
 </span><span class='line'>      <span class="k">end</span>
 </span><span class='line'>
@@ -439,7 +439,7 @@
 </span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;-pointsize 22&#39;</span>
 </span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;-implode 0.2&#39;</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="n">dst</span> <span class="o">=</span> <span class="no">Tempfile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="o">[</span><span class="s1">&#39;neolion_captcha&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">Dir</span><span class="p">:</span><span class="ss">:tmpdir</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">dst</span> <span class="o">=</span> <span class="no">Tempfile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="o">[</span><span class="s1">&#39;neolion_captcha&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">Dir</span><span class="o">::</span><span class="n">tmpdir</span><span class="p">)</span>
 </span><span class='line'>    <span class="n">dst</span><span class="o">.</span><span class="n">binmode</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;label:&#39;</span><span class="si">#{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39; </span><span class="se">\&quot;</span><span class="si">#{</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
@@ -489,7 +489,7 @@
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:Base</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
 </span><span class='line'>  <span class="c1"># ...</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">valid_captcha?</span>

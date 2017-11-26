@@ -166,17 +166,17 @@ touch index. &hellip;">
 <span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p <span class="nb">test</span>/demoCA <span class="o">&amp;&amp;</span> <span class="nb">cd test</span>/demoCA
 </span><span class='line'>mkdir certs crl newcerts private
-</span><span class='line'>chmod 700 private
+</span><span class='line'>chmod <span class="m">700</span> private
 </span><span class='line'>touch index.txt
-</span><span class='line'><span class="nb">echo </span>1000 &gt; serial
+</span><span class='line'><span class="nb">echo </span><span class="m">1000</span> &gt; serial
 </span><span class='line'>vim openssl.cnf
 </span><span class='line'>
 </span><span class='line'>openssl genrsa -aes256 -out private/ca.key.pem 4096
-</span><span class='line'>chmod 400 private/ca.key.pem
+</span><span class='line'>chmod <span class="m">400</span> private/ca.key.pem
 </span><span class='line'>
 </span><span class='line'>openssl req -config openssl.cnf <span class="se">\</span>
 </span><span class='line'>        -key private/ca.key.pem <span class="se">\</span>
-</span><span class='line'>        -new -x509 -days 7300 -sha256 -extensions v3_ca <span class="se">\</span>
+</span><span class='line'>        -new -x509 -days <span class="m">7300</span> -sha256 -extensions v3_ca <span class="se">\</span>
 </span><span class='line'>        -out certs/ca.cert.pem
 </span></code></pre></td></tr></table></div></figure>
 
@@ -232,7 +232,7 @@ touch index. &hellip;">
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Country Name <span class="o">(</span>2 letter code<span class="o">)</span> <span class="o">[</span>AU<span class="o">]</span>:CN
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>AU<span class="o">]</span>:CN
 </span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[</span>Some-State<span class="o">]</span>:Guangdong
 </span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[]</span>:Shenzhen
 </span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Internet Widgits Pty Ltd<span class="o">]</span>:随便填
@@ -263,18 +263,18 @@ touch index. &hellip;">
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>   server <span class="o">{</span>
-</span><span class='line'>        listen 443;
-</span><span class='line'>        server_name localhost;
+</span><span class='line'>        listen 443<span class="p">;</span>
+</span><span class='line'>        server_name localhost<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>        ssl                   on;
-</span><span class='line'>        ssl_certificate       /usr/local/etc/nginx/ca/server.crt;
-</span><span class='line'>        ssl_certificate_key   /usr/local/etc/nginx/ca/server.key;
+</span><span class='line'>        ssl                   on<span class="p">;</span>
+</span><span class='line'>        ssl_certificate       /usr/local/etc/nginx/ca/server.crt<span class="p">;</span>
+</span><span class='line'>        ssl_certificate_key   /usr/local/etc/nginx/ca/server.key<span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>        ssl_session_timeout   5m;
+</span><span class='line'>        ssl_session_timeout   5m<span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'>        location / <span class="o">{</span>
-</span><span class='line'>            root /Users/yuanxin/www;
-</span><span class='line'>            index index.html index.htm;
+</span><span class='line'>            root /Users/yuanxin/www<span class="p">;</span>
+</span><span class='line'>            index index.html index.htm<span class="p">;</span>
 </span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>    <span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>

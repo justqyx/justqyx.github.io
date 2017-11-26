@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://www.justqyx.me/blog/2017/11/26/keep-attribute-safe-in-rails/</loc>
+<lastmod>2017-11-26T15:11:10+08:00</lastmod>
+</url>
+<url>
+<loc>http://www.justqyx.me/blog/2017/02/19/rubocop/</loc>
+<lastmod>2017-02-19T15:18:35+08:00</lastmod>
+</url>
+<url>
 <loc>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/</loc>
 <lastmod>2016-08-13T18:06:30+08:00</lastmod>
 </url>
@@ -245,5 +253,8 @@
 </url>
 <url>
 <loc>http://www.justqyx.me/blog/categories/docker/</loc>
+</url>
+<url>
+<loc>http://www.justqyx.me/blog/categories/ruby/</loc>
 </url>
 </urlset>

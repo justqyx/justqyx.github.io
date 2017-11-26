@@ -4,7 +4,7 @@
   <title><![CDATA[JustQyx]]></title>
   <link href="http://www.justqyx.me/atom.xml" rel="self"/>
   <link href="http://www.justqyx.me/"/>
-  <updated>2016-08-13T18:06:49+08:00</updated>
+  <updated>2017-11-26T15:47:18+08:00</updated>
   <id>http://www.justqyx.me/</id>
   <author>
     <name><![CDATA[邱源鑫]]></name>
@@ -14,13 +14,783 @@
 
   
   <entry>
+    <title type="html"><![CDATA[字段加密存储-Rails]]></title>
+    <link href="http://www.justqyx.me/blog/2017/11/26/keep-attribute-safe-in-rails/"/>
+    <updated>2017-11-26T15:11:10+08:00</updated>
+    <id>http://www.justqyx.me/blog/2017/11/26/keep-attribute-safe-in-rails</id>
+    <content type="html"><![CDATA[<h2>方案</h2>
+
+<ol>
+<li>存储前，加密后再存储到数据库</li>
+<li>读取后，利用 KEY 进行解密</li>
+</ol>
+
+
+<h2>实现</h2>
+
+<p><a href="http://api.rubyonrails.org/v4.2.7.1/classes/ActiveSupport/MessageEncryptor.html">ActiveSupport::MessageEncryptor</a>
+是 Rails 基于 openssl 封装实现的一个类，可用于对一个对象进行加密、解密操作。例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">salt</span>  <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">random_bytes</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+</span><span class='line'><span class="n">key</span>   <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">KeyGenerator</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">generate_key</span><span class="p">(</span><span class="n">salt</span><span class="p">)</span> <span class="c1"># =&gt; &quot;\x89\xE0\x156\xAC...&quot;</span>
+</span><span class='line'><span class="n">crypt</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">MessageEncryptor</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>                       <span class="c1"># =&gt; #&lt;ActiveSupport::MessageEncryptor ...&gt;</span>
+</span><span class='line'><span class="n">encrypted_data</span> <span class="o">=</span> <span class="n">crypt</span><span class="o">.</span><span class="n">encrypt_and_sign</span><span class="p">(</span><span class="s1">&#39;my secret data&#39;</span><span class="p">)</span>              <span class="c1"># =&gt; &quot;NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh...&quot;</span>
+</span><span class='line'><span class="n">crypt</span><span class="o">.</span><span class="n">decrypt_and_verify</span><span class="p">(</span><span class="n">encrypted_data</span><span class="p">)</span>                               <span class="c1"># =&gt; &quot;my secret data&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://api.rubyonrails.org/v4.2.7.1/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize">serialize</a>
+是 Rails ActiveRecord 里的一个类方法，可用于执行一个 column 如何存储到数据库，以及从数据库读取出来后要如何处理，例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:preferences</span><span class="p">,</span> <span class="no">Hash</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">preferences</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">gender</span><span class="p">:</span> <span class="s1">&#39;male&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">age</span><span class="p">:</span> <span class="mi">18</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">save!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外，Rails 还允许自定义 Serizlizer，使得开发者能够自行决定如何做进行序列化和反序列化。例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CustomerSerializer</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">value</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">blank?</span> <span class="p">?</span> <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">dump</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="n">value</span> <span class="o">||</span> <span class="p">{})</span><span class="o">.</span><span class="n">to_json</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:preferences</span><span class="p">,</span> <span class="no">CustomerSerializer</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基于此，我们可以自己实现一个 serializer，使得我们能够进行对字段进行加密存储，同时读取出来时能够自行进行解密。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">value</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">blank?</span> <span class="p">?</span> <span class="s1">&#39;&#39;</span> <span class="p">:</span> <span class="n">decrypt</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">dump</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">encrypt</span><span class="p">(</span><span class="n">value</span> <span class="o">||</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">encrypt</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">encryptor</span><span class="o">.</span><span class="n">encrypt_and_sign</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">decrypt</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">encryptor</span><span class="o">.</span><span class="n">decrypt_and_verify</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">encryptor</span>
+</span><span class='line'>    <span class="vi">@encryptor</span> <span class="o">||=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">MessageEncryptor</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="no">Settings</span><span class="o">.</span><span class="n">message_encryptor_key</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">UserAddress</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:phone</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:first_name</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:last_name</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:country</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:state</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:city</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:address1</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:address2</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'>  <span class="n">serialize</span> <span class="ss">:zipcode</span><span class="p">,</span> <span class="no">EncryptedStringSerializer</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以改进的点</p>
+
+<ol>
+<li>加解密用的 KEY 是否过于简单？</li>
+<li>针对现有数据，如何平滑过渡？</li>
+<li>多个字段需要加密时这种方式不友好</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Use Rubocop to control your Ruby code's quality]]></title>
+    <link href="http://www.justqyx.me/blog/2017/02/19/rubocop/"/>
+    <updated>2017-02-19T15:18:35+08:00</updated>
+    <id>http://www.justqyx.me/blog/2017/02/19/rubocop</id>
+    <content type="html"><![CDATA[<p>代码质量控制，是项目自始至终都应该去掌控的事情。
+虽然每个团队的风格总会有一些出入，但是达成共识是一件并不困难的事情。
+达成共识以后，我们需要借助工具，以及达成一套流程来帮助我们半自动化或自动化地做这样的一件事情。</p>
+
+<p>在 Ruby 社区里，目前最广泛使用的是 <a href="https://github.com/bbatsov/rubocop">Rubocop</a>。</p>
+
+<h2>Rubocop</h2>
+
+<p>Rubocop 是一个 Ruby 静态代码分析。
+其默认遵循的是一个由社区驱动的 <a href="https://github.com/bbatsov/ruby-style-guide">Ruby Style Guide</a>。</p>
+
+<p><strong>优点</strong></p>
+
+<ol>
+<li>配置简单，定制化好，快速集成</li>
+<li>遵循 Rails 所提倡的 COC 原则</li>
+<li>兼容性好，支持 Ruby 2.0+</li>
+</ol>
+
+
+<p><strong>缺点</strong></p>
+
+<ol>
+<li>无法做到像编译性语言那么准确，这当然也跟 Ruby 语言本身的灵活性有关系</li>
+</ol>
+
+
+<h2>Rails 集成 Rubocop</h2>
+
+<p>在 Gemfile 增加</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:develop</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;rubocop&#39;</span><span class="p">,</span> <span class="nb">require</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install
+</span><span class='line'>bundle <span class="nb">exec </span>rubocop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>自定义</h3>
+
+<p>每个团队的风格不一样，一定会有自定义的需求，只需要 Rails 项目根目录下，新建文件</p>
+
+<p><code>.rubocop.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">AllCops</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;vendor/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/fixtures/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;tmp/**/*&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">TargetRubyVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2.1</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/Encoding</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">when_needed</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/FrozenStringLiteralComment</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">always</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/IndentHeredoc</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">powerpack</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/BlockLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;Rakefile&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/*.rake&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/**/*.rb&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果想要自定义，可以参考文件 <code>https://github.com/bbatsov/rubocop/blob/master/config/default.yml</code>
+然后在 <code>.rubocop.yml</code> 添加即可。</p>
+
+<h2>推荐配置</h2>
+
+<p><code>.rubocop.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">inherit_from</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">.rubocop_todo.yml</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">AllCops</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Include</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/Gemfile&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/Rakefile&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;bin/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/migrate/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/seeds.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/schema.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;vendor/bundle/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;script/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="kt">!ruby</span><span class="l-Scalar-Plain">/regexp /old_and_unused\.rb$/</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">TargetRubyVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2.1</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Documentation</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/AsciiComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/MethodDefParentheses</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="c1"># EnforcedStyle: require_no_parentheses_except_multiline</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">require_parentheses</span>
+</span><span class='line'>  <span class="c1"># SupportedStyles:</span>
+</span><span class='line'>  <span class="c1">#     - require_parentheses</span>
+</span><span class='line'>  <span class="c1">#     - require_no_parentheses</span>
+</span><span class='line'>  <span class="c1">#     - require_no_parentheses_except_multiline</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/LineLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/ClassLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/MethodLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/ModuleLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>.rubocop_todo.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="c1"># This configuration was generated by</span>
+</span><span class='line'><span class="c1"># `rubocop --auto-gen-config`</span>
+</span><span class='line'><span class="c1"># on 2016-04-19 10:48:45 +0800 using RuboCop version 0.39.0.</span>
+</span><span class='line'><span class="c1"># The point is for the user to remove these configuration records</span>
+</span><span class='line'><span class="c1"># one by one as the offenses are removed from the code base.</span>
+</span><span class='line'><span class="c1"># Note that changes in the inspected code, or installation of new</span>
+</span><span class='line'><span class="c1"># versions of RuboCop, may require this file to be generated again.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 25</span>
+</span><span class='line'><span class="c1"># Configuration parameters: AllowHeredoc, AllowURI, URISchemes.</span>
+</span><span class='line'><span class="c1"># URISchemes: http, https</span>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/LineLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">120</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 5</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/AsciiComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;Gemfile&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 1</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/BlockComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/spec_helper.rb&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 3</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/Documentation</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;test/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;app/controllers/application_controller.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;app/helpers/application_helper.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;config/application.rb&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 1</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: AllowForAlignment, ForceEqualSignAlignment.</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/ExtraSpacing</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;bin/setup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 3</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: SupportedStyles.</span>
+</span><span class='line'><span class="c1"># SupportedStyles: call, braces</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/LambdaCall</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">braces</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 20</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: EnforcedStyle, SupportedStyles, ConsistentQuotesInMultiline.</span>
+</span><span class='line'><span class="c1"># SupportedStyles: single_quotes, double_quotes</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/StringLiterals</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-3]]></title>
     <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/"/>
     <updated>2016-08-13T18:06:30+08:00</updated>
     <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor</id>
-    <content type="html"><![CDATA[<p>本节将会阐述 ActionCable 浏览器端源码部分的 Monitor 是如何共走的。</p>
+    <content type="html"><![CDATA[<p><code>Cable.ConnectionMonitor</code> 通过心跳检测来确保连接处于健康的状态，如果连接出现了问题那么会重新连接而不需要，并且这对于维护来说是透明的，不需要开发人员关心。</p>
 
-<p>抱歉，还在整理中&hellip;</p>
+<h2>心跳检测</h2>
+
+<p><code>Cable.Consumer</code> 的构造函数实例化了 <code>Cable.ConnectionMonitor</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">constructor: </span><span class="nf">(@url) -&gt;</span>
+</span><span class='line'>    <span class="vi">@subscriptions = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">Subscriptions</span> <span class="k">this</span>
+</span><span class='line'>    <span class="vi">@connection = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">Connection</span> <span class="k">this</span>
+</span><span class='line'>    <span class="vi">@connectionMonitor = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">ConnectionMonitor</span> <span class="k">this</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看看 <code>Cable.ConnectionMonitor</code> 的构造函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">constructor: </span><span class="nf">(@consumer) -&gt;</span>
+</span><span class='line'>    <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>  <span class="c1"># 暂时忽略 </span>
+</span><span class='line'>    <span class="nx">@start</span><span class="p">()</span>                           <span class="c1"># 开始心跳检测</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>start 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">start: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="c1"># 下面三行代码做了一些连接的准备工作</span>
+</span><span class='line'>    <span class="nx">@reset</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">delete</span> <span class="nx">@stoppedAt</span>
+</span><span class='line'>    <span class="vi">@startedAt = </span><span class="nx">now</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># 开始定时往服务器发送心跳检测消息</span>
+</span><span class='line'>    <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># 兼容 Turbolinks：页面重新载入时，重建连接</span>
+</span><span class='line'>    <span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s">&quot;visibilitychange&quot;</span><span class="p">,</span> <span class="nx">@visibilityDidChange</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>poll 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">setTimeout</span> <span class="nf">=&gt;</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="nx">@stoppedAt</span>         <span class="c1"># 如果已经连接断开，那么重建连接</span>
+</span><span class='line'>        <span class="nx">@reconnectIfStale</span><span class="p">()</span>
+</span><span class='line'>        <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'><span class="p">,</span> <span class="nx">@getInterval</span><span class="p">()</span>              <span class="c1"># 随机间隔（3 ~ 30 秒）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>reconnectIfStale 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># 如果连接已经过时，那么重建连接</span>
+</span><span class='line'><span class="c1"># 条件是：最后发送消息的时间，或者最后 ping 的时间已经过了 6 秒</span>
+</span><span class='line'><span class="c1"># class Cable.ConnectionMonitor</span>
+</span><span class='line'><span class="c1">#  @pollInterval:</span>
+</span><span class='line'><span class="c1">#    min: 3</span>
+</span><span class='line'><span class="c1">#    max: 30</span>
+</span><span class='line'><span class="c1">#  @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="k">if</span> <span class="nx">@connectionIsStale</span><span class="p">()</span>
+</span><span class='line'>    <span class="nx">@reconnectAttempts</span><span class="o">++</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="nx">@disconnectedRecently</span><span class="p">()</span>
+</span><span class='line'>        <span class="c1"># 调用 Cable.Connection 的实例进行连接的重建</span>
+</span><span class='line'>        <span class="nx">@consumer</span><span class="p">.</span><span class="nx">connection</span><span class="p">.</span><span class="nx">reopen</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过心跳检测来检测连接的健康情况属于主动式的检测，下面阐释基于 WebSocket 的 onclose、onerror 回调的连接重建逻辑。</p>
+
+<h2>WebSocket 回调</h2>
+
+<p>在上一篇里提及到在 Cable.Connection 连接的建立是通过 WebSocket 的实例化来实现，同时绑定了以下四个回调</p>
+
+<ul>
+<li>onmessage</li>
+<li>onopen</li>
+<li>onclose</li>
+<li>onerror</li>
+</ul>
+
+
+<p>关键源码部分如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">installEventHandlers: </span><span class="nf">-&gt;</span>  <span class="c1"># 向 @webSocket 注入各个回调</span>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">eventName</span> <span class="k">of</span> <span class="nx">@events</span>
+</span><span class='line'>        <span class="nv">handler = </span><span class="nx">@events</span><span class="p">[</span><span class="nx">eventName</span><span class="p">].</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+</span><span class='line'>        <span class="nx">@webSocket</span><span class="p">[</span><span class="s">&quot;on</span><span class="si">#{</span><span class="nx">eventName</span><span class="si">}</span><span class="s">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">handler</span>
+</span><span class='line'>    <span class="k">return</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">events:</span>
+</span><span class='line'>    <span class="nv">message: </span><span class="nf">(event) -&gt;</span> <span class="c1"># onmessage 回调</span>
+</span><span class='line'>        <span class="p">{</span><span class="nx">identifier</span><span class="p">,</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">type</span><span class="p">}</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">switch</span> <span class="nx">type</span>
+</span><span class='line'>            <span class="k">when</span> <span class="nx">message_types</span><span class="p">.</span><span class="nx">confirmation</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notify</span><span class="p">(</span><span class="nx">identifier</span><span class="p">,</span> <span class="s">&quot;connected&quot;</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">when</span> <span class="nx">message_types</span><span class="p">.</span><span class="nx">rejection</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">identifier</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">else</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notify</span><span class="p">(</span><span class="nx">identifier</span><span class="p">,</span> <span class="s">&quot;received&quot;</span><span class="p">,</span> <span class="nx">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="nv">open: </span><span class="nf">-&gt;</span> <span class="c1"># onopen 回调</span>
+</span><span class='line'>        <span class="vi">@disconnected = </span><span class="kc">false</span>
+</span><span class='line'>        <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">reload</span><span class="p">()</span>
+</span><span class='line'>    <span class="nv">close: </span><span class="nf">-&gt;</span> <span class="c1"># onclose 回调</span>
+</span><span class='line'>        <span class="nx">@disconnect</span><span class="p">()</span>
+</span><span class='line'>    <span class="nv">error: </span><span class="nf">-&gt;</span> <span class="c1"># onerror 回调</span>
+</span><span class='line'>        <span class="nx">@disconnect</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>disconnect 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">disconnect: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">if</span> <span class="nx">@disconnected</span> <span class="c1"># 如果已经断开则直接返回</span>
+</span><span class='line'>    <span class="vi">@disconnected = </span><span class="kc">true</span>    <span class="c1"># 标识已经断开</span>
+</span><span class='line'>    <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notifyAll</span><span class="p">(</span><span class="s">&quot;disconnected&quot;</span><span class="p">)</span> <span class="c1"># 通知所有的 subscript 已经断开</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Cable.Subscriptions</code> 里的 <code>notifyAll</code> 和 <code>notify</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">notifyAll: </span><span class="nf">(callbackName, args...) -&gt;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">subscription</span> <span class="k">in</span> <span class="nx">@subscriptions</span>
+</span><span class='line'>        <span class="c1"># 通知各个 subscription 调用各自的 disconnected 函数</span>
+</span><span class='line'>        <span class="nx">@notify</span><span class="p">(</span><span class="nx">subscription</span><span class="p">,</span> <span class="nx">callbackName</span><span class="p">,</span> <span class="nx">args</span><span class="p">...)</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">notify: </span><span class="nf">(subscription, callbackName, args...) -&gt;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="k">typeof</span> <span class="nx">subscription</span> <span class="o">is</span> <span class="s">&quot;string&quot;</span>
+</span><span class='line'>        <span class="nv">subscriptions = </span><span class="nx">@findAll</span><span class="p">(</span><span class="nx">subscription</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>        <span class="nv">subscriptions = </span><span class="p">[</span><span class="nx">subscription</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">subscription</span> <span class="k">in</span> <span class="nx">subscriptions</span>
+</span><span class='line'>        <span class="c1"># subscription 调用 disconnected 函数</span>
+</span><span class='line'>        <span class="c1">#   subscription[callbackName]?(args...) 的意思是</span>
+</span><span class='line'>        <span class="c1">#   subscription = subscriptions[i];</span>
+</span><span class='line'>        <span class="c1">#   if (typeof subscription[callbackName] === &quot;function&quot;) {</span>
+</span><span class='line'>        <span class="c1">#       subscription[callbackName].apply(subscription, args);</span>
+</span><span class='line'>        <span class="c1">#   }</span>
+</span><span class='line'>        <span class="nx">subscription</span><span class="p">[</span><span class="nx">callbackName</span><span class="p">]</span><span class="o">?</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span>
+</span><span class='line'>        <span class="c1"># 以下先不理会，否则会脱离内容的主线</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nx">callbackName</span> <span class="k">in</span> <span class="p">[</span><span class="s">&quot;initialized&quot;</span><span class="p">,</span> <span class="s">&quot;connected&quot;</span><span class="p">,</span> <span class="s">&quot;disconnected&quot;</span><span class="p">,</span> <span class="s">&quot;rejected&quot;</span><span class="p">]</span>
+</span><span class='line'>            <span class="p">{</span><span class="nx">identifier</span><span class="p">}</span> <span class="o">=</span> <span class="nx">subscription</span>
+</span><span class='line'>            <span class="nx">@record</span><span class="p">(</span><span class="nv">notification: </span><span class="p">{</span><span class="nx">identifier</span><span class="p">,</span> <span class="nx">callbackName</span><span class="p">,</span> <span class="nx">args</span><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好了，回去看 <code>Cable.ConnectionMonitor</code> 的 <code>disconnected</code> 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">disconnected: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="vi">@disconnectedAt = </span><span class="nx">now</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，心跳检测时就会发现连接已断开，就会重建连接，相关代码如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">poll: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">setTimeout</span> <span class="nf">=&gt;</span>
+</span><span class='line'>        <span class="k">unless</span> <span class="nx">@stoppedAt</span>
+</span><span class='line'>            <span class="nx">@reconnectIfStale</span><span class="p">()</span>
+</span><span class='line'>            <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">,</span> <span class="nx">@getInterval</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">reconnectIfStale: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nx">@connectionIsStale</span><span class="p">()</span>
+</span><span class='line'>        <span class="nx">@reconnectAttempts</span><span class="o">++</span>
+</span><span class='line'>        <span class="k">unless</span> <span class="nx">@disconnectedRecently</span><span class="p">()</span>
+</span><span class='line'>            <span class="nx">@consumer</span><span class="p">.</span><span class="nx">connection</span><span class="p">.</span><span class="nx">reopen</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">connectionIsStale: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">secondsSince</span><span class="p">(</span><span class="nx">@pingedAt</span> <span class="o">?</span> <span class="nx">@startedAt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nx">@constructor</span><span class="p">.</span><span class="nx">staleThreshold</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">disconnectedRecently: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">@disconnectedAt</span> <span class="o">and</span> <span class="nx">secondsSince</span><span class="p">(</span><span class="nx">@disconnectedAt</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nx">@constructor</span><span class="p">.</span><span class="nx">staleThreshold</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>连接的监控也简单，通过自主的心跳检测，以及 <code>WebSocket</code> 的 <code>onerror</code>、<code>onclose</code> 回调来自动地重建连接，因此使用者可以不需要去关心当前的连接是否正常。</p>
 ]]></content>
   </entry>
   
@@ -1979,488 +2749,6 @@ Ruby 的 GC 话题在 2014 和 2015 年都非常火，最新几个版本的重�
 <li>《HTTP 权威指南》</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[职业定位]]></title>
-    <link href="http://www.justqyx.me/blog/2015/06/07/my-career-roadmap/"/>
-    <updated>2015-06-07T10:51:22+08:00</updated>
-    <id>http://www.justqyx.me/blog/2015/06/07/my-career-roadmap</id>
-    <content type="html"><![CDATA[<h2>寻找的过程</h2>
-
-<p>今年一月份，我对于我自己的职业规划做了一个初步的想象，我阐述了自己未来想在哪一个城市，
-做什么样的工作，过什么样的生活，需要我在什么样的阶段做好什么样的准备。
-但这么一些想象离现实有些远或者说现阶段的我想了也只能是想了，无法有实际性东西的输出。</p>
-
-<p>三月份的时候，我在 Evernote 写了一篇《我的焦虑》，阐述了我在职业上、生活上所面对的疑惑，
-而现在的状态，只能在工作上向前迈进，而生活方面则很难。</p>
-
-<p>五月底的时候，又特意重新看了乔布斯在斯坦福大学的演讲，觉得对于现在的我有着重要的指导意义：
-我必须去确定我喜欢什么。无论花多长时间，这都是值得去探索的话题。
-我期望在某一天我也能够进入这样的一种状态：把每一天当成生命的最后一天来过。</p>
-
-<p>这几天，翻开了之前 evernote 记录的一些零散的笔记，看到了「决定不做什么」。大意是建议人们，
-在面对选择但又不是那么确定的时候,决定不做什么，比决定做什么更重要。
-因为决定不做的那些一定是自己不想要的，而无法决定的那些，最起码自己不拒绝。
-这也是跟师兄聊了之后对我几点建议之一。</p>
-
-<h2>确定</h2>
-
-<p>昨天，2015-06-06，一年一度高考正式开始的日子。</p>
-
-<p>这几天，跟一些人聊职业、聊人生的话题，感触越来越多，感觉对于自己来讲也越来越清楚。
-想起了之前同事推荐的一篇文章「程序员的四个象限和两条主线」，于是重新看了一遍。</p>
-
-<p>这篇文章里，主要阐述的是程序员的职业规划问题，更深入一点来讲，阐述的是作者多年来，在接触各种各样的程序员后，
-总结出的程序员的职业发展大致有几种：</p>
-
-<ul>
-<li>雇员，即普通的上班族</li>
-<li>自由职业者和小企业主</li>
-<li>以规模化为前提的企业主</li>
-<li>投资人</li>
-</ul>
-
-
-<p>最后又总结为两条线：</p>
-
-<ul>
-<li>技术线</li>
-<li>管理线</li>
-</ul>
-
-
-<p>我从这里面，找到了自己的位置。想想之前其实最大的困惑还是，不知道自己究竟有多少种选择，
-于是日子充满着对现在的不安分，对未来的迷茫。</p>
-
-<p>「全栈」二字，如今的我有着更为深刻的理解，不在仅仅是计算机领域的只是，还涉及到其他领域的知识。
-而这也是我接下来三年，五年，甚至十年的目标，努力让自己成为一个 T 字形的人。
-纵向方面，基础的有计算机基础知识、程序语言设计，进一步的有前后端框架、数据库、架构等等;
-横向方面，关注产品和设计、经济和金融领域。同时学习观察技术潮流，关注投资市场和细分市场。
-但随着时间的推移，自身知识面的扩展，这些可以被修正或者推倒。
-今年的目标就是踏出第一步，把这些变成我生活的一部分。</p>
-
-<p>上面阐述的这些并不是实际的、可以执行的计划，而是我接下来所有决定和努力的指导思想。
-它将辅助我看清更多事物之间的联系，不再为新事物的出现而感到力不从心，不再为旧事物的淘汰而感到不安。</p>
-
-<h2>任何事情都不是一触而就的</h2>
-
-<p>这是两年工作下来最为深刻的体会。从上大学开始，就一直在想自己的人生将何去何从的问题，
-毕业后这种思考更为强烈和频繁，今天的这些内容它只是我寻找答案的一个过程，绝不是最终的答案。
-而对于过程，或许可以用我看到过的一句话来看待：</p>
-
-<blockquote><p>人之所以不成功，或许不是因为缺乏足够的毅力，而是没有掌握科学的方法。</p></blockquote>
-
-<p>如今的我在面对一个目标时，更加注重耐心和付出。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Inspect SimpleForm (2)]]></title>
-    <link href="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/"/>
-    <updated>2015-05-31T01:24:37+08:00</updated>
-    <id>http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2</id>
-    <content type="html"><![CDATA[<p>上一篇阐述了 SimpleForm 的基本原理，以及阐述了 Wrapper 内部的一个基本的渲染过程，
-这一篇，我将基于上文中的 :horizontal_form 这个 wrapper 例子来阐述清楚 Wrapper 的整个渲染过程。</p>
-
-<h2>Wrapper 包含着对 Component 的一个管理。</h2>
-
-<p>上一篇我们在 Rails Console 输出了下面这么一段内容，从这段内容我们可以看到，
-我们的 Root 实例中有两个实例变量： @components 和 @defaults。</p>
-
-<figure class='code'><figcaption><span> (simple_form.rb)</span> <a href='http://www.justqyx.me/downloads/code/20150531/simple_form.rb'>download</a></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="o">=&gt;</span> <span class="c1">#&lt;SimpleForm::Wrappers::Root:0x007fedd7263b18</span>
-</span><span class='line'> <span class="vi">@components</span><span class="o">=</span>
-</span><span class='line'>  <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298660 @namespace=:html5, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72985e8 @namespace=:placeholder, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298598 @namespace=:maxlength, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298520 @namespace=:pattern, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72984d0 @namespace=:min_max, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298458 @namespace=:readonly, @options={}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72983b8 @namespace=:label, @options={:class=&gt;&quot;col-sm-3 control-label&quot;}&gt;,</span>
-</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Many:0x007fedd7263be0</span>
-</span><span class='line'>    <span class="vi">@components</span><span class="o">=</span>
-</span><span class='line'>     <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;&quot;form-control&quot;}&gt;,</span>
-</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263fa0</span>
-</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;,</span>
-</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;],</span>
-</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;span&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:error</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263cf8</span>
-</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;,</span>
-</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;],</span>
-</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:hint</span><span class="o">&gt;]</span><span class="p">,</span>
-</span><span class='line'>    <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;col-sm-9&quot;</span><span class="o">]</span><span class="p">},</span>
-</span><span class='line'>    <span class="vi">@namespace</span><span class="o">=</span><span class="kp">nil</span><span class="o">&gt;]</span><span class="p">,</span>
-</span><span class='line'> <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;form-group&quot;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:error_class</span><span class="o">=&gt;</span><span class="s2">&quot;has-error&quot;</span><span class="p">,</span> <span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">},</span>
-</span><span class='line'> <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:wrapper</span><span class="p">,</span>
-</span><span class='line'> <span class="vi">@options</span><span class="o">=</span><span class="p">{</span><span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">}</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>@components 包含了一些 Leaf、Single、Many，这些东西将决定着最后的输出内容，例如</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;label</span> <span class="na">class=</span><span class="s">&quot;col-sm-3&quot;</span><span class="nt">&gt;</span>Email<span class="nt">&lt;/label&gt;</span>
-</span><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;col-sm-9&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;email&quot;</span> <span class="na">class=</span><span class="s">&quot;form-control&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'><span class="nt">&lt;/div&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而 @defaults 一看就知道，它是整个表单控件最外层的包裹。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;form-group&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="c">&lt;!--- ...... --&gt;</span>
-</span><span class='line'><span class="nt">&lt;/div&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我们上篇就已经提到了 Wrapper 内部是如何渲染的，即递归地调用 component.render 得到每个 component 的输出内容，
-然后拼接起来，最后用 wrap 完成最后的包裹后输出。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/wrappers/many.rb</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
-</span><span class='line'>  <span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">html_safe</span>
-</span><span class='line'>  <span class="n">options</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="n">options</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">components</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">component</span><span class="o">|</span>
-</span><span class='line'>    <span class="k">next</span> <span class="k">if</span> <span class="n">options</span><span class="o">[</span><span class="n">component</span><span class="o">.</span><span class="n">namespace</span><span class="o">]</span> <span class="o">==</span> <span class="kp">false</span>
-</span><span class='line'>    <span class="n">rendered</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">content</span><span class="o">.</span><span class="n">safe_concat</span> <span class="n">rendered</span><span class="o">.</span><span class="n">to_s</span> <span class="k">if</span> <span class="n">rendered</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">wrap</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>现在让我们来详细看一看两件事情</p>
-
-<ol>
-<li>input 是什么</li>
-<li>component.render(input) 的执行过程</li>
-</ol>
-
-
-<h2>Input</h2>
-
-<p>前面我们也提到过 f.input 这一段代码，请阅读 <code>lib/simple_form/form_builder.rb</code> 这个文件里的代码，
-通过阅读，循着 find_input -> find_mapping 这两个方法，最终它是根据 attribute 的类型来找到对应的
-类并实例化，例如是 String 类型，就返回一个 StringInput 类的实例，其他的如 Boolean、Numeric、File 都是如此。
-我们从源码文件目录里的 <code>lib/simple_form/inputs</code> 也可以看到一系列的 Input，而这些 Input 全部都继承与 Base 这个类。</p>
-
-<p>但是先到此为此，我们现在只需要了解 input 是什么，至于内部还有什么东西，我们需要在了解 component.render(input)
-之后再来看会更好，顺着渲染的流程走更容易理解。</p>
-
-<h2>component.render(input)</h2>
-
-<p>同样的，在上文中的 <code>lib/simple_form/form_builder.rb</code> 这个文件里我们继续寻找 component 是什么，
-继续阅读，循着 find_wrapper -> find_wrapper_mapping 这两个方法，最终我们可以发现，它根据 input.input_type
-来找到合适 wrapper，即 SimpleForm.wrapper_mappings[input_type]，而 SimpleForm.wrapper_mappings 是我们在
-项目里所配置的。即 <code>config/initializers/simple_form_bootstrap3.rb</code> 里的这么一段代码</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SimpleForm</span><span class="o">.</span><span class="n">setup</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span class='line'>  <span class="c1"># ...</span>
-</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">wrapper_mappings</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">check_boxes</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">radio_buttons</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">file</span><span class="p">:</span> <span class="ss">:vertical_file_input</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">boolean</span><span class="p">:</span> <span class="ss">:vertical_boolean</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">datetime</span><span class="p">:</span> <span class="ss">:multi_select</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">date</span><span class="p">:</span> <span class="ss">:multi_select</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">time</span><span class="p">:</span> <span class="ss">:multi_select</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因此，它所找到的就是我们一开始所配置的 wrapper，他们全部保存在 SimpleForm.wrappers 这个类变量里。
-现在让我们来看一看三个例子。</p>
-
-<h2>SimpleForm::Inputs::Base</h2>
-
-<p>在进入例子之前，有必要阐述 SimpleForm::Inputs::Base 这个类，它是所有 SimpleForm 抽象出来的表单控件的一个基类。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">SimpleForm</span>
-</span><span class='line'>  <span class="k">module</span> <span class="nn">Inputs</span>
-</span><span class='line'>    <span class="k">class</span> <span class="nc">Base</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">ERB</span><span class="p">:</span><span class="ss">:Util</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">ActionView</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">TranslationHelper</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="kp">extend</span> <span class="no">I18nCache</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Autofocus</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Disabled</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Readonly</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Required</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Helpers</span><span class="o">::</span><span class="no">Validators</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Errors</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Hints</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">HTML5</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">LabelInput</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Maxlength</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">MinMax</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Pattern</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Placeholders</span>
-</span><span class='line'>      <span class="kp">include</span> <span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:Components</span><span class="o">::</span><span class="no">Readonly</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="c1"># ...</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面的代码我们可以看到，其 include 了许多 Components，这些 Components 其实是为 SimpleForm::Inputs::StringInput、
-SimpleForm::Inputs::FileInput 这些真正的表单控件注入一些方法，这些方法可能是用来改变 Input 实例的一些配置，
-也可能是生成一段 HTML 文本，下面的例子会阐述这么一点。</p>
-
-<h2>b.use :input</h2>
-
-<p>从之前的讲解我们知道 <code>b.use :input</code> 将会生成一个 SimpleForm::Wrappers::Root 实例，
-然后其 @compoennts 就会存储着与此相关的 SimpleForm::Wrappers::Leaf 实例。</p>
-
-<p>假如我们这里的 input 是一个 SimpleForm::Inputs::StringInput 的一个实例，而 component 就是
-SimpleForm::Wrappers::Leaf 的一个实例，那么我们来看看 component.render 里的这个方法定义：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/wrappers/leaf.rb</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
-</span><span class='line'>  <span class="c1"># 我们先前在 Rails Console 中打出来的文本里有这么一段</span>
-</span><span class='line'>  <span class="c1"># &lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;&quot;form-control&quot;}&gt;</span>
-</span><span class='line'>  <span class="c1"># 所以这里的 @namespace 的值为 :input</span>
-</span><span class='line'>  <span class="nb">method</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="vi">@namespace</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">if</span> <span class="nb">method</span><span class="o">.</span><span class="n">arity</span> <span class="o">==</span> <span class="mi">0</span>
-</span><span class='line'>    <span class="ss">ActiveSupport</span><span class="p">:</span><span class="ss">:Deprecation</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="ss">SimpleForm</span><span class="p">:</span><span class="ss">:CUSTOM_INPUT_DEPRECATION_WARN</span> <span class="o">%</span> <span class="p">{</span> <span class="nb">name</span><span class="p">:</span> <span class="vi">@namespace</span> <span class="p">})</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nb">method</span><span class="o">.</span><span class="n">call</span>
-</span><span class='line'>  <span class="k">else</span>
-</span><span class='line'>    <span class="nb">method</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="vi">@options</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我们可以看到，这个 render 方法其实是让 input 这个 StringInput 实例去调用自己的 input 方法，
-找到 StringInput 的 input 方法定义：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/inputs/strin_input.rb</span>
-</span><span class='line'><span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">unless</span> <span class="n">string?</span>
-</span><span class='line'>    <span class="n">input_html_classes</span><span class="o">.</span><span class="n">unshift</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">input_html_options</span><span class="o">[</span><span class="ss">:type</span><span class="o">]</span> <span class="o">||=</span> <span class="n">input_type</span> <span class="k">if</span> <span class="n">html5?</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">merged_input_options</span> <span class="o">=</span> <span class="n">merge_wrapper_options</span><span class="p">(</span><span class="n">input_html_options</span><span class="p">,</span> <span class="n">wrapper_options</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="vi">@builder</span><span class="o">.</span><span class="n">text_field</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">,</span> <span class="n">merged_input_options</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>所以我们可以看到，最后的输出内容其实是使用 @builder (SimpleForm::FormBuilder 的一个实例) 的 text_field 方法
-来生成一个类似这样的 <code>&lt;input type="text" name='resource[attribute_name]' /&gt;</code> 一段文本。</p>
-
-<h2>b.use :label</h2>
-
-<p>同理， Label 标签的生成也是类似。 SimpleForm::Component::Label 的里 label 方法定义如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">label_options</span> <span class="o">=</span> <span class="n">merge_wrapper_options</span><span class="p">(</span><span class="n">label_html_options</span><span class="p">,</span> <span class="n">wrapper_options</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span> <span class="n">generate_label_for_attribute?</span>
-</span><span class='line'>      <span class="vi">@builder</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">label_target</span><span class="p">,</span> <span class="n">label_text</span><span class="p">,</span> <span class="n">label_options</span><span class="p">)</span>
-</span><span class='line'>    <span class="k">else</span>
-</span><span class='line'>      <span class="n">template</span><span class="o">.</span><span class="n">label_tag</span><span class="p">(</span><span class="kp">nil</span><span class="p">,</span> <span class="n">label_text</span><span class="p">,</span> <span class="n">label_options</span><span class="p">)</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>也是让 @builder 调用 label 来生成类似这样的 <code>&lt;label class="col-sm-3"&gt;Email&lt;/label&gt;</code> 一段文本。</p>
-
-<h2>b.use :placeholder</h2>
-
-<p>placeholder，html5，readonly 这一类的 Component，并没有实际的 HTML 文本输出，而是修改 input 这种表单控件的
-一些配置，我们来看看 placholder 的代码。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/components/placeholders.rb</span>
-</span><span class='line'><span class="k">module</span> <span class="nn">SimpleForm</span>
-</span><span class='line'>  <span class="k">module</span> <span class="nn">Components</span>
-</span><span class='line'>    <span class="c1"># Needs to be enabled in order to do automatic lookups.</span>
-</span><span class='line'>    <span class="k">module</span> <span class="nn">Placeholders</span>
-</span><span class='line'>      <span class="k">def</span> <span class="nf">placeholder</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">input_html_options</span><span class="o">[</span><span class="ss">:placeholder</span><span class="o">]</span> <span class="o">||=</span> <span class="n">placeholder_text</span>
-</span><span class='line'>        <span class="kp">nil</span>
-</span><span class='line'>      <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="k">def</span> <span class="nf">placeholder_text</span>
-</span><span class='line'>        <span class="n">placeholder</span> <span class="o">=</span> <span class="n">options</span><span class="o">[</span><span class="ss">:placeholder</span><span class="o">]</span>
-</span><span class='line'>        <span class="n">placeholder</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span> <span class="p">?</span> <span class="n">placeholder</span> <span class="p">:</span> <span class="n">translate_from_namespace</span><span class="p">(</span><span class="ss">:placeholders</span><span class="p">)</span>
-</span><span class='line'>      <span class="k">end</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我们可以看到，它修改的是 input 这个 StringInput 实例的 input_html_options 里的 placeholder 配置，然后返回 nil，
-即没有 HTML 文本输出。</p>
-
-<p>之所以能修改，是因为 component.render(input) 在这里是让 input 自己去调用自己的 placeholder 方法，
-而 SimpleForm::Inputs::StringInput 继承了 SimpleForm::Inputs::Base， SimpleForm::Inputs::Base 这个类引用了
-众多的 Components，因此 input 实例有了这些 components 所定义的方法。</p>
-
-<h2>总结</h2>
-
-<p>第一篇我们主要阐述了 SimpleForm 在 Rails 渲染表单这整个工作流的一个基本原理，
-而这一篇我们主要从 SimpleForm::Wrappers、 SimpleForm::Inputs、SimpleForm::Components 这几个 namespace 下面
-相关的类阐述了这几者在 wrapper 对表单控件进行包裹式地渲染这个过程所扮演的角色。</p>
-
-<p>至此，你可以通过详细阅读 SimpleForm::Inputs::Base 的代码和一些 Components 的代码，并做一些练习，
-即可完全掌握如何去编写一个 SimpleForm 的扩展。</p>
 ]]></content>
   </entry>
   

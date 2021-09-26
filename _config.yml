@@ -3,11 +3,11 @@
 # ----------------------- #
 
 
-url: http://www.justqyx.com
+url: https://www.justqyx.com
 title: JustQyx
 subtitle: 大道至简
 author: 邱源鑫
-simple_search: http://google.com/search
+simple_search: https://google.com/search
 description: 大道至简
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")

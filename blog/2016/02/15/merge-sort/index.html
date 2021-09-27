@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>归并排序 - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="归并排序（Merge sort），是建立在归并操作上的一种有效排序算法，时间复杂度为 O(n*log(n))。1945 年由约翰•冯•诺依曼首次提出。
+该算法采用分治法（Divide and Conquer）的一个非常典型的应用，且各层分治递归可以同时进行。 算法步骤 递归法 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/02/15/merge-sort/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">归并排序</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-15T09:23:24+08:00'><span class='date'>2016-02-15 09:23:24</span> <span class='time'>9:23 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>归并排序（Merge sort），是建立在归并操作上的一种有效排序算法，时间复杂度为 O(n*log(n))。1945 年由约翰•冯•诺依曼首次提出。
+该算法采用分治法（Divide and Conquer）的一个非常典型的应用，且各层分治递归可以同时进行。</p>
+
+<h2>算法步骤</h2>
+
+<p><strong>递归法</strong></p>
+
+<ol>
+<li>将序列每相邻两个数字进行归并操作，形成 floor(n/2) 个序列，排序后每个序列至多包含两个元素</li>
+<li>将上述序列再次合并，形成 floor(n/4) 个序列，买个序列包含至多四个元素</li>
+<li>重复步骤 2，直到所有元素排序完毕</li>
+</ol>
+
+
+<p>要点：首先需要将数列分割成尽可能小的数列，达到分治目的后再逐步合并。</p>
+
+<p><strong>迭代法</strong></p>
+
+<ol>
+<li>申请空间，使其大小为两个已经排序序列之和，该空间用来存放合并后的序列</li>
+<li>设定两个指针，最初位置分别为两个已经排序序列的起始位置</li>
+<li>比较两个指针所指向的元素，选择相对小的元素放入合并空间，并移动指针到下一位置</li>
+<li>重复 3 步骤直到某一指针到达序列尾</li>
+<li>将另一序列剩下的所有元素直接复制到合并序列尾</li>
+</ol>
+
+
+<h2>GIF 演示图</h2>
+
+<p><img src="/downloads/images/Merge-sort-example-300px.gif"></p>
+
+<h2>归并排序 VS 快速排序</h2>
+
+<ul>
+<li>在实践中，快速排序执行速率更快</li>
+<li>归并排序首先将数列划分为最小的数列，在对数列进行排序的同时，递增地对数列进行合并</li>
+<li>快速排序不断地通过 pivot 划分数列，直到数列递归地有序</li>
+</ul>
+
+
+<h2>实现</h2>
+
+<p><strong>ruby 实现</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">final</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">until</span> <span class="n">left</span><span class="o">.</span><span class="n">empty?</span> <span class="ow">or</span> <span class="n">right</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'>        <span class="n">final</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">first</span> <span class="o">&lt;</span> <span class="n">right</span><span class="o">.</span><span class="n">first</span> <span class="p">?</span> <span class="n">left</span><span class="o">.</span><span class="n">shift</span> <span class="p">:</span> <span class="n">right</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>    <span class="n">final</span> <span class="o">+</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">merge_sort</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">array</span> <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span>
+</span><span class='line'>    <span class="n">pivot</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">2</span>
+</span><span class='line'>    <span class="n">merge</span><span class="p">(</span><span class="n">merge_sort</span><span class="p">(</span><span class="n">array</span><span class="o">[</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">pivot</span><span class="o">]</span><span class="p">),</span> <span class="n">merge_sort</span><span class="p">(</span><span class="n">array</span><span class="o">[</span><span class="n">pivot</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">-</span><span class="mi">1</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>C 实现（递归法）</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">merge_sort_recursive</span><span class="p">(</span><span class="kt">int</span> <span class="n">arr</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">reg</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">start</span><span class="p">,</span> <span class="kt">int</span> <span class="n">end</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="n">end</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">len</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">start</span><span class="p">);</span> <span class="c1">// 右移一位，相当于除以 2</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">start1</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">end1</span> <span class="o">=</span> <span class="n">mid</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">start2</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">end2</span> <span class="o">=</span> <span class="n">end</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">merge_sort_recursive</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="n">start1</span><span class="p">,</span> <span class="n">end1</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">merge_sort_recursive</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="n">start2</span><span class="p">,</span> <span class="n">end2</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// 三个 while 实现了两个序列的有序合并</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="n">start1</span> <span class="o">&lt;=</span> <span class="n">end1</span> <span class="o">&amp;&amp;</span> <span class="n">start2</span> <span class="o">&lt;=</span> <span class="n">end2</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">reg</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">start1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">start2</span><span class="p">]</span> <span class="o">?</span> <span class="n">arr</span><span class="p">[</span><span class="n">start1</span><span class="o">++</span><span class="p">]</span> <span class="o">:</span> <span class="n">arr</span><span class="p">[</span><span class="n">start2</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">while</span> <span class="p">(</span><span class="n">start1</span> <span class="o">&lt;=</span> <span class="n">end1</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">reg</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">start1</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">while</span> <span class="p">(</span><span class="n">start2</span> <span class="o">&lt;=</span> <span class="n">end2</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">reg</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">start2</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">k</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">arr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span><span class="p">[</span><span class="n">k</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">merge_sort</span><span class="p">(</span><span class="kt">int</span> <span class="n">arr</span><span class="p">[],</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">reg</span><span class="p">[</span><span class="n">len</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">merge_sort_recursive</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>C 实现（迭代法）</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">min</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span> <span class="o">?</span> <span class="nl">x</span> <span class="p">:</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">merge_sort</span><span class="p">(</span><span class="kt">int</span> <span class="n">arr</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">len</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="n">arr</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span> <span class="n">malloc</span><span class="p">(</span><span class="n">len</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">));</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">seg</span><span class="p">,</span> <span class="n">start</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1">// 使得内循环的 2seg+1 片段指数级变大，达到递归的效果</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">seg</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">seg</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="n">seg</span> <span class="o">+=</span> <span class="n">seg</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// 对 2seg+1 片段进行有序化</span>
+</span><span class='line'>      <span class="k">for</span> <span class="p">(</span><span class="n">start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="n">start</span> <span class="o">+=</span> <span class="n">seg</span> <span class="o">+</span> <span class="n">seg</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="kt">int</span> <span class="n">low</span> <span class="o">=</span> <span class="n">start</span><span class="p">,</span> <span class="n">mid</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">seg</span><span class="p">,</span> <span class="n">len</span><span class="p">),</span> <span class="n">high</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">seg</span> <span class="o">+</span> <span class="n">seg</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+</span><span class='line'>          <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="n">low</span><span class="p">;</span>
+</span><span class='line'>          <span class="kt">int</span> <span class="n">start1</span> <span class="o">=</span> <span class="n">low</span><span class="p">,</span> <span class="n">end1</span> <span class="o">=</span> <span class="n">mid</span><span class="p">;</span>
+</span><span class='line'>          <span class="kt">int</span> <span class="n">start2</span> <span class="o">=</span> <span class="n">mid</span><span class="p">,</span> <span class="n">end2</span> <span class="o">=</span> <span class="n">high</span><span class="p">;</span>
+</span><span class='line'>          <span class="k">while</span> <span class="p">(</span><span class="n">start1</span> <span class="o">&lt;</span> <span class="n">end1</span> <span class="o">&amp;&amp;</span> <span class="n">start2</span> <span class="o">&lt;</span> <span class="n">end2</span><span class="p">)</span>
+</span><span class='line'>              <span class="n">b</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">start1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">a</span><span class="p">[</span><span class="n">start2</span><span class="p">]</span> <span class="o">?</span> <span class="n">a</span><span class="p">[</span><span class="n">start1</span><span class="o">++</span><span class="p">]</span> <span class="o">:</span> <span class="n">a</span><span class="p">[</span><span class="n">start2</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>          <span class="k">while</span> <span class="p">(</span><span class="n">start1</span> <span class="o">&lt;</span> <span class="n">end1</span><span class="p">)</span>
+</span><span class='line'>              <span class="n">b</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">start1</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>          <span class="k">while</span> <span class="p">(</span><span class="n">start2</span> <span class="o">&lt;</span> <span class="n">end2</span><span class="p">)</span>
+</span><span class='line'>              <span class="n">b</span><span class="p">[</span><span class="n">k</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">start2</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="kt">int</span><span class="o">*</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">b</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">arr</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>          <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span><span class='line'>      <span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Ref</h2>
+
+<ul>
+<li><a href="https://zh.wikipedia.org/wiki/%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F">wikipedia 归并排序</a></li>
+<li><a href="https://ruby-china.org/topics/20569">https://ruby-china.org/topics/20569</a></li>
+<li><a href="http://blog.jobbole.com/90256/">http://blog.jobbole.com/90256/</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-02-15T09:23:24+08:00'><span class='date'>2016-02-15 09:23:24</span> <span class='time'>9:23 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/computer/'>computer</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/02/15/merge-sort/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/02/15/merge-sort/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/02/14/quick-sort/" title="Previous Post: 快速排序">&laquo; 快速排序</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/02/15/be-a-good-programming-engineer/" title="Next Post: A good programming engineer">A good programming engineer &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/02/15/merge-sort/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/02/15/merge-sort/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

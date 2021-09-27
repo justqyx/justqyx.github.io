@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: dsl | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/dsl/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2021-09-27T06:28:44+00:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Building a DSL in Ruby]]></title>
+    <link href="http://www.justqyx.me/blog/2016/02/16/build-a-dsl-in-ruby/"/>
+    <updated>2016-02-16T10:23:27+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/02/16/build-a-dsl-in-ruby</id>
+    <content type="html"><![CDATA[<p>DSL（领域专用语言，Domain Specific Language）不是一个新的技术概念，并且构建是困难的。
+其至少包含两个内容：</p>
+
+<ol>
+<li>一个用于解析 DSL 的 Parser</li>
+<li>使用 DSL 写出来的程序</li>
+</ol>
+
+
+<h2>构建一个简单的 Quiz DSL</h2>
+
+<p>最终我们想达到的效果便是，当运行程序之后，会让用户做选择题，并且统计回答正确的题数。</p>
+
+<pre><code>Who was the first president of the USA?
+1 - Fred Flintstone
+2 - Martha Washington
+3 - George Washington
+4 - George Jetson
+Enter your answer:
+</code></pre>
+
+<p>期望的表达语法</p>
+
+<pre><code class="ruby"># questions.qm
+
+question "Who was the first president of the USA?"
+wrong 'Fred Flintstone'
+wrong 'Martha Washington'
+right 'George Washington'
+wrong 'George Jetson'
+
+question 'Who is buried in Grant\'s tomb?'
+right 'U. S. Grant'
+wrong 'Cary Grant'
+wrong 'Hugh Grant'
+wrong 'W. T. Grant'
+</code></pre>
+
+<p>一个简单的 Parser</p>
+
+<pre><code># quizm.rb
+
+def question text
+  puts "Just read a question: #{text}"
+end
+
+def wrong text
+  puts "Just read a correct answer: #{text}"
+end
+
+def right text
+  puts "Just read an incorrect answer: #{text}"
+end
+
+load './questions.qm'
+</code></pre>
+
+<p>编译的 Parse Phase，最终都是为了得到 AST（抽象语法树）这样类型的数据结构，所以，我们
+先定义我们的数据结构：<code>Question</code> 和 <code>Answer</code></p>
+
+<pre><code class="ruby"># quiz.rb
+class Answer
+  attr_reader :text, :correct
+  def initialize text, correct
+    @text = text
+    @correct = correct
+  end
+end
+
+class Question
+  def initialize text
+    @text = text
+    @answers = []
+  end
+
+  def add_answer answer
+    @answers &lt;&lt; answer
+  end
+
+  def ask
+    puts ""
+    puts "Question: #{@text}"
+    @answers.each_with_index do |answer, index|
+      puts "#{index+1} - #{answer.text}"
+    end
+    print "Enter answer: "
+    answer = gets.to_i - 1
+    return @answers[answer].correct
+  end
+end
+</code></pre>
+
+<p>构建简单的 vm，赋予程序存储 DSL 内容的能力</p>
+
+<pre><code class="ruby"># quiz.rb
+require 'singleton'
+
+class Quiz
+  def initialize
+    @questions = []
+  end
+
+  def add_question question
+    @questions &lt;&lt; question
+  end
+
+  def last_question
+    @questions.last
+  end
+
+  def run_quiz
+    count = 0
+    @questions.each { |q| count += 1 if q.ask }
+    puts "You got #{count} answers correct out of #{@questions.size}"
+  end
+end
+</code></pre>
+
+<p>载入、解析、存储、运行</p>
+
+<pre><code class="ruby">require './quiz'
+
+def question text
+  Quiz.instance.add_question Question.new(text)
+end
+
+def wrong text
+  Quiz.instance.last_question.add_answer Answer.new(text, true)
+end
+
+def right text
+  Quiz.instance.last_question.add_answer Answer.new(text, false)
+end
+
+load './questions.qm'
+
+Quiz.instance.run_quiz
+</code></pre>
+
+<h2>Gif 效果图</h2>
+
+<p><img src="/downloads/images/dsl.gif"></p>
+
+<h2>Ref</h2>
+
+<ul>
+<li><a href="http://jroller.com/rolsen/entry/building_a_dsl_in_ruby">Building a DSL in Ruby</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

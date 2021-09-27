@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Run MySQL on Docker Machine - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="使用 docker 来运行 MySQL 把 Docker Container 的 3306 端口映射到宿主机的端口 3306，这样我们的计算机就可以连接到虚拟机里的 3006 端口，
+从而能够连接到 Docker Container 里的 MySQL 服务。 1
+2
+3
+4
+5
+6
+docker &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Run MySQL on Docker Machine</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-05T23:59:58+08:00'><span class='date'>2016-08-05 23:59:58</span> <span class='time'>11:59 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>使用 docker 来运行 MySQL</h2>
+
+<p>把 Docker Container 的 3306 端口映射到宿主机的端口 3306，这样我们的计算机就可以连接到虚拟机里的 3006 端口，
+从而能够连接到 Docker Container 里的 MySQL 服务。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name demo \
+</span><span class='line'>           -p 3306:3306 \
+</span><span class='line'>           -e MYSQL_ROOT_PASSWORD=root
+</span><span class='line'>           -d mysql:5.6.27 \
+</span><span class='line'>           --character-set-server=utf8mb4 \
+</span><span class='line'>           --collation-server=utf8mb4_unicode_ci</span></code></pre></td></tr></table></div></figure>
+
+
+<p>连接到该 MySQL 服务</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mysql -h 192.168.99.100 -u root -p</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相关的日志</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>➜  ~ mysql -h 192.168.99.100 -u root -p
+</span><span class='line'>Enter password:
+</span><span class='line'>Welcome to the MySQL monitor.  Commands end with ; or \g.
+</span><span class='line'>Your MySQL connection id is 1
+</span><span class='line'>Server version: 5.6.27 MySQL Community Server (GPL)
+</span><span class='line'>
+</span><span class='line'>Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+</span><span class='line'>
+</span><span class='line'>Oracle is a registered trademark of Oracle Corporation and/or its
+</span><span class='line'>affiliates. Other names may be trademarks of their respective
+</span><span class='line'>owners.
+</span><span class='line'>
+</span><span class='line'>Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+</span><span class='line'>
+</span><span class='line'>mysql&gt; show databases;
+</span><span class='line'>+--------------------+
+</span><span class='line'>| Database           |
+</span><span class='line'>+--------------------+
+</span><span class='line'>| information_schema |
+</span><span class='line'>| mysql              |
+</span><span class='line'>| performance_schema |
+</span><span class='line'>+--------------------+
+</span><span class='line'>3 rows in set (0.01 sec)</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-08-05T23:59:58+08:00'><span class='date'>2016-08-05 23:59:58</span> <span class='time'>11:59 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/docker/'>docker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/06/04/disable-heartbeats-logs-in-rails/" title="Previous Post: Disable heartbeats logs in Rails">&laquo; Disable heartbeats logs in Rails</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/08/05/use-openssl-to-generate-a-self-signed-ca/" title="Next Post: Generate a self-signed CA certificate">Generate a self-signed CA certificate &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

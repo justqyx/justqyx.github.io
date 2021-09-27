@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Code Refactoring - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="无论是代码的编写者还是阅读者，对于一段程序本身就有很强的主观性。
+代码质量的评判，决定于代码阅读者的水平而非代码编写者，因为本来就没有一个明确的标准。 为何要进行代码重构 已有的代码随着数据的增长或者环境的变更而暴露出的BUG
+已有的代码无法很好地支撑起新的需求
+对已有代码的极度不满，让你很不爽 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Code Refactoring</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T17:46:10+08:00'><span class='date'>2014-05-18 17:46:10</span> <span class='time'>5:46 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>无论是代码的编写者还是阅读者，对于一段程序本身就有很强的主观性。<br>
+代码质量的评判，决定于代码阅读者的水平而非代码编写者，因为本来就没有一个明确的标准。</p>
+
+<h2>为何要进行代码重构</h2>
+
+<ol>
+<li>已有的代码随着数据的增长或者环境的变更而暴露出的BUG</li>
+<li>已有的代码无法很好地支撑起新的需求</li>
+<li>对已有代码的极度不满，让你很不爽</li>
+</ol>
+
+
+<h2>重构成功与否的标准</h2>
+
+<p><strong>对于公司来说</strong></p>
+
+<p>不出错？什么事情也不会发生。<br>
+出错了？你干了一件非常愚蠢后果非常严重的事情!!!</p>
+
+<p><strong>对于项目来说</strong></p>
+
+<p>不出错？你干了一件不错的事情。<br>
+出错了？你怎么那么多事！</p>
+
+<p>无论你在这次重构中付出了多少心血，多少个夜晚的奋斗，
+又或者本来就不关你的事然后你为了项目里能有更好的代码你主动付出了许多个小时的奋斗，
+你还是错的。</p>
+
+<p><strong>对于个人来说</strong></p>
+
+<p>不出错？你觉得爽了、高兴了就是成功的。<br>
+出错了？你觉得爽了、高兴了就是成功的。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T17:46:10+08:00'><span class='date'>2014-05-18 17:46:10</span> <span class='time'>5:46 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/thought/'>thought</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/05/18/buy-a-fkbn87m-slash-eb2-majestouch-2/" title="Previous Post: Buy a Mechanical Keyboard">&laquo; Buy a Mechanical Keyboard</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/11/04/about-computer/" title="Next Post: About Computer">About Computer &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

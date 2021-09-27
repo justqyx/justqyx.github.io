@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Thread - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="进程、线程 进程是指操作系统中正在运行的一个程序；线程是系统分配处理器时间的基本单元，或者说进程之类独立执行的一个单元。 对于操作系统而言，其调度单元是线程。 一个进程至少包括一个线程，通常将该线程称为主线程。进程从主线程的执行开始，进而创建一个或多个附加线程，这就是所谓的基于多线程的多任务。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/12/30/thread/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Thread</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-12-30T18:44:05+08:00'><span class='date'>2014-12-30 18:44:05</span> <span class='time'>6:44 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>进程、线程</h2>
+
+<p>进程是指操作系统中正在运行的一个程序；线程是系统分配处理器时间的基本单元，或者说进程之类独立执行的一个单元。</p>
+
+<p>对于操作系统而言，其调度单元是线程。</p>
+
+<p>一个进程至少包括一个线程，通常将该线程称为主线程。进程从主线程的执行开始，进而创建一个或多个附加线程，这就是所谓的基于多线程的多任务。</p>
+
+<p>进程是对正在运行程序的一个抽象，是一组资源（处理器、内存以及I/O设备）的集合体，进程把资源集中到一块，而线程才是 CPU 调度的实体。</p>
+
+<p>进程与进程之间，内存空间是独立的，而线程与线程之间内存是共享的。</p>
+
+<p>在单处理器的系统中，多线程是按时间片方式运行，即并发；
+在多处理器的系统中，多个线程可以同时运行，即并行。</p>
+
+<h2>线程模型</h2>
+
+<ul>
+<li><p><strong>内核级别线程（kernel-level threads）</strong></p>
+
+<p>内核级别线程，是内核调度的基本单元，在每个进程中，至少存在一个内核级别线程。</p></li>
+<li><p><strong>用户级别线程（user-level threads）</strong></p>
+
+<p>用户进程自己实现的进程机制。在这种情况下，内核是不知道有多少线程存在的，同时线程上下文切换更快，而且在不支持多线程的操作系统上也能实现多线程。但是这种线程无法充分利用多处理器系统，如果进程中的一个线程执行阻塞的I/O请求，那么整个进程就会被阻塞。现在，大部分应用程序起来之后，其主线程就是一个用户级别的线程，它所能访问的资源是有限制的。</p></li>
+<li><p><strong>混合线程（hybrid threads）</strong></p>
+
+<p>混合线程，是内核级别线程和用户级别线程的混合体，提供了以上两种模型的优点，但带来很大的复杂性。</p></li>
+</ul>
+
+
+<p>另外，不得不提的是另一个模型：<strong>绿色线程</strong>。</p>
+
+<p>绿色线程是指有虚拟机（VM）调度的线程，而不是通过内核调度，所以绿色线程是用户级别的线程。</p>
+
+<h2>线程安全</h2>
+
+<p>  线程安全是多线程编程里的一个概念。一片代码段，当多个线程能以一种保证安全的方式同时操纵共享的数据结构时，那么这片代码段是线程安全的。</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Thread_(computing)">Thread</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Thread_safety">Thread Safety</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-12-30T18:44:05+08:00'><span class='date'>2014-12-30 18:44:05</span> <span class='time'>6:44 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/computer/'>computer</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/12/30/thread/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/12/30/thread/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/12/25/active-support-instrumentation/" title="Previous Post: Instrumentation in ActiveSupport">&laquo; Instrumentation in ActiveSupport</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/12/31/threads-in-ruby/" title="Next Post: Threads in Ruby（译）">Threads in Ruby（译） &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/12/30/thread/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/12/30/thread/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

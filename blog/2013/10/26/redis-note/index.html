@@ -1,0 +1,473 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Redis Learning Note - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="安装 使用 Homebrew 安装 1
+$ brew install redis 下载源码，手动编译 1
+2
+3
+4
+$ wget http://download.redis.io/redis-stable.tar.gz
+$ tar xvzf redis-stable.tar.gz
+$ cd &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2013/10/26/redis-note/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Redis Learning Note</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T14:23:00+00:00'><span class='date'>2013-10-26 14:23:00</span> <span class='time'>2:23 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>安装</h2>
+
+<ul>
+<li>使用 Homebrew 安装</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install redis</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>下载源码，手动编译</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://download.redis.io/redis-stable.tar.gz
+</span><span class='line'>$ tar xvzf redis-stable.tar.gz
+</span><span class='line'>$ cd redis-stable
+</span><span class='line'>$ make && make install</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>支持的数据类型</h2>
+
+<p><code>字符串</code> <code>散列表</code> <code>列表</code> <code>集合</code> <code>有序集合</code></p>
+
+<h2>事务</h2>
+
+<p>通过使用 <code>MULTI</code> 和 <code>EXEC</code> 来实现事务。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis &gt; MULTI
+</span><span class='line'>OK
+</span><span class='line'>redis &gt; SET key1 value
+</span><span class='line'>QUEUED
+</span><span class='line'>redis &gt; SET key2 value
+</span><span class='line'>QUEUED
+</span><span class='line'>redis &gt; EXEC
+</span><span class='line'>1) (Integer) 1
+</span><span class='line'>2) (Integer) 2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了保证在执行事务的过程中，key1 或 key2 的值不会被其他进程所改变（即：竟态），</p>
+
+<p>Redis 提供了 <code>WATCH</code> 命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis 127.0.0.1:6379&gt; SET key 1
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; watch key
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; set key 2
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; MULTI
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; set key 3
+</span><span class='line'>QUEUED
+</span><span class='line'>redis 127.0.0.1:6379&gt; exec
+</span><span class='line'>(nil)
+</span><span class='line'>redis 127.0.0.1:6379&gt; GET key
+</span><span class='line'>"2"
+</span><span class='line'>redis 127.0.0.1:6379&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到，因为在 WATCH 命令之后修改了 key 的值，因此事务没有执行成功，key 的值也就是 &ldquo;2"。</p>
+
+<h2>持久化</h2>
+
+<h3>第一种：RDB（默认, Redis Database）</h3>
+
+<p>其特点有二：</p>
+
+<ol>
+<li>每一次持久化的数据，是内存中<code>某一时刻的数据</code></li>
+<li>每一次持久化具有<code>原子性</code>，即完成之前，不会对先前的持久化数据产生影响，只有完成后，才会覆盖原先的数据</li>
+</ol>
+
+
+<p>其过程大致如下：</p>
+
+<ol>
+<li>Redis 使用 fork 函数复制一份当前进程（父进程）的副本（子进程）；</li>
+<li>父进程继续接收并处理客户端的命令，而子进程开始将内存中的数据写入硬盘中的临时文件；</li>
+<li>当子进程写入完所有数据后会用该临时文件替换旧的 RDB 文件，至此一次快照操作完成。</li>
+</ol>
+
+
+<p><a href="http://redis.io/commands/bgsave">相关命令</a></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; BGSAVE
+</span><span class='line'>&gt; LASTSAVE</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>第二种：AOF（append only file）</h3>
+
+<p>其原理是将命令写入文件中，Redis重启时，读入AOF文件，执行每条命令将值写入内存中。</p>
+
+<p><strong>优化及写入的频率</strong></p>
+
+<p>随着执行的命令越来越多，AOF文件也会越来越大，冗余的命令就会出现，如：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; set foo 1
+</span><span class='line'>&gt; set foo 2
+</span><span class='line'>&gt; set foo 3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样一来，前面两条命令是冗余的，于是可以删除前两条命令，只保留第三条命令。我们可以在配置里让 Redis 自动去做：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>auto-aof-rewrite-percentage 100
+</span><span class='line'>auto-aof-rewrite-min-size 64mb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也可以手动执行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; BGREWRITEAOF</span></code></pre></td></tr></table></div></figure>
+
+
+<p>随便每次执行更改数据库内容时，AOF 都会将命令记录在 AOF 文件中，</p>
+
+<p>但事实上由于操作系统的缓存机制，数据并没有真正地写入硬盘，而是进入了系统的硬盘缓存。</p>
+
+<p>我们可以主动要求操作系统将缓存内容同步到硬盘中，在 Redis 中，我们可以通过 appendfsync 参数设置同步的实际：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># appendfsync always
+</span><span class='line'>appendfsync eversec
+</span><span class='line'># appendfsync no        </span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>always</code>，表示每次执行写入都会执行同步，这是最安全，也是最慢的方式。</p>
+
+<p><code>everysec</code>，表示美标执行一次同步操作。</p>
+
+<p><code>no</code>，完全交由操作系统来做，即 30s 同步一次。</p>
+
+<h2>主从复制</h2>
+
+<p>例如有两台服务器，A（192.168.1.100:6379），B（192.168.1.101:6379），以 A 为主数据库。</p>
+
+<p>A 服务器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ redis-server</span></code></pre></td></tr></table></div></figure>
+
+
+<p>B 服务器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ redis-server --slaveof 192.168.1.100 6379</span></code></pre></td></tr></table></div></figure>
+
+
+<p>B服务器终止同步，进入客户端：<code>$ redis-cli</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis &gt; SLAVEOF NO ONE</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T14:23:00+00:00'><span class='date'>2013-10-26 14:23:00</span> <span class='time'>2:23 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/db/'>db</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2013/10/26/redis-note/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2013/10/26/redis-note/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/10/18/crontab/" title="Previous Post: Crontab">&laquo; Crontab</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/11/23/javascript-prototype/" title="Next Post: JavaScript Prototype">JavaScript Prototype &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2013/10/26/redis-note/';
+        var disqus_url = 'http://www.justqyx.me/blog/2013/10/26/redis-note/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,631 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Sass Learning (Revised) - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="为什么写？ 第一次用 Sass 时，应该是今年一月份的时候，
+那时候对 Sass 的认识很简单，仅仅将其理解为CSS的几个框架之一，
+作用在于给我们提供一些有用的方法，可以帮我们快速方便地书写 CSS，并且解决了一些浏览器兼容的问题。 而最近，随着使用越来越多，发现自己写的 CSS 代码很糟糕。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2013/07/29/sass/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Sass Learning (Revised)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-29T23:01:00+00:00'><span class='date'>2013-07-29 23:01:00</span> <span class='time'>11:01 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>为什么写？</h2>
+
+<p>第一次用 Sass 时，应该是今年一月份的时候，
+那时候对 Sass 的认识很简单，仅仅将其理解为CSS的几个框架之一，
+作用在于给我们提供一些有用的方法，可以帮我们快速方便地书写 CSS，并且解决了一些浏览器兼容的问题。</p>
+
+<p>而最近，随着使用越来越多，发现自己写的 CSS 代码很糟糕。
+虽然用着 Sass，可是使用的方式，其实与最开始随便写 CSS 代码一样的逻辑，并没有质的变化。</p>
+
+<p>我深刻地意识到这一点，于是决心改变，原因很简单，我的代码代表了我自己，怎样的代码就代表怎样的我。</p>
+
+<h2>什么是 <code>Sass</code> ？ 因何而生 ？</h2>
+
+<p>Sass 是 CSS 的一种方言，通过编译器实现将其转化为 CSS。</p>
+
+<p><strong>1. 什么是方言？</strong></p>
+
+<p>其实很好理解，就如汇编是机器代码的一种方言，C 是汇编语言的一种方言。</p>
+
+<p>汇编可通过自己的编译器将其转换为二进制代码，而 C 可通过自己的编译器转换为汇编语言。</p>
+
+<p>我是这么去理解“方言”这二字的。</p>
+
+<p><strong>2. 为何出现方言？</strong></p>
+
+<p>我觉得，在计算机的世界里，“方言”的出现无非就是为了解决我们软件开发的几大问题：</p>
+
+<ol>
+<li>代码重用</li>
+<li>易于维护</li>
+</ol>
+
+
+<p>额，我暂时也就想到这两个，请原谅我这低水平的攻城师。</p>
+
+<p>于是，从上面看来，Sass 的出现也必定是为了解决 CSS 出现的一些问题。</p>
+
+<p><strong>3. Sass 等 CSS 方言（这里也可理解为框架）为何出现？</strong></p>
+
+<p>上面已经说了，Sass 的出现，是为了解决 CSS 的一些问题，而这些问题是什么呢？</p>
+
+<p><a href="http://www.oschina.net/translate/css-cascading-separation-abstraction">从这里摘了一句话</a></p>
+
+<blockquote><p>LESS 和 Sass（或者类似方案）从三个方面解决了 CSS 存在的问题：分离，抽象和层叠</p></blockquote>
+
+<p>我在我自己写 CSS 的过程中发现代码十分混乱，我觉得我自己到现在为止，经历了两个过程：</p>
+
+<ol>
+<li>按设计，一点一点写 CSS，几乎没有结构性，没有代码复用，维护困难</li>
+<li>将公用的放在 <code>public.css</code> 文件里，然后每个页面一个 <code>page.css</code>，按<code>布局相关的代码</code>放在最上面，<code>内容样式的代码</code>按照一块一块放在布局的下面</li>
+</ol>
+
+
+<p>这是我自己摸索着前进的一个过程，后来接触了 Sass，由于没有理解其意义所在，
+于是也只是用新的一种 CSS 方言然后按照以前的方式继续写样式。</p>
+
+<p>即使得益与方言本身的特点，代码有所改善，但是我觉得，这是一种死板的思维。</p>
+
+<p>说到这里，也许你会发现，我没在讲为何会出现 <code>Sass</code>，而是在讲我自己学 CSS 的一个过程，其实我遇到的问题，
+很多人已经遇到了，而我想，这也应该是 <code>Sass</code> 出现的原因之某些吧。</p>
+
+<p>[<strong>分离</strong>] 将内容和样式进行分离，并且，分离的程度有多高</p>
+
+<p>[<strong>抽象</strong>] 混合类、变量、继承，是实现抽象的基础，抽象，使得我们可以将很多共性的样式抽出出来，并统一放在某个文件夹下， 在我们需要的时候，我们直接引进来即可</p>
+
+<p>[<strong>层叠</strong>]层叠的复杂性最高，我自己也不是很清楚，大概就是同一个样式在多个地方出现，如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nc">.main</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">.main</span> <span class="nc">.div</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//</span> <span class="o">...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">.main</span> <span class="nc">.div</span> <span class="nt">p</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//</span> <span class="o">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而 <code>Sass</code> 的嵌套和子选择器，使得有效得减少了一些样式的层叠，但这也并未彻底解决层叠的问题。
+并且我觉得，其与个人的能力和对其理解的程度相关。
+毕竟，同样的工具，其发挥的效果会跟个人的能力密切相关。</p>
+
+<h2>项目中，如何组织好 Sass 的代码结构</h2>
+
+<p>最基本的，在我们的 Web 项目里，CSS应该有三种：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nt">stylesheets</span><span class="o">/</span>
+</span><span class='line'><span class="o">|</span> <span class="nt">-</span> <span class="nt">reset</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">public</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-1</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-2</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-n</span><span class="nc">.css</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>第一种即重新设定所有标签的默认样式，使得各个浏览器都能保持一致。</p>
+
+<p>第二种就是我们公用的CSS代码啦。</p>
+
+<p>第三种就是我们的页面代码，即每个页面我们都给它一个CSS文件。</p>
+
+<p>通过这种方式，我们至少能够比较好地维护我们的代码。</p>
+
+<p>在 <a href="http://thesassway.com/beginner/how-to-structure-a-sass-project">How to structure a Sass project</a> 文中，阐述了这样的一个基本目录结构</p>
+
+<p><img src="/downloads/images/sass.png"></p>
+
+<ul>
+<li><p><code>modules</code></p>
+
+<p>文件夹主要包含三种类型的代码：mixins(混合类)、functions、variables</p>
+
+<p>这里可以理解为将我们三面的 <code>public.css</code> 分得更细，并且利用 sass，
+能够做到更好的抽象，提高代码复用率和维护性。</p>
+
+<p>比如我们整个网站的按钮样式，就可以放在 modules 里，可取名为：<code>_button.css.scss</code></p>
+
+<p>这里面定义了按钮的一些基本样式，如字体大小，边框、圆角、背景颜色等，
+之后我们在其他地方使用时就可以直接引进来，并且，
+如果我全站要对按钮做一个修改，那么我们也就直接改 <code>_button.css.scss</code> 即可。</p>
+
+<p>最后，我们可增加一个文件 <code>/modules/_all.css.scss</code>，以便对 modules 进行统一管理，
+这样，外面直接 import 这个 all 文件就可以了</p></li>
+<li><p><code>particals</code></p>
+
+<p>我个人理解为 <code>components(组件)</code>，为何这么理解呢？</p>
+
+<p>从文章中阐述到，这里面可以放例如 <code>header</code>、<code>content</code>、<code>sidebar</code>、<code>footer</code>
+等一些组件的样式，而这些组件，都是构成某个页面的一部分。</p>
+
+<p>最后，我们也跟上面一样，可增加一个 <code>base.css.scss</code> 文件来管理 partials。</p></li>
+</ul>
+
+
+<h2>我喜欢的组织方式</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nt">stylesheets</span><span class="o">/</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">components</span><span class="o">/</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">all</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">button</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">footer</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="o">...</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">reset</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">base</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">variables</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">_mixins</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">page1</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">page2</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="o">....</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">application</span><span class="nc">.css.scss</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将网站的组件放在 <code>components</code> 里，然后由 <code>all.css.scss</code> 来维护整个目录，
+外面只要 <code>@import 'components/all';</code> 即可。</p>
+
+<p><code>mixins.css.scss</code>，定义一些会重用到的代码。</p>
+
+<p><code>variables</code>，存放网站统一的变量，如字体、颜色等等。</p>
+
+<p>而 <code>base.css.scss</code> 应该是这样的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="k">@import</span> <span class="s2">&quot;reset&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s2">&quot;mixins&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s2">&quot;components/all&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="err">全局布局的维护</span>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="err">一些其他公用的代码，如全局统一</span> <span class="nt">a</span> <span class="err">标签的样式</span>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>application.css.scss</code> 应该是这样的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="k">@import</span> <span class="s1">&#39;base&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page1&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page2&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page3&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>几个注意点</h2>
+
+<p>根据个人使用经验，在使用 Sass 等框架编写 CSS 代码时，应当注意：</p>
+
+<ol>
+<li>代码的嵌套不要超过 2 层</li>
+<li>少用 extend</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='scss'><span class='line'><span class="c1">// 不建议</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nc">.main-first</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">a</span> <span class="p">{</span>
+</span><span class='line'>      <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>      <span class="nt">img</span> <span class="p">{</span>
+</span><span class='line'>        <span class="na">width</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>        <span class="na">height</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nc">.main-second</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">a</span> <span class="p">{</span>
+</span><span class='line'>      <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 建议</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="nc">.main-first</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="p">{</span> <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="nt">img</span> <span class="p">{</span>
+</span><span class='line'>    <span class="na">width</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>    <span class="na">height</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="nc">.main-second</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="p">{</span> <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>同类框架</h2>
+
+<ul>
+<li>Less</li>
+<li>Stylus</li>
+</ul>
+
+
+<h2>总结</h2>
+
+<p>这次学习 Sass，改变以往的习惯，以往就是直接学语法，用得虽然快，
+但是这种思维是不行的。</p>
+
+<p>这次的话，我尝试去了解 Sass 出现的原因，其中最重要的就是6个字：分离、抽象、层叠。</p>
+
+<p>因为SASS的语法很简单，所以基本不用怎么学，在 thesassway.com 里看了两篇基础的文章。
+怎样构建SASS目录结构和嵌套选择器的一些注意事项，再结合自己的实际经历谈一些想法。</p>
+
+<p>这次这篇写了三个晚上，期间，也重新去看了一下上面提到的两篇文章。</p>
+
+<p>思维中断过，语句组织得也很随便，之后再来看看，也许会有一些新的收获。</p>
+
+<p>对于我来说，写文章，就是跟自己在交流，这样最大的好处就是，把原本并不是很清楚的东西，
+通过讲出来，写出来，从而有一个存在感、踏实感！</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-07-29T23:01:00+00:00'><span class='date'>2013-07-29 23:01:00</span> <span class='time'>11:01 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/frontend/'>frontend</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2013/07/29/sass/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2013/07/29/sass/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/07/14/about-test/" title="Previous Post: About test">&laquo; About test</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/09/06/file-upload-in-rails-controller-test-case/" title="Next Post: Upload file in Rails Test Case">Upload file in Rails Test Case &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2013/07/29/sass/';
+        var disqus_url = 'http://www.justqyx.me/blog/2013/07/29/sass/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Vagrant - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="Create and configure lightweight, reproducible, and portable development environments.
+创建和配置轻量级的、可复制的和便于携带的开发环境。 Vagrant 是一个工具，可以快速地构建、 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/12/19/vagrant/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Vagrant</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-12-19T14:42:37+08:00'><span class='date'>2014-12-19 14:42:37</span> <span class='time'>2:42 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><blockquote><p>Create and configure lightweight, reproducible, and portable development environments.<br/>
+创建和配置轻量级的、可复制的和便于携带的开发环境。</p></blockquote>
+
+<p><a href="https://www.vagrantup.com/">Vagrant</a> 是一个工具，可以快速地构建、重建一个干净的或配置好的虚拟机环境，以供开发和测试。 <br/>
+同时还可以将虚拟机打包，并复制分发给其他人使用，这样能保证所有开发环境是完全一致，<br/>
+无论他们是在 Linux 还是 Windows 下，还是 OSX 下。</p>
+
+<h2>基本操作</h2>
+
+<p>在项目根目录下，通过 <code>vagrant init {box_name}</code> 可初始化一切基本的配置，并再通过 <code>vagrant up</code> 即可启动虚拟机。<br/></p>
+
+<p>至此，就拥有了一个只与当前项目相关的完整的虚拟机环境。例如，如果你选择的是 ubuntu 的话，<br/>
+那么你就拥有了一个 ubuntu 环境，通过<code>vagrant ssh</code>即可登陆到虚拟机。</p>
+
+<p>另外，它还会自动地把项目目录挂载到虚拟机的 <code>/vagrant</code> 目录下，<br/>
+你当前项目目录下所有目录文件修改，都会实时反馈到虚拟机里。</p>
+
+<p>例如，我们正在开发一个 rails 项目，那么我们可以在虚拟机里，启动一个 rails server，<br/>
+并通过在 Vagrantfile 配置文件里设置端口映射，我们就可以在本机的浏览器直接访问虚拟机里的服务了，<br/>
+而写代码，则可以在我们的主机里写，想想还是挺鸡冻的 😄，Mac 用户可直接无视。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将本机的3000端口映射到虚拟机里的3000端口</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="ss">:forwarded_port</span><span class="p">,</span> <span class="ss">guest</span><span class="p">:</span> <span class="mi">3000</span><span class="p">,</span> <span class="ss">host</span><span class="p">:</span> <span class="mi">3000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当虚拟机的环境被搞烂了，我们还可以<br/>
+通过 <code>vagrant destroy</code> 即可删除 box，即虚拟机。<br/>
+通过 <code>vagrant up</code> 即可重新启动，并载入干净的 box。</p>
+
+<p>当我们在调试 chef app 的时候，经常就需要这么干！这整个过程一般在一两分钟内即可完成。<br/>
+并且如果选择 Virtual Box 作为虚拟机平台的时候，我们还可以禁用掉了窗口，这酸爽啊！</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 在 Vagrantfile 配置文件里注释掉这几行代码</span>
+</span><span class='line'><span class="c1"># config.vm.provider :virtualbox do |vb|</span>
+</span><span class='line'><span class="c1">#   # Don&#39;t boot with headless mode</span>
+</span><span class='line'><span class="c1">#   vb.gui = true</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1">#   # Use VBoxManage to customize the VM. For example to change memory:</span>
+</span><span class='line'><span class="c1">#   vb.customize [&quot;modifyvm&quot;, :id, &quot;--memory&quot;, &quot;1024&quot;]</span>
+</span><span class='line'><span class="c1"># end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面是 vagrant 的全部命令，通过 vagrant list-commands 即可获得。</p>
+
+<pre><code>➜  chef_pratice git:(master) vagrant list-commands
+Below is a listing of all available Vagrant commands and a brief
+description of what they do.
+
+box             manages boxes: installation, removal, etc.
+connect         connect to a remotely shared Vagrant environment
+destroy         stops and deletes all traces of the vagrant machine
+docker-logs     outputs the logs from the Docker container
+docker-run      run a one-off command in the context of a container
+global-status   outputs status Vagrant environments for this user
+halt            stops the vagrant machine
+help            shows the help for a subcommand
+init            initializes a new Vagrant environment by creating a Vagrantfile
+list-commands   outputs all available Vagrant subcommands, even non-primary ones
+login           log in to HashiCorp's Atlas
+package         packages a running vagrant environment into a box
+plugin          manages plugins: install, uninstall, update, etc.
+provision       provisions the vagrant machine
+push            deploys code in this environment to a configured destination
+rdp             connects to machine via RDP
+reload          restarts vagrant machine, loads new Vagrantfile configuration
+resume          resume a suspended vagrant machine
+rsync           syncs rsync synced folders to remote machine
+rsync-auto      syncs rsync synced folders automatically when files change
+share           share your Vagrant environment with anyone in the world
+ssh             connects to machine via SSH
+ssh-config      outputs OpenSSH valid configuration to connect to the machine
+status          outputs status of the vagrant machine
+suspend         suspends the machine
+up              starts and provisions the vagrant environment
+version         prints current and latest Vagrant version
+</code></pre>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://docs.vagrantup.com/v2/getting-started/index.html">Vagrant Doc</a></li>
+<li><a href="http://www.vagrantbox.es/">Vagrant Boxes</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-12-19T14:42:37+08:00'><span class='date'>2014-12-19 14:42:37</span> <span class='time'>2:42 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/12/19/vagrant/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/12/19/vagrant/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/12/10/kill-postgres-hang-query/" title="Previous Post: Kill Postgres Hang Query">&laquo; Kill Postgres Hang Query</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/12/25/active-support-instrumentation/" title="Next Post: Instrumentation in ActiveSupport">Instrumentation in ActiveSupport &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/12/19/vagrant/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/12/19/vagrant/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

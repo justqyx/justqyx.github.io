@@ -1,0 +1,2041 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="经过长时间的开发后，项目里的迁移文件就会积累很多，可能有上百个，有些表经过许多次的修改和迁移，
+而在初始化数据库时，并不需要按原来的套路走， 这时候我们希望能够将大部分甚至所有的 migration 合并成为一个，由一个迁移任务来创建所有表，这样就可以删除其他的迁移文件了。 rake db: &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/posts/5/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/27/packing-migrations-in-rails/">Packing Migrations in Rails</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-27T18:00:00+08:00'><span class='date'>2014-04-27 18:00:00</span> <span class='time'>6:00 pm</span></time>
+        
+           | <a href="/blog/2014/04/27/packing-migrations-in-rails/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/04/27/packing-migrations-in-rails/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>经过长时间的开发后，项目里的迁移文件就会积累很多，可能有上百个，有些表经过许多次的修改和迁移，
+而在初始化数据库时，并不需要按原来的套路走， 这时候我们希望能够将大部分甚至所有的 <code>migration</code> 合并成为一个，由一个迁移任务来创建所有表，这样就可以删除其他的迁移文件了。</p>
+
+<h2><code>rake db:migrate</code> 的大致原理</h2>
+
+<p>每个迁移文件的命名都是由两部分组成：<code>时间戳</code> + <code>名字</code>，如：<code>20140331112354_create_users.rb</code>，
+而数据库里有一张表 <code>schema_migrations</code> 是用来记录已经 <code>执行过的迁移文件的时间戳</code>。</p>
+
+<p>Rails 是否要跑一个 migration 是通过检查当前文件相应的时间戳是否存在 <code>schema_migrations</code> 里，
+因此，我们要去打包迁移文件，只需要使用到一个已经跑过的 <code>migration</code>，并改一改文件名即可。</p>
+
+<h2>打包</h2>
+
+<p>执行完 <code>rake db:migrate</code>，<code>db/schema.rb</code> 文件就会更新，这个文件记录着数据库已有的表。</p>
+
+<p>找到一个最旧的迁移文件，更新名字为: <code>时间戳_create_all_tables.rb</code>，将 schema.rb 里的创建表的代码拷贝过来即可。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># db/migrate/20140227091105_create_all_tables.rb</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">CreateAllTables</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">change</span>
+</span><span class='line'>    <span class="n">create_table</span> <span class="s2">&quot;table_1&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>      <span class="c1"># ...</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">create_table</span> <span class="s2">&quot;table_2&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>      <span class="c1"># ...</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># ...</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>注意事项</h2>
+
+<ol>
+<li>没有在生产环境跑过的迁移任务是不能打包的</li>
+<li>多人协作开发，需要注意呈现出来的迁移逻辑里不要冲突了</li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/02/custom-pagination-in-rails-use-kaminari/">Custom Pagination in Rails Use Kaminari</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-02T15:47:55+08:00'><span class='date'>2014-04-02 15:47:55</span> <span class='time'>3:47 pm</span></time>
+        
+           | <a href="/blog/2014/04/02/custom-pagination-in-rails-use-kaminari/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/04/02/custom-pagination-in-rails-use-kaminari/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在 Rails App 中，我们使用 <code>kaminari</code> 去做分页的时候，我们的代码大概是这样子的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>  <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;users.name like ?&quot;</span><span class="p">,</span> <span class="s2">&quot;%something%&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">page</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:page</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">per</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="cp">&lt;%=</span> <span class="n">paginate</span> <span class="vi">@users</span> <span class="cp">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但是，当需要组织的数据逻辑较为复杂而我们的最终方案是选择自己写 SQL 语句时，如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">page</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:page</span><span class="o">].</span><span class="n">to_i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">?</span> <span class="n">params</span><span class="o">[</span><span class="ss">:page</span><span class="o">].</span><span class="n">to_i</span> <span class="p">:</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">30</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">result</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">EOF</span>
+</span><span class='line'><span class="sh">  SELECT COUNT(*) AS total</span>
+</span><span class='line'><span class="sh">  FROM users</span>
+</span><span class='line'><span class="sh">  WHERE users.name like &#39;%something%&#39;</span>
+</span><span class='line'><span class="no">EOF</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@total</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">EOF</span>
+</span><span class='line'><span class="sh">  SELECT *</span>
+</span><span class='line'><span class="sh">  FROM users</span>
+</span><span class='line'><span class="sh">  WHERE users.name like &#39;%something%&#39;</span>
+</span><span class='line'><span class="sh">  LIMIT 30 OFFSET #{offset}</span>
+</span><span class='line'><span class="no">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>嗯，代码差不多，但是展示分页条怎么办？自己写当然可以，但是显得麻烦。</p>
+
+<p>在项目里已经使用 <code>kaminari</code>，普通情况下我们是通过 <code>&lt;%= paginate @users %&gt;</code> 来输入分页条的 HTML 内容，</p>
+
+<p>这种情况下，我们得去翻看一下源码，看看 <code>paginate</code> 这个 helper 是怎么发挥作用的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/kaminari/helpers/action_view_extension.rb</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">paginate</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{},</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">paginator</span> <span class="o">=</span> <span class="no">Kaminari</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Paginator</span><span class="o">.</span><span class="n">new</span> <span class="nb">self</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">reverse_merge</span><span class="p">(</span><span class="ss">:current_page</span> <span class="o">=&gt;</span> <span class="n">scope</span><span class="o">.</span><span class="n">current_page</span><span class="p">,</span> <span class="ss">:total_pages</span> <span class="o">=&gt;</span> <span class="n">scope</span><span class="o">.</span><span class="n">total_pages</span><span class="p">,</span> <span class="ss">:per_page</span> <span class="o">=&gt;</span> <span class="n">scope</span><span class="o">.</span><span class="n">limit_value</span><span class="p">,</span> <span class="ss">:remote</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">paginator</span><span class="o">.</span><span class="n">to_s</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面这段代码可以看到，通过实例化 <code>Kaminari::Helpers::Paginator</code> 这个对象之后再调用 <code>to_s</code> 方法来输出 HTML 的。</p>
+
+<p>于是，继续查看其他代码之后，就可以得到下面这段代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="cp">&lt;%=</span> <span class="no">Kaminari</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Paginator</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">current_page</span><span class="p">:</span> <span class="n">params</span><span class="o">[</span><span class="ss">:page</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">total_pages</span><span class="p">:</span> <span class="vi">@total_pages</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">per_page</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">param_name</span><span class="p">:</span> <span class="no">Kaminari</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">param_name</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">remote</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="p">})</span><span class="o">.</span><span class="n">to_s</span> <span class="cp">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>综上，在自己写 SQL 代码而导致出来的结果不是一个 <code>ActionRecord::Relation</code> 实例对象的情况下，</p>
+
+<p>我们通过正常的逻辑，得到其结果集和总记录数后，再利用 <code>Kaminari</code> 来输出分页条也是一个不错的方案。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/23/javascript-prototype/">JavaScript Prototype</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-23T10:36:00+00:00'><span class='date'>2013-11-23 10:36:00</span> <span class='time'>10:36 am</span></time>
+        
+           | <a href="/blog/2013/11/23/javascript-prototype/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/11/23/javascript-prototype/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>虽然 Javascript 一开始就为浏览器而生，但是从现在开始，请不要把 Javascript 和浏览器联系起来，
+就仅仅把它当成是一门只要有解释器(如谷歌的V8引擎)就可以运行的东西。</p>
+
+<p>在你的机器装上 <code>nodejs</code>，然后执行 <code>node example.js</code>，即可调试 js 代码。</p>
+
+<h2>原型程序设计</h2>
+
+<blockquote><p>原型程式设计或称为基于原型的编程、原型编程，是面向对象编程的子系统和一种方式。</p>
+
+<p>在原型编程中，类不是实时的，而且行为重用（通常认为继承自基于类的语言）是通过复制已经存在的原型对象的过程实现的。</p>
+
+<p>这个模型一般被认为是 classless、面向原型、或者是基于实例的编程。</p></blockquote>
+
+<p><strong>与基于类的模型比较</strong></p>
+
+<blockquote><p>在基于类的编程当中，对象总共有两种类型。
+类定义了对象的基本布局和函数特性，而接口是“可以使用的”对象，它基于特定类的样式。
+在此模型中，类表现为行为和结构的集合，就接口持有对象的数据而言，对所有接口来说是相同的。
+区分规则因而首先是基于结构和行为，而后是状态。</p>
+
+<p>原型编程的主张者经常争论说基于类的语言提倡使用一个关注分类和类之间关系开发模型。
+与此相对，原型编程看起来提倡程序员关注一系列对象实例的行为，而之后才关心如何将这些对象划分到最近的使用方式相似的原型对象，而不是分成类。
+因为如此，很多基于原型的系统提倡运行时原型的修改，而只有极少数基于类的面向对象系统（比如第一个动态面向对象的系统 Smalltalk）允许类在程序运行时被修改。</p></blockquote>
+
+<h2>对象构造</h2>
+
+<blockquote><p>在基于原型的系统中构造对象有两种方法：通过<code>复制已有的对象</code>或者 <code>扩展nihilo(空的)对象</code>创建。
+因为大多数系统提供了不同的复制方法，扩展 nihilo 对象的方式鲜为人知。</p>
+
+<p>提供扩展 nihilo 对象创建的系统，允许对象从空白中创建而无需从已有的原型中复制。
+这样的系统提供特殊的文法用以指定新对象的行为和属性，无需参考已存在的对象。</p>
+
+<p>在很多原型语言中，通常有一个 Object 原型，其中有普遍需要的方法。它被用作所有其他对象的最终原型。
+扩展 nihilo 对象创建可以保证新对象不会被顶级对象的命名空间污染。</p>
+
+<p>如，在 Mozilla 的 Javscript 实现中，可以通过设置一个新创建对象的 _proto_ 属性为 null 来做到。</p></blockquote>
+
+<h2>模拟创建类</h2>
+
+<p>Javascript 是基于原型的编程语言，没有包含对内置类的实现。</p>
+
+<p>但是也可以轻易地模拟出经典的类。 因为有 <code>构造函数</code> 和 <code>new运算符</code>。</p>
+
+<p>任何 Javascript 函数可以当成构造函数来使用，构造函数必须使用 <code>new运算符</code> 作为前缀来创建新的实例。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Person</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">){</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 实例化一个 Person</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">alice</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 检查这个实例</span>
+</span><span class='line'><span class="nx">assert</span><span class="p">(</span><span class="nx">alice</span> <span class="k">instanceof</span> <span class="nx">Person</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>new 运算符的作用</strong></p>
+
+<p>简单来讲：<code>new 运算符</code> 改变了函数执行的上下文，同时改变了 return 语句的行为。</p>
+
+<p>当使用 <code>new</code> 来调用构造函数时，执行上下文就变成一个空的上下文(如在浏览器中就是从 window 全局对象 变成一个空的上下文 )，这个上下文代表了新生成的实例。</p>
+
+<p>因此 this 关键字指向当前创建的实例。</p>
+
+<p>默认情况下，如果你的构造函数中没有返回任何内容，就会返回 this &ndash; 当前的上下文。</p>
+
+<h2>理解 prototype</h2>
+
+<p>简单地来讲，<code>prototype</code> 就是用来存储实例对象公共的属性或是行为。</p>
+
+<p>例如，狗和猫，都是动物。于是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Animal</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">sound</span><span class="p">){</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">sound</span> <span class="o">=</span> <span class="nx">sound</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">public_name</span> <span class="o">=</span> <span class="s2">&quot;动物&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">belongs_to</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">public_name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">cat</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Animal</span><span class="p">(</span><span class="s2">&quot;喵喵&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">dog</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Animal</span><span class="p">(</span><span class="s2">&quot;旺旺&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">cat</span><span class="p">.</span><span class="nx">belongs_to</span><span class="p">();</span> <span class="c1">// =&gt; 动物</span>
+</span><span class='line'><span class="nx">dog</span><span class="p">.</span><span class="nx">belongs_to</span><span class="p">();</span> <span class="c1">// =&gt; 动物</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>方法查找</strong></p>
+
+<p>其实，prototype 是一个模板对象，它所有的属性或行为被用作初始化一个新对象。</p>
+
+<p>当访问属性或是行为时，查找的顺序是：<code>对象 -&gt; 对象的prototype</code>，</p>
+
+<p>所以，上面的 cat 和 dog 其实调用的都是 prototype 里的方法。</p>
+
+<p>所以，当你重写 <code>cat 的 belongs_to</code> 这个行为时，是不会对 <code>dog 的 belongs_to</code> 造成任何影响的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Animal</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">sound</span><span class="p">){</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">sound</span> <span class="o">=</span> <span class="nx">sound</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">public_name</span> <span class="o">=</span> <span class="s2">&quot;动物&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">belongs_to</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">public_name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">cat</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Animal</span><span class="p">(</span><span class="s2">&quot;喵喵&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">dog</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Animal</span><span class="p">(</span><span class="s2">&quot;旺旺&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">cat</span><span class="p">.</span><span class="nx">belongs_to</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;啦啦啦啦&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">cat</span><span class="p">.</span><span class="nx">belongs_to</span><span class="p">();</span> <span class="c1">// =&gt; 啦啦啦啦</span>
+</span><span class='line'><span class="nx">dog</span><span class="p">.</span><span class="nx">belongs_to</span><span class="p">();</span> <span class="c1">// =&gt; 动物</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>理解 inherit</h2>
+
+<p>(下面提及的继承，都是指针对构造函数的继承，不是非构造函数的继承)</p>
+
+<p>其实继承也是很简单的，在 Javascript 更多地体现为 <code>prototype 的链接关系</code>。</p>
+
+<p>现在，我们把上面的 <code>Animal 实例化对象</code> 也抽象成 <code>Cat 类</code>，并且让 Cat 将 Animal 的属性和行为都继承过来。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Animal</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){};</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">Cat</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Cat</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，Animal.prototype 里所有的属性和行为，都会被 Cat 继承。</p>
+
+<p><strong>但是，直接这样写是有问题的</strong></p>
+
+<ol>
+<li>只要修改了 <code>Cat.prototype</code> 都会影响到 <code>Animal.prototype</code></li>
+<li>Cat.constructor(即 Cat.prototype.constructor) 变成了 Animal.constructor(即 Animal.prototype.constructor)</li>
+</ol>
+
+
+<p>(注：每个构造函数，也是一个对象，并且其默认的 Obj.prototype.constructor 就是构造函数本身)。</p>
+
+<p>所以，我们要这么写：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Animal</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){};</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">Cat</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">F</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){};</span>
+</span><span class='line'><span class="nx">F</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">Animal</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Cat</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">F</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 将构造函数重新指回 Cat</span>
+</span><span class='line'><span class="nx">Cat</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">Cat</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>F 是空对象，几乎不占用内存。并且，对 <code>Cat.prototype</code> 的修改， 只会直接反映到 <code>new F()</code> 这个<code>匿名实例对象</code>上，</p>
+
+<p>而不会到 <code>Animal.prototype</code> 上。</p>
+
+<p><strong>我们也来包装包装</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">NB</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">extend</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">child</span><span class="p">,</span> <span class="nx">parent</span><span class="p">){</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">F</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){}</span>
+</span><span class='line'>    <span class="nx">F</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">parent</span><span class="p">.</span><span class="nx">prototype</span><span class="p">;</span>
+</span><span class='line'>    <span class="nx">child</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">F</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">child</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">child</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">NB</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="nx">Cat</span><span class="p">,</span> <span class="nx">Animal</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<ol>
+<li>任何函数都是 <code>构造函数</code></li>
+<li>通过设置 <code>prototype</code> 属性来实现基本的代码重用</li>
+<li>继承，其实是通过 <code>prototype</code> 的链接来实现的，只是在这过程中，要注意不要影响原来的 “类” 和各自的 <code>constructor</code></li>
+</ol>
+
+
+<p><strong>题外话</strong></p>
+
+<p>Javascript 就是弱化了 class 的概念，但是在现代的编程中，随着我们的 Web 应用越来越庞大，编写易读易维护的 Javascript 代码就越来越重要了。</p>
+
+<p>出现了许多好用的东西，如 jQuery，还有许多的 MVC框架，如：Backbone, EmberJS, AugularJS。</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.ruanyifeng.com/blog/2011/06/designing_ideas_of_inheritance_mechanism_in_javascript.html">Javascript继承机制的设计思想</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html">构造函数的继承</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/26/redis-note/">Redis Learning Note</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T14:23:00+00:00'><span class='date'>2013-10-26 14:23:00</span> <span class='time'>2:23 pm</span></time>
+        
+           | <a href="/blog/2013/10/26/redis-note/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/10/26/redis-note/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>安装</h2>
+
+<ul>
+<li>使用 Homebrew 安装</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install redis</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>下载源码，手动编译</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://download.redis.io/redis-stable.tar.gz
+</span><span class='line'>$ tar xvzf redis-stable.tar.gz
+</span><span class='line'>$ cd redis-stable
+</span><span class='line'>$ make && make install</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>支持的数据类型</h2>
+
+<p><code>字符串</code> <code>散列表</code> <code>列表</code> <code>集合</code> <code>有序集合</code></p>
+
+<h2>事务</h2>
+
+<p>通过使用 <code>MULTI</code> 和 <code>EXEC</code> 来实现事务。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis &gt; MULTI
+</span><span class='line'>OK
+</span><span class='line'>redis &gt; SET key1 value
+</span><span class='line'>QUEUED
+</span><span class='line'>redis &gt; SET key2 value
+</span><span class='line'>QUEUED
+</span><span class='line'>redis &gt; EXEC
+</span><span class='line'>1) (Integer) 1
+</span><span class='line'>2) (Integer) 2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了保证在执行事务的过程中，key1 或 key2 的值不会被其他进程所改变（即：竟态），</p>
+
+<p>Redis 提供了 <code>WATCH</code> 命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis 127.0.0.1:6379&gt; SET key 1
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; watch key
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; set key 2
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; MULTI
+</span><span class='line'>OK
+</span><span class='line'>redis 127.0.0.1:6379&gt; set key 3
+</span><span class='line'>QUEUED
+</span><span class='line'>redis 127.0.0.1:6379&gt; exec
+</span><span class='line'>(nil)
+</span><span class='line'>redis 127.0.0.1:6379&gt; GET key
+</span><span class='line'>"2"
+</span><span class='line'>redis 127.0.0.1:6379&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到，因为在 WATCH 命令之后修改了 key 的值，因此事务没有执行成功，key 的值也就是 &ldquo;2"。</p>
+
+<h2>持久化</h2>
+
+<h3>第一种：RDB（默认, Redis Database）</h3>
+
+<p>其特点有二：</p>
+
+<ol>
+<li>每一次持久化的数据，是内存中<code>某一时刻的数据</code></li>
+<li>每一次持久化具有<code>原子性</code>，即完成之前，不会对先前的持久化数据产生影响，只有完成后，才会覆盖原先的数据</li>
+</ol>
+
+
+<p>其过程大致如下：</p>
+
+<ol>
+<li>Redis 使用 fork 函数复制一份当前进程（父进程）的副本（子进程）；</li>
+<li>父进程继续接收并处理客户端的命令，而子进程开始将内存中的数据写入硬盘中的临时文件；</li>
+<li>当子进程写入完所有数据后会用该临时文件替换旧的 RDB 文件，至此一次快照操作完成。</li>
+</ol>
+
+
+<p><a href="http://redis.io/commands/bgsave">相关命令</a></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; BGSAVE
+</span><span class='line'>&gt; LASTSAVE</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>第二种：AOF（append only file）</h3>
+
+<p>其原理是将命令写入文件中，Redis重启时，读入AOF文件，执行每条命令将值写入内存中。</p>
+
+<p><strong>优化及写入的频率</strong></p>
+
+<p>随着执行的命令越来越多，AOF文件也会越来越大，冗余的命令就会出现，如：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; set foo 1
+</span><span class='line'>&gt; set foo 2
+</span><span class='line'>&gt; set foo 3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样一来，前面两条命令是冗余的，于是可以删除前两条命令，只保留第三条命令。我们可以在配置里让 Redis 自动去做：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>auto-aof-rewrite-percentage 100
+</span><span class='line'>auto-aof-rewrite-min-size 64mb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也可以手动执行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; BGREWRITEAOF</span></code></pre></td></tr></table></div></figure>
+
+
+<p>随便每次执行更改数据库内容时，AOF 都会将命令记录在 AOF 文件中，</p>
+
+<p>但事实上由于操作系统的缓存机制，数据并没有真正地写入硬盘，而是进入了系统的硬盘缓存。</p>
+
+<p>我们可以主动要求操作系统将缓存内容同步到硬盘中，在 Redis 中，我们可以通过 appendfsync 参数设置同步的实际：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># appendfsync always
+</span><span class='line'>appendfsync eversec
+</span><span class='line'># appendfsync no        </span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>always</code>，表示每次执行写入都会执行同步，这是最安全，也是最慢的方式。</p>
+
+<p><code>everysec</code>，表示美标执行一次同步操作。</p>
+
+<p><code>no</code>，完全交由操作系统来做，即 30s 同步一次。</p>
+
+<h2>主从复制</h2>
+
+<p>例如有两台服务器，A（192.168.1.100:6379），B（192.168.1.101:6379），以 A 为主数据库。</p>
+
+<p>A 服务器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ redis-server</span></code></pre></td></tr></table></div></figure>
+
+
+<p>B 服务器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ redis-server --slaveof 192.168.1.100 6379</span></code></pre></td></tr></table></div></figure>
+
+
+<p>B服务器终止同步，进入客户端：<code>$ redis-cli</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis &gt; SLAVEOF NO ONE</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/18/crontab/">Crontab</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-18T09:39:00+00:00'><span class='date'>2013-10-18 09:39:00</span> <span class='time'>9:39 am</span></time>
+        
+           | <a href="/blog/2013/10/18/crontab/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/10/18/crontab/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>需求</h2>
+
+<p>盛大云的服务器，其时间每隔一段时间后，便会慢于世界标准时间，因此需要每天定时去更新服务器的时间。</p>
+
+<h2>方案</h2>
+
+<p>这种采用 <code>cron</code> 来做是最合适的，<a href="http://mouse-lin.github.io/system/2013/08/09/crontab/">这里有简单的介绍</a></p>
+
+<p>1、NTP 从授时服务器获取时间</p>
+
+<pre><code> sudo ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>2、添加 crontab 任务</p>
+
+<pre><code> 02 12 * * * root ntpdate asia.pool.ntp.org
+
+ 59 23 * * * root ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>3、重启 crond</p>
+
+<pre><code> sudo service cron reload
+
+ sudo service cron restart
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/15/deploy-to-heroku/">The Problem of Deploying App to Heroku</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-15T23:41:00+00:00'><span class='date'>2013-10-15 23:41:00</span> <span class='time'>11:41 pm</span></time>
+        
+           | <a href="/blog/2013/10/15/deploy-to-heroku/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/10/15/deploy-to-heroku/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Heroku，要是不因为 GFW 的原因，国内还应该是蛮多人用的。</p>
+
+<h2>天朝特有的待遇</h2>
+
+<p>将项目代码 push 到 heroku 上的时候</p>
+
+<p><code>git push heroku master</code></p>
+
+<p>遇到了 timeout 的问题，不用想就知道原因了，<a href="http://ruby-china.org/topics/10813">ruby-china</a> 上也有人遇到了，参考了一把。</p>
+
+<h2>解决方案</h2>
+
+<p>配置一个私有 ssh，打开或者新建 <code>vim ~/.ssh/config</code>，配置：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Host heroku.com
+</span><span class='line'>  HostName 107.21.95.3
+</span><span class='line'>  User your_main@gmail.com
+</span><span class='line'>  IdentityFile /User/star/.ssh/heroku
+</span><span class='line'>  port 22</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>其他问题</h2>
+
+<p>还需要有个定时任务，本来用的是 <code>whenever</code>，只是无奈 Heroku 提供的仅仅是个引擎，故 whenever 这种基于 cron 是无法工作的。</p>
+
+<p>Heroku 也提供了<a href="https://addons.heroku.com/#queues">一些扩展</a>来支持你做 scheduler jobs，一些免费，一些要钱，但都是先要填写信用卡信息，暂时没有，故做不了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/06/file-upload-in-rails-controller-test-case/">Upload File in Rails Test Case</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-09-06T18:07:00+00:00'><span class='date'>2013-09-06 18:07:00</span> <span class='time'>6:07 pm</span></time>
+        
+           | <a href="/blog/2013/09/06/file-upload-in-rails-controller-test-case/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/09/06/file-upload-in-rails-controller-test-case/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>正确的代码</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;test_helper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">TestCase</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">setup</span> <span class="k">do</span>
+</span><span class='line'>    <span class="vi">@user</span> <span class="o">=</span> <span class="n">create</span> <span class="ss">:user</span>
+</span><span class='line'>    <span class="n">sign_in</span> <span class="vi">@user</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">test</span> <span class="s2">&quot;user upload a tweet picture&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">data</span><span class="p">:</span> <span class="n">test_file</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">assert_response</span> <span class="ss">:success</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">test_file</span>
+</span><span class='line'>      <span class="vi">@file</span> <span class="o">||=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Test</span><span class="o">::</span><span class="no">UploadedFile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;test/fixtures/images/test.png&quot;</span><span class="p">,</span> <span class="s2">&quot;image/png&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>错误的代码</h2>
+
+<p>  以下方式测试时，在 controller 里调试的时候发现，data 参数的值变成：<code>"#&lt;File:0x007fde91ab83e0&gt;"</code>，即变成了字符串类型，shit &hellip;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;test_helper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">PicturesControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">TestCase</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># ...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">test_file</span>
+</span><span class='line'>      <span class="vi">@file</span> <span class="o">||=</span> <span class="no">File</span><span class="o">.</span><span class="n">open</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s2">&quot;../../fixtures/images/test.png&quot;</span><span class="p">,</span> <span class="bp">__FILE__</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>References</h1>
+
+<p><a href="http://edgar.tumblr.com/post/2841931378/how-i-test-a-file-upload-in-rails-3">How I test a file upload in Rails 3</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/29/sass/">Sass Learning (Revised)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-29T23:01:00+00:00'><span class='date'>2013-07-29 23:01:00</span> <span class='time'>11:01 pm</span></time>
+        
+           | <a href="/blog/2013/07/29/sass/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/07/29/sass/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>为什么写？</h2>
+
+<p>第一次用 Sass 时，应该是今年一月份的时候，
+那时候对 Sass 的认识很简单，仅仅将其理解为CSS的几个框架之一，
+作用在于给我们提供一些有用的方法，可以帮我们快速方便地书写 CSS，并且解决了一些浏览器兼容的问题。</p>
+
+<p>而最近，随着使用越来越多，发现自己写的 CSS 代码很糟糕。
+虽然用着 Sass，可是使用的方式，其实与最开始随便写 CSS 代码一样的逻辑，并没有质的变化。</p>
+
+<p>我深刻地意识到这一点，于是决心改变，原因很简单，我的代码代表了我自己，怎样的代码就代表怎样的我。</p>
+
+<h2>什么是 <code>Sass</code> ？ 因何而生 ？</h2>
+
+<p>Sass 是 CSS 的一种方言，通过编译器实现将其转化为 CSS。</p>
+
+<p><strong>1. 什么是方言？</strong></p>
+
+<p>其实很好理解，就如汇编是机器代码的一种方言，C 是汇编语言的一种方言。</p>
+
+<p>汇编可通过自己的编译器将其转换为二进制代码，而 C 可通过自己的编译器转换为汇编语言。</p>
+
+<p>我是这么去理解“方言”这二字的。</p>
+
+<p><strong>2. 为何出现方言？</strong></p>
+
+<p>我觉得，在计算机的世界里，“方言”的出现无非就是为了解决我们软件开发的几大问题：</p>
+
+<ol>
+<li>代码重用</li>
+<li>易于维护</li>
+</ol>
+
+
+<p>额，我暂时也就想到这两个，请原谅我这低水平的攻城师。</p>
+
+<p>于是，从上面看来，Sass 的出现也必定是为了解决 CSS 出现的一些问题。</p>
+
+<p><strong>3. Sass 等 CSS 方言（这里也可理解为框架）为何出现？</strong></p>
+
+<p>上面已经说了，Sass 的出现，是为了解决 CSS 的一些问题，而这些问题是什么呢？</p>
+
+<p><a href="http://www.oschina.net/translate/css-cascading-separation-abstraction">从这里摘了一句话</a></p>
+
+<blockquote><p>LESS 和 Sass（或者类似方案）从三个方面解决了 CSS 存在的问题：分离，抽象和层叠</p></blockquote>
+
+<p>我在我自己写 CSS 的过程中发现代码十分混乱，我觉得我自己到现在为止，经历了两个过程：</p>
+
+<ol>
+<li>按设计，一点一点写 CSS，几乎没有结构性，没有代码复用，维护困难</li>
+<li>将公用的放在 <code>public.css</code> 文件里，然后每个页面一个 <code>page.css</code>，按<code>布局相关的代码</code>放在最上面，<code>内容样式的代码</code>按照一块一块放在布局的下面</li>
+</ol>
+
+
+<p>这是我自己摸索着前进的一个过程，后来接触了 Sass，由于没有理解其意义所在，
+于是也只是用新的一种 CSS 方言然后按照以前的方式继续写样式。</p>
+
+<p>即使得益与方言本身的特点，代码有所改善，但是我觉得，这是一种死板的思维。</p>
+
+<p>说到这里，也许你会发现，我没在讲为何会出现 <code>Sass</code>，而是在讲我自己学 CSS 的一个过程，其实我遇到的问题，
+很多人已经遇到了，而我想，这也应该是 <code>Sass</code> 出现的原因之某些吧。</p>
+
+<p>[<strong>分离</strong>] 将内容和样式进行分离，并且，分离的程度有多高</p>
+
+<p>[<strong>抽象</strong>] 混合类、变量、继承，是实现抽象的基础，抽象，使得我们可以将很多共性的样式抽出出来，并统一放在某个文件夹下， 在我们需要的时候，我们直接引进来即可</p>
+
+<p>[<strong>层叠</strong>]层叠的复杂性最高，我自己也不是很清楚，大概就是同一个样式在多个地方出现，如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nc">.main</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">.main</span> <span class="nc">.div</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//</span> <span class="o">...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">.main</span> <span class="nc">.div</span> <span class="nt">p</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">//</span> <span class="o">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而 <code>Sass</code> 的嵌套和子选择器，使得有效得减少了一些样式的层叠，但这也并未彻底解决层叠的问题。
+并且我觉得，其与个人的能力和对其理解的程度相关。
+毕竟，同样的工具，其发挥的效果会跟个人的能力密切相关。</p>
+
+<h2>项目中，如何组织好 Sass 的代码结构</h2>
+
+<p>最基本的，在我们的 Web 项目里，CSS应该有三种：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nt">stylesheets</span><span class="o">/</span>
+</span><span class='line'><span class="o">|</span> <span class="nt">-</span> <span class="nt">reset</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">public</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-1</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-2</span><span class="nc">.css</span>
+</span><span class='line'>  <span class="nt">-</span> <span class="nt">page-n</span><span class="nc">.css</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>第一种即重新设定所有标签的默认样式，使得各个浏览器都能保持一致。</p>
+
+<p>第二种就是我们公用的CSS代码啦。</p>
+
+<p>第三种就是我们的页面代码，即每个页面我们都给它一个CSS文件。</p>
+
+<p>通过这种方式，我们至少能够比较好地维护我们的代码。</p>
+
+<p>在 <a href="http://thesassway.com/beginner/how-to-structure-a-sass-project">How to structure a Sass project</a> 文中，阐述了这样的一个基本目录结构</p>
+
+<p><img src="/downloads/images/sass.png"></p>
+
+<ul>
+<li><p><code>modules</code></p>
+
+<p>文件夹主要包含三种类型的代码：mixins(混合类)、functions、variables</p>
+
+<p>这里可以理解为将我们三面的 <code>public.css</code> 分得更细，并且利用 sass，
+能够做到更好的抽象，提高代码复用率和维护性。</p>
+
+<p>比如我们整个网站的按钮样式，就可以放在 modules 里，可取名为：<code>_button.css.scss</code></p>
+
+<p>这里面定义了按钮的一些基本样式，如字体大小，边框、圆角、背景颜色等，
+之后我们在其他地方使用时就可以直接引进来，并且，
+如果我全站要对按钮做一个修改，那么我们也就直接改 <code>_button.css.scss</code> 即可。</p>
+
+<p>最后，我们可增加一个文件 <code>/modules/_all.css.scss</code>，以便对 modules 进行统一管理，
+这样，外面直接 import 这个 all 文件就可以了</p></li>
+<li><p><code>particals</code></p>
+
+<p>我个人理解为 <code>components(组件)</code>，为何这么理解呢？</p>
+
+<p>从文章中阐述到，这里面可以放例如 <code>header</code>、<code>content</code>、<code>sidebar</code>、<code>footer</code>
+等一些组件的样式，而这些组件，都是构成某个页面的一部分。</p>
+
+<p>最后，我们也跟上面一样，可增加一个 <code>base.css.scss</code> 文件来管理 partials。</p></li>
+</ul>
+
+
+<h2>我喜欢的组织方式</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nt">stylesheets</span><span class="o">/</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">components</span><span class="o">/</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">all</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">button</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="nt">footer</span><span class="nc">.css.scss</span>
+</span><span class='line'>  <span class="o">|</span><span class="nt">--</span> <span class="o">...</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">reset</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">base</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">variables</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">_mixins</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">page1</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">page2</span><span class="nc">.css.scss</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="o">....</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span>
+</span><span class='line'><span class="o">|</span><span class="nt">--</span> <span class="nt">application</span><span class="nc">.css.scss</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>将网站的组件放在 <code>components</code> 里，然后由 <code>all.css.scss</code> 来维护整个目录，
+外面只要 <code>@import 'components/all';</code> 即可。</p>
+
+<p><code>mixins.css.scss</code>，定义一些会重用到的代码。</p>
+
+<p><code>variables</code>，存放网站统一的变量，如字体、颜色等等。</p>
+
+<p>而 <code>base.css.scss</code> 应该是这样的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="k">@import</span> <span class="s2">&quot;reset&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s2">&quot;mixins&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s2">&quot;components/all&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="err">全局布局的维护</span>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="err">一些其他公用的代码，如全局统一</span> <span class="nt">a</span> <span class="err">标签的样式</span>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>application.css.scss</code> 应该是这样的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="k">@import</span> <span class="s1">&#39;base&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page1&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page2&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">@import</span> <span class="s1">&#39;page3&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">//</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>几个注意点</h2>
+
+<p>根据个人使用经验，在使用 Sass 等框架编写 CSS 代码时，应当注意：</p>
+
+<ol>
+<li>代码的嵌套不要超过 2 层</li>
+<li>少用 extend</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='scss'><span class='line'><span class="c1">// 不建议</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nc">.main-first</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">a</span> <span class="p">{</span>
+</span><span class='line'>      <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>      <span class="nt">img</span> <span class="p">{</span>
+</span><span class='line'>        <span class="na">width</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>        <span class="na">height</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nc">.main-second</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">a</span> <span class="p">{</span>
+</span><span class='line'>      <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 建议</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="nc">.main-first</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="p">{</span> <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="nt">img</span> <span class="p">{</span>
+</span><span class='line'>    <span class="na">width</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>    <span class="na">height</span><span class="o">:</span> <span class="mi">20</span><span class="kt">px</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nn">#main</span> <span class="nc">.main-second</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nt">a</span> <span class="p">{</span> <span class="na">font-size</span><span class="o">:</span> <span class="mi">12</span><span class="kt">px</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>同类框架</h2>
+
+<ul>
+<li>Less</li>
+<li>Stylus</li>
+</ul>
+
+
+<h2>总结</h2>
+
+<p>这次学习 Sass，改变以往的习惯，以往就是直接学语法，用得虽然快，
+但是这种思维是不行的。</p>
+
+<p>这次的话，我尝试去了解 Sass 出现的原因，其中最重要的就是6个字：分离、抽象、层叠。</p>
+
+<p>因为SASS的语法很简单，所以基本不用怎么学，在 thesassway.com 里看了两篇基础的文章。
+怎样构建SASS目录结构和嵌套选择器的一些注意事项，再结合自己的实际经历谈一些想法。</p>
+
+<p>这次这篇写了三个晚上，期间，也重新去看了一下上面提到的两篇文章。</p>
+
+<p>思维中断过，语句组织得也很随便，之后再来看看，也许会有一些新的收获。</p>
+
+<p>对于我来说，写文章，就是跟自己在交流，这样最大的好处就是，把原本并不是很清楚的东西，
+通过讲出来，写出来，从而有一个存在感、踏实感！</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/14/about-test/">About Test</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-14T17:23:00+00:00'><span class='date'>2013-07-14 17:23:00</span> <span class='time'>5:23 pm</span></time>
+        
+           | <a href="/blog/2013/07/14/about-test/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/07/14/about-test/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>基础</h2>
+
+<p>本文不介绍如何写测试，只罗列出一些与测试相关的基本工具。</p>
+
+<p>为此，你需要先阅读过 <a href="http://guides.rubyonrails.org/testing.html">Rails Guide</a>，并自己手动尝试写一些测试。</p>
+
+<h2>对测试的一些认识</h2>
+
+<p>现在要写测试，一般至少需要以下两个工具：</p>
+
+<ul>
+<li>测试框架</li>
+<li>数据构建工具</li>
+</ul>
+
+
+<p>然后有需要的话，可以再加上其他一些辅助的工具，如测试覆盖率统计、数据伪造、数据库清理等等。</p>
+
+<p><code>Rails</code> 自身集成的<code>UnitTest</code>和<code>Fxiture</code>其实已经够用，但是也存在很多的缺点。
+结合其他一些工具，我们可以打造出一个更好的测试工具。</p>
+
+<p><code>Rails</code> 我接触过的有以下三个 Test Framework</p>
+
+<ul>
+<li>UnitTest</li>
+<li>Rspec</li>
+<li>Minitest</li>
+</ul>
+
+
+<h2>Minitest</h2>
+
+<p><a href="https://github.com/seattlerb/minitest">Minitest</a>提供了一套完整的测试工具来支持TDD、BDD、mocking 和 benchmarking。</p>
+
+<p>包含以下几个模块：</p>
+
+<ul>
+<li>minitest/unit</li>
+<li>minitest/spec</li>
+<li>minitest/benchmark</li>
+<li>minitest/pride</li>
+</ul>
+
+
+<p>基本上看其名字也就可以知道这几个模块分别能干什么事情的了，具体的用法还是参考 <a href="http://docs.seattlerb.org/minitest/">Document</a> 来得靠谱些。</p>
+
+<p>用于测试的几个基本工具</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:test</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s2">&quot;minitest&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt; 5.0&quot;</span>               <span class="c1"># Got lots of warning when higher than 5.0</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;factory_girl_rails&#39;</span><span class="p">,</span> <span class="s2">&quot;&gt;= 4.0&quot;</span>    <span class="c1"># FactoryGirl，数据构建工具</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;ffaker&#39;</span>                          <span class="c1"># 数据伪造工具, Faker 的改进版</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;database_cleaner&#39;</span>                <span class="c1"># Clean database for testing</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s2">&quot;simplecov&quot;</span><span class="p">,</span> <span class="nb">require</span><span class="p">:</span> <span class="kp">false</span>       <span class="c1"># 测试覆盖率统计工具</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>关于测试的，发现还真没什么好写。</p>
+
+<p>测试就那基本基本语法，看完 Rails Guide 基本就会了，不知道查一查就可以了。</p>
+
+<p>可能比较难的是如何去写测试，也就是比较高的测试覆盖率。</p>
+
+<p>在此贴出一份基本的代码</p>
+
+<figure class='code'><figcaption><span> (test_helper.rb)</span> <a href='/downloads/code/20130714/test_helper.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;RAILS_ENV&quot;</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s1">&#39;../../config/environment&#39;</span><span class="p">,</span> <span class="bp">__FILE__</span><span class="p">)</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rails/test_help&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;minitest/autorun&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s2">&quot;minitest/mock&quot;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s2">&quot;minitest/spec&quot;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s2">&quot;ffaker&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;COV&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;simplecov&#39;</span>
+</span><span class='line'>  <span class="no">SimpleCov</span><span class="o">.</span><span class="n">start</span> <span class="s1">&#39;rails&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">DatabaseCleaner</span><span class="o">.</span><span class="n">strategy</span> <span class="o">=</span> <span class="ss">:transaction</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+</span><span class='line'>  <span class="kp">extend</span> <span class="no">MiniTest</span><span class="o">::</span><span class="no">Spec</span><span class="o">::</span><span class="no">DSL</span> <span class="c1"># Add some RSpec style helper</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">FactoryGirl</span><span class="o">::</span><span class="no">Syntax</span><span class="o">::</span><span class="no">Default</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># 全局都能通过访问 user 这个方法来得到一条user数据</span>
+</span><span class='line'>  <span class="n">let</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">setup</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">DatabaseCleaner</span><span class="o">.</span><span class="n">start</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">teardown</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">DatabaseCleaner</span><span class="o">.</span><span class="n">clean</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span> (user.rb)</span> <a href='/downloads/code/20130714/user.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:age</span><span class="p">,</span> <span class="ss">presence</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">age_add</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">update_attribute</span> <span class="ss">:age</span><span class="p">,</span> <span class="nb">self</span><span class="o">.</span><span class="n">age</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span> (users.rb)</span> <a href='/downloads/code/20130714/users.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="no">FactoryGirl</span><span class="o">.</span><span class="n">define</span> <span class="ss">:user</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">sequence</span><span class="p">(</span><span class="ss">:name</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="s2">&quot;user name </span><span class="si">#{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="n">sequence</span><span class="p">(</span><span class="ss">:age</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span> <span class="c1"># 20岁以上</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span> (user_test.rb)</span> <a href='/downloads/code/20130714/user_test.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;test_helper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">UserTest</span> <span class="o">&lt;</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span> <span class="s2">&quot;Should create &quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">user</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">age</span><span class="p">:</span> <span class="mi">19</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">assert_equal</span> <span class="mi">19</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">age</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span> <span class="s2">&quot;Should add age&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">age</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">age</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">user</span><span class="o">.</span><span class="n">age_add</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">assert_equal</span> <span class="n">age</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">age</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/21/omniauth-protocol/">Oauth2.0 Protocol</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-05-21T00:05:00+00:00'><span class='date'>2013-05-21 00:05:00</span> <span class='time'>12:05 am</span></time>
+        
+           | <a href="/blog/2013/05/21/omniauth-protocol/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/05/21/omniauth-protocol/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有关 <code>Oauth2</code> 协议的，这里有几份文档。</p>
+
+<ul>
+<li><a href="http://oauth.net/2/">官方</a></li>
+<li><a href="http://wiki.open.qq.com/wiki/website/OAuth2.0%E7%AE%80%E4%BB%8B">腾讯</a></li>
+<li><a href="https://zh.wikipedia.org/zh/OAuth">维基百科</a></li>
+</ul>
+
+
+<p>下面是维基对 <code>Oauth</code> 认证和授权过程的一个描述。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>在认证和授权的过程中涉及的三方包括：
+</span><span class='line'>服务提供方，用户使用服务提供方来存储受保护的资源，如照片，视频，联系人列表。
+</span><span class='line'>用户 ，存放在服务提供方的受保护的资源的拥有者。
+</span><span class='line'>客户端 ，要访问服务提供方资源的第三方应用。在认证过程之前，客户端要向服务提供者申请客户端标识。
+</span><span class='line'>
+</span><span class='line'>使用OAuth进行认证和授权的过程如下所示:
+</span><span class='line'>1.用户访问客户端的网站，想操作自己存放在服务提供方的资源。
+</span><span class='line'>2.客户端向服务提供方请求一个临时令牌。
+</span><span class='line'>3.服务提供方验证客户端的身份后，授予一个临时令牌。
+</span><span class='line'>4.客户端获得临时令牌后，将用户引导至服务提供方的授权页面请求用户授权。在这个过程中将临时令牌和客户端的回调连接发送给服务提供方。
+</span><span class='line'>5.用户在服务提供方的网页上输入用户名和密码，然后授权该客户端访问所请求的资源。
+</span><span class='line'>6.授权成功后，服务提供方引导用户返回客户端的网页。
+</span><span class='line'>7.客户端根据临时令牌从服务提供方那里获取访问令牌 。
+</span><span class='line'>8.服务提供方根据临时令牌和用户的授权情况授予客户端访问令牌。
+</span><span class='line'>9.客户端使用获取的访问令牌访问存放在服务提供方上的受保护的资源。
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Example</h2>
+
+<p>Add a link in your login page</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">/sign_in?mode=qq_connect</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Rails 处理代码，<code>app/controllers/sessions_controller.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">sign_in</span>
+</span><span class='line'>    <span class="n">referer</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:referer_path</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:referer_path</span><span class="o">]</span><span class="si">}</span><span class="s2">#</span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:referer_hash</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="n">session</span><span class="o">[</span><span class="ss">:referer_url</span><span class="o">]</span> <span class="o">=</span> <span class="n">referer</span> <span class="o">||</span> <span class="n">request</span><span class="o">.</span><span class="n">referer</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">params</span><span class="o">[</span><span class="ss">:mode</span><span class="o">]</span> <span class="o">||=</span> <span class="s2">&quot;weibo&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># 这句代码，完成了对应维基百科中的三个步骤</span>
+</span><span class='line'>    <span class="c1"># 2.客户端(即我们的app服务器)向服务提供方请求一个临时令牌</span>
+</span><span class='line'>    <span class="c1"># 3.服务提供方验证客户端的身份后，授予一个临时令牌</span>
+</span><span class='line'>    <span class="c1"># 4.客户端获得临时令牌后，将用户引导至服务器提供方(如QQ)授权页面请求用户授权</span>
+</span><span class='line'>    <span class="n">redirect_to</span> <span class="s2">&quot;/auth/</span><span class="si">#{</span><span class="n">provider_mapper</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:mode</span><span class="o">]</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">provider_mapper</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="s2">&quot;weibo&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;weibo&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="s2">&quot;yammer&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;yammer&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">mapper</span><span class="o">[</span><span class="n">mode</span><span class="o">]</span> <span class="o">||</span> <span class="n">mode</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>引导用户去第三方登录授权</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="ss">https</span><span class="p">:</span><span class="sr">//o</span><span class="n">pen</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">qq</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">cgi</span><span class="o">-</span><span class="n">bin</span><span class="o">/</span><span class="n">oauth2</span><span class="o">/</span><span class="n">authorize?client_id</span><span class="o">=</span><span class="no">APP_KEY</span><span class="o">&amp;</span><span class="n">response_type</span><span class="o">=</span><span class="n">code</span><span class="o">&amp;</span><span class="n">redirect_uri</span><span class="o">=</span><span class="ss">http</span><span class="p">:</span><span class="sr">//</span><span class="n">www</span><span class="o">.</span><span class="n">myurl</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">example</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当用户正确授权后，QQ服务器会引导用户回来我们的App服务器。
+过跳转的方式实现，跳转的url如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="sr">/auth/</span><span class="n">qq_connect</span><span class="o">/</span><span class="n">callback?code</span><span class="o">=</span><span class="no">WU9AadwtH0QByEDlnKg</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>就在这个跳转里，携带了用户的信息，所以我们就可以获取到用户的信息了。
+配置 <code>config/routes.rb</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s2">&quot;/sign_in&quot;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s2">&quot;sessions#sign_in&quot;</span>
+</span><span class='line'><span class="n">get</span> <span class="s2">&quot;/sign_out&quot;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s2">&quot;sessions#sign_out&quot;</span>
+</span><span class='line'><span class="n">get</span> <span class="s2">&quot;/auth/:provider/callback&quot;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s2">&quot;sessions#create&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用户登录，<code>app/controllers/sessions_controller.rb</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">SessionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="s2">&quot;AuthHash: </span><span class="si">#{</span><span class="n">auth_hash</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_or_create_from_auth_hash</span><span class="p">(</span><span class="n">auth_hash</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@user</span><span class="o">.</span><span class="n">present?</span>
+</span><span class='line'>      <span class="n">current_user</span> <span class="o">=</span> <span class="vi">@user</span>
+</span><span class='line'>      <span class="n">session</span><span class="o">[</span><span class="ss">:user_id</span><span class="o">]</span> <span class="o">=</span> <span class="vi">@user</span><span class="o">.</span><span class="n">id</span>
+</span><span class='line'>      <span class="n">redirect_to</span> <span class="ss">:root</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">auth_hash</span>
+</span><span class='line'>    <span class="n">request</span><span class="o">.</span><span class="n">env</span><span class="o">[</span><span class="s1">&#39;omniauth.auth&#39;</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/6">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/4">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

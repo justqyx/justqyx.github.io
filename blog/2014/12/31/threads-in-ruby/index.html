@@ -1,0 +1,628 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Threads in Ruby（译） - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="这是原文 Ruby 有着许多吸引开发者的 cool features，例如在运行时能够创建类、修改特定对象的行为、使用 ObjectSpace 监控内存中类的数量以及大量的测试套件。这些东西使得开发者的生活更加轻松。今天我们将会讨论在计算机科学里最重要的概念之一：线程，以及 Ruby &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/12/31/threads-in-ruby/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Threads in Ruby（译）</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-12-31T14:27:04+08:00'><span class='date'>2014-12-31 14:27:04</span> <span class='time'>2:27 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://www.sitepoint.com/threads-ruby/">这是原文</a></p>
+
+<p>Ruby 有着许多吸引开发者的 cool features，例如在运行时能够创建类、修改特定对象的行为、使用 ObjectSpace 监控内存中类的数量以及大量的测试套件。这些东西使得开发者的生活更加轻松。今天我们将会讨论在计算机科学里最重要的概念之一：线程，以及 Ruby 是如何支持线程的。</p>
+
+<h2>简介</h2>
+
+<p>首先，让我们来定义“线程”（thread），请参考 <a href="http://en.wikipedia.org/wiki/Thread_(computing)">wikipedia</a></p>
+
+<blockquote><p>In computer science, a thread of execution is the smallest sequence of programmed instructions that can be managed independently by an operating system scheduler. A thread is a light-weight process.</p></blockquote>
+
+<p>线程可以堪称是一个轻量级（light-weight）的进程。
+多个线程属于同个进程，并且共享着进程的资源（resources）。
+这就是为什么在有些情况下使用多线程是比较经济（economical）的。</p>
+
+<p>现在让我们来看看线程对于我们来说是多么有用。</p>
+
+<h2>Basic Example</h2>
+
+<p>看看下面的代码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">calculate_sum</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">arr</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">sum</span> <span class="o">+=</span> <span class="n">item</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="n">sum</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@items1</span> <span class="o">=</span> <span class="o">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">55</span><span class="o">]</span>
+</span><span class='line'><span class="vi">@items2</span> <span class="o">=</span> <span class="o">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">2</span><span class="o">]</span>
+</span><span class='line'><span class="vi">@items3</span> <span class="o">=</span> <span class="o">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">31</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;items1 = </span><span class="si">#{</span><span class="n">calculate_sum</span><span class="p">(</span><span class="vi">@items1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;items2 = </span><span class="si">#{</span><span class="n">calculate_sum</span><span class="p">(</span><span class="vi">@items2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;items3 = </span><span class="si">#{</span><span class="n">calculate_sum</span><span class="p">(</span><span class="vi">@items3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码输出的结果为</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">items1</span> <span class="o">=</span> <span class="mi">101</span>
+</span><span class='line'><span class="n">items2</span> <span class="o">=</span> <span class="mi">137</span>
+</span><span class='line'><span class="n">items3</span> <span class="o">=</span> <span class="mi">152</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是一个非常简单的程序，有助于弄明白我们为什么要使用多线程。在上面的代码里，我们有三个数组，并且要计算出它们的和，但有一个问题，我们无法在 items1 算出结果之前，得到 items2 的结果，
+对于 items3 也同样存在这个问题。现在，让我们修改一下代码来进一步说明我想表达的东西。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">calculate_sum</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">arr</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">sum</span> <span class="o">+=</span> <span class="n">item</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="n">sum</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的代码中，我们增加了一个 <code>sleep(2)</code> 指令，让程序暂停2秒钟之后再继续运行。
+这意味着，items1 会在2秒后才得到结果，items2 会在4秒后得到结果，而 items3 将会在6秒后得到结果。
+这并不是我们想要的。</p>
+
+<p>上面的三个数组，对与彼此都没有依赖，所以它们是能够独立地进行元素和的计算，这时候多线程就可以派上用场了。</p>
+
+<p>多线程使得我们可以将当前的程序分割成为几个不同的、能够独立运行的上下文执行体（execution contexts）。
+现在，让我们来将上面的程序修改成为一个多线程的版本。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">calculate_sum</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="n">arr</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">sum</span> <span class="o">+=</span> <span class="n">item</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="n">sum</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@items1</span> <span class="o">=</span> <span class="o">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">55</span><span class="o">]</span>
+</span><span class='line'><span class="vi">@items2</span> <span class="o">=</span> <span class="o">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">2</span><span class="o">]</span>
+</span><span class='line'><span class="vi">@items3</span> <span class="o">=</span> <span class="o">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">31</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">threads</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>  <span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">items</span> <span class="o">=</span> <span class="nb">instance_variable_get</span><span class="p">(</span><span class="s2">&quot;@items</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;items</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2"> = </span><span class="si">#{</span><span class="n">calculate_sum</span><span class="p">(</span><span class="n">items</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="n">threads</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">t</span><span class="o">|</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们把每一个数组元素和的计算工作，都交给一个线程来做，通过 <code>Thread.new</code> 的方式来创建线程，
+并且把数组元素和的计算的代码段放到代码块中里去，这样我们一共新建了3个线程。
+现在让我们来看看运行的结果，注意每次的运行结果顺序可能有所不同。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">items2</span> <span class="o">=</span> <span class="mi">137</span>
+</span><span class='line'><span class="n">items3</span> <span class="o">=</span> <span class="mi">152</span>
+</span><span class='line'><span class="n">items1</span> <span class="o">=</span> <span class="mi">101</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从运行结果来看，我们不是在4秒后收到items2的结果，6秒钟之后收到items3的结果，而是在2秒钟之后收到所有数组的结果。这让我们看到了多线程的魔力，我们是在并行地计算所有数组的元素和，而不是一次只计算一个。这是非常棒的，因为我们节省了4秒钟的时间，提高了程序的性能和效率。</p>
+
+<h2>竞态（Race Conditions）</h2>
+
+<p>每一个功能其实都是有代价的，多线程是好东西，但是如果你在写多线程的代码的时候，你需要了解<strong>竞态条件</strong>这个东西，那么什么是竞态呢？请参考 <a href="http://en.wikipedia.org/wiki/Race_condition#Software">wikipedia</a></p>
+
+<blockquote><p>Race conditions arise in software when separate computer processes or threads of execution depend on some shared state. Operations upon shared states are critical sections that must be mutually exclusive. Failure to obey this rule opens up the possibility of corrupting the shared state.</p></blockquote>
+
+<p>简单地来讲，如果我们有一些共享的数据，这些数据能够被多线程使用的话，那么我们的数据在所有的线程执行完毕之后还应该保持正确不出错。</p>
+
+<p><strong>例子</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Item</span>
+</span><span class='line'>  <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span><span class="p">;</span> <span class="kp">attr_accessor</span> <span class="ss">:price</span> <span class="k">end</span>
+</span><span class='line'>  <span class="vi">@price</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span> <span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">+=</span> <span class="mi">10</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;Item.price = </span><span class="si">#{</span><span class="no">Item</span><span class="o">.</span><span class="n">price</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们创建了一个简单的 Item 类，包含了一个类变量 price。<code>Item.price</code> 的值在一个循环力不断地增加。
+执行这个程序，然后你将会看到一下的输出</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">100</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在，让我们来看看一个多线程的版本</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Item</span>
+</span><span class='line'>  <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span><span class="p">;</span> <span class="kp">attr_accessor</span> <span class="ss">:price</span> <span class="k">end</span>
+</span><span class='line'>  <span class="vi">@price</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">threads</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>  <span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">item_price</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Reading value</span>
+</span><span class='line'>    <span class="nb">sleep</span><span class="p">(</span><span class="nb">rand</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="mi">2</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">item_price</span> <span class="o">+=</span> <span class="mi">10</span>        <span class="c1"># Updating value</span>
+</span><span class='line'>    <span class="nb">sleep</span><span class="p">(</span><span class="nb">rand</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="mi">2</span><span class="p">))</span>
+</span><span class='line'>    <span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">item_price</span> <span class="c1"># Writing value</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">threads</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">t</span><span class="o">|</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;Item.price = </span><span class="si">#{</span><span class="no">Item</span><span class="o">.</span><span class="n">price</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们的 Item 类还是一样的，但是，我们已经改变了 price 的递增方式。我们在代码里使用了 sleep 来向你展示在并发中可能出现的问题。多跑几次程序，你将会得到不同的结果。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">40</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>多次运行我们的程序下来，我们会发现，结果不再正确，并且结果是变化的。
+输出的不再是 100，你看到的可能是30、40或者70等。
+这就是竞态所导致的结果。</p>
+
+<h2>互斥体</h2>
+
+<p>为了解决竞态所产生的问题，我们必须要控制程序，
+当一个线程正在工作时，另外一个线程必须等待，直到当前的工作进程完成工作。
+这个行为我们称为互斥，下面我们将阐述如何去使用互斥体。</p>
+
+<p>Ruby 已经为我们使用互斥体提供了一个非常简洁的方式，如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Item</span>
+</span><span class='line'>  <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span><span class="p">;</span> <span class="kp">attr_accessor</span> <span class="ss">:price</span> <span class="k">end</span>
+</span><span class='line'>  <span class="vi">@price</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">mutex</span> <span class="o">=</span> <span class="no">Mutex</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">threads</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>  <span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">mutex</span><span class="o">.</span><span class="n">synchronize</span> <span class="k">do</span>
+</span><span class='line'>      <span class="n">item_price</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Reading value</span>
+</span><span class='line'>      <span class="nb">sleep</span><span class="p">(</span><span class="nb">rand</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="mi">2</span><span class="p">))</span>
+</span><span class='line'>      <span class="n">item_price</span> <span class="o">+=</span> <span class="mi">10</span>        <span class="c1"># Updating value</span>
+</span><span class='line'>      <span class="nb">sleep</span><span class="p">(</span><span class="nb">rand</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="mi">2</span><span class="p">))</span>
+</span><span class='line'>      <span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">item_price</span> <span class="c1"># Writing value</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">threads</span><span class="o">.</span><span class="n">each</span> <span class="p">{</span><span class="o">|</span><span class="n">t</span><span class="o">|</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;Item.price = </span><span class="si">#{</span><span class="no">Item</span><span class="o">.</span><span class="n">price</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在运行这个程序，你将会看到</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Item</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">100</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是因为 <code>mutex.synchronize</code>，在任何时候，每一个都有且仅有一个线程能够执行 <code>mutex.synchronize</code> 里的代码块，其他的线程必须等待直到当前的工作线程执行完毕。</p>
+
+<p>这样，我们的代码就是<strong>线程安全</strong>了。</p>
+
+<p>Rails 是线程安全的，当多个线程尝试去运行同样的代码是，它使用了 Mutex 类的一个实例来避免
+竞态的出现。请查看 <code>Rack::Lock</code> 这个中间件里的代码，你会发现它使用了 <code>@mutext.lock</code> 来阻塞其他尝试想要运行相同代码的线程。如果你想要了解 Rails 里更多关于多线程的细节，
+请阅读我的<a href="http://www.sitepoint.com/config-threadsafe/">这篇文章</a>。
+另外，你也可以访问 <a href="http://www.ruby-doc.org/core-2.0.0/Mutex.html">Ruby Mutext</a> 这个类有关的文档。</p>
+
+<h2>不同 Ruby 版本的线程类型</h2>
+
+<p>在 Ruby 1.8 版本里，Ruby 的实现是<strong>绿色线程</strong>（green threads）。绿色线程是由解释器来实现和控制的，下面是一些关于绿色线程的优点和缺点：</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>Cross platform (managed by the VM)</li>
+<li>Unified behavior / control</li>
+<li>Lightweight -> faster, smaller memory footprint</li>
+</ul>
+
+
+<p><strong>缺点</strong></p>
+
+<ul>
+<li>Not optimized</li>
+<li>Limited to 1 CPU</li>
+<li>A blocking I/O blocks all threads</li>
+</ul>
+
+
+<p>到了 Ruby 1.9 版本后，Ruby 使用的是原生线程（native threads）。原生线程的意思是每个线程都是由 Ruby 创建的，并且直接映射到操作系统级别的线程。每一门现代编程语言都实现了 native threads，所以使用 native threads 是更加直接和合理的。下面是一些关于 native threads 的优点：</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>Run on multiple processors</li>
+<li>Scheduled by the OS</li>
+<li>Blocking I/O operations don’t block other threads</li>
+</ul>
+
+
+<p>虽然在 Ruby 1.9 里使用的是 native threads，但是即使我们的处理器是多核的，
+每次运行时都仍然只有一个线程能运行。这是因为 MRI 的 GIL (Global Interpreter Lock)
+或者说 GVL (Global VM Lock)。在 Ruby 中，如果有一个线程正在运行，
+那么 GIL 就会阻止其他线程运行。但是 Ruby 足够聪明来切换到其他正在等待的线程，
+如果当前正在运行的线程正在等待一些 I/O 操作完成的话。</p>
+
+<p>在 Ruby 中使用线程是非常容易的，但是我们必须谨慎地处理好并发可能产生地问题。
+我希望你能喜欢这篇文章并且在 Ruby 中能够更好地使用好线程。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-12-31T14:27:04+08:00'><span class='date'>2014-12-31 14:27:04</span> <span class='time'>2:27 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/12/31/threads-in-ruby/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/12/31/threads-in-ruby/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/12/30/thread/" title="Previous Post: Thread">&laquo; Thread</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/12/31/rails-threadsafe/" title="Next Post: What is config.threadsafe!（译）">What is config.threadsafe!（译） &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/12/31/threads-in-ruby/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/12/31/threads-in-ruby/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,675 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Inspect SimpleForm (2) - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="上一篇阐述了 SimpleForm 的基本原理，以及阐述了 Wrapper 内部的一个基本的渲染过程，
+这一篇，我将基于上文中的 :horizontal_form 这个 wrapper 例子来阐述清楚 Wrapper 的整个渲染过程。 Wrapper 包含着对 Component 的一个管理。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Inspect SimpleForm (2)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-05-31T01:24:37+08:00'><span class='date'>2015-05-31 01:24:37</span> <span class='time'>1:24 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>上一篇阐述了 SimpleForm 的基本原理，以及阐述了 Wrapper 内部的一个基本的渲染过程，
+这一篇，我将基于上文中的 :horizontal_form 这个 wrapper 例子来阐述清楚 Wrapper 的整个渲染过程。</p>
+
+<h2>Wrapper 包含着对 Component 的一个管理。</h2>
+
+<p>上一篇我们在 Rails Console 输出了下面这么一段内容，从这段内容我们可以看到，
+我们的 Root 实例中有两个实例变量： @components 和 @defaults。</p>
+
+<figure class='code'><figcaption><span> (simple_form.rb)</span> <a href='/downloads/code/20150531/simple_form.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="o">=&gt;</span> <span class="c1">#&lt;SimpleForm::Wrappers::Root:0x007fedd7263b18</span>
+</span><span class='line'> <span class="vi">@components</span><span class="o">=</span>
+</span><span class='line'>  <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298660 @namespace=:html5, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72985e8 @namespace=:placeholder, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298598 @namespace=:maxlength, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298520 @namespace=:pattern, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72984d0 @namespace=:min_max, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298458 @namespace=:readonly, @options={}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd72983b8 @namespace=:label, @options={:class=&gt;&quot;col-sm-3 control-label&quot;}&gt;,</span>
+</span><span class='line'>   <span class="c1">#&lt;SimpleForm::Wrappers::Many:0x007fedd7263be0</span>
+</span><span class='line'>    <span class="vi">@components</span><span class="o">=</span>
+</span><span class='line'>     <span class="o">[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;&quot;form-control&quot;}&gt;,</span>
+</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263fa0</span>
+</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;,</span>
+</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263f78 @namespace=:error, @options={}&gt;],</span>
+</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;span&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
+</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:error</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>      <span class="c1">#&lt;SimpleForm::Wrappers::Single:0x007fedd7263cf8</span>
+</span><span class='line'>       <span class="vi">@component</span><span class="o">=</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;,</span>
+</span><span class='line'>       <span class="vi">@components</span><span class="o">=[</span><span class="c1">#&lt;SimpleForm::Wrappers::Leaf:0x007fedd7263ca8 @namespace=:hint, @options={}&gt;],</span>
+</span><span class='line'>       <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;help-block&quot;</span><span class="o">]</span><span class="p">},</span>
+</span><span class='line'>       <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:hint</span><span class="o">&gt;]</span><span class="p">,</span>
+</span><span class='line'>    <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;col-sm-9&quot;</span><span class="o">]</span><span class="p">},</span>
+</span><span class='line'>    <span class="vi">@namespace</span><span class="o">=</span><span class="kp">nil</span><span class="o">&gt;]</span><span class="p">,</span>
+</span><span class='line'> <span class="vi">@defaults</span><span class="o">=</span><span class="p">{</span><span class="ss">:tag</span><span class="o">=&gt;</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="ss">:class</span><span class="o">=&gt;[</span><span class="s2">&quot;form-group&quot;</span><span class="o">]</span><span class="p">,</span> <span class="ss">:error_class</span><span class="o">=&gt;</span><span class="s2">&quot;has-error&quot;</span><span class="p">,</span> <span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">},</span>
+</span><span class='line'> <span class="vi">@namespace</span><span class="o">=</span><span class="ss">:wrapper</span><span class="p">,</span>
+</span><span class='line'> <span class="vi">@options</span><span class="o">=</span><span class="p">{</span><span class="ss">:maxlength</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:pattern</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:min_max</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">,</span> <span class="ss">:readonly</span><span class="o">=&gt;</span><span class="kp">false</span><span class="p">}</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>@components 包含了一些 Leaf、Single、Many，这些东西将决定着最后的输出内容，例如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;label</span> <span class="na">class=</span><span class="s">&quot;col-sm-3&quot;</span><span class="nt">&gt;</span>Email<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;col-sm-9&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;email&quot;</span> <span class="na">class=</span><span class="s">&quot;form-control&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而 @defaults 一看就知道，它是整个表单控件最外层的包裹。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;form-group&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="c">&lt;!--- ...... --&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们上篇就已经提到了 Wrapper 内部是如何渲染的，即递归地调用 component.render 得到每个 component 的输出内容，
+然后拼接起来，最后用 wrap 完成最后的包裹后输出。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/wrappers/many.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">html_safe</span>
+</span><span class='line'>  <span class="n">options</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="n">options</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">components</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">component</span><span class="o">|</span>
+</span><span class='line'>    <span class="k">next</span> <span class="k">if</span> <span class="n">options</span><span class="o">[</span><span class="n">component</span><span class="o">.</span><span class="n">namespace</span><span class="o">]</span> <span class="o">==</span> <span class="kp">false</span>
+</span><span class='line'>    <span class="n">rendered</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">content</span><span class="o">.</span><span class="n">safe_concat</span> <span class="n">rendered</span><span class="o">.</span><span class="n">to_s</span> <span class="k">if</span> <span class="n">rendered</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">wrap</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在让我们来详细看一看两件事情</p>
+
+<ol>
+<li>input 是什么</li>
+<li>component.render(input) 的执行过程</li>
+</ol>
+
+
+<h2>Input</h2>
+
+<p>前面我们也提到过 f.input 这一段代码，请阅读 <code>lib/simple_form/form_builder.rb</code> 这个文件里的代码，
+通过阅读，循着 find_input -> find_mapping 这两个方法，最终它是根据 attribute 的类型来找到对应的
+类并实例化，例如是 String 类型，就返回一个 StringInput 类的实例，其他的如 Boolean、Numeric、File 都是如此。
+我们从源码文件目录里的 <code>lib/simple_form/inputs</code> 也可以看到一系列的 Input，而这些 Input 全部都继承与 Base 这个类。</p>
+
+<p>但是先到此为此，我们现在只需要了解 input 是什么，至于内部还有什么东西，我们需要在了解 component.render(input)
+之后再来看会更好，顺着渲染的流程走更容易理解。</p>
+
+<h2>component.render(input)</h2>
+
+<p>同样的，在上文中的 <code>lib/simple_form/form_builder.rb</code> 这个文件里我们继续寻找 component 是什么，
+继续阅读，循着 find_wrapper -> find_wrapper_mapping 这两个方法，最终我们可以发现，它根据 input.input_type
+来找到合适 wrapper，即 SimpleForm.wrapper_mappings[input_type]，而 SimpleForm.wrapper_mappings 是我们在
+项目里所配置的。即 <code>config/initializers/simple_form_bootstrap3.rb</code> 里的这么一段代码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SimpleForm</span><span class="o">.</span><span class="n">setup</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">wrapper_mappings</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">check_boxes</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">radio_buttons</span><span class="p">:</span> <span class="ss">:vertical_radio_and_checkboxes</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">file</span><span class="p">:</span> <span class="ss">:vertical_file_input</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">boolean</span><span class="p">:</span> <span class="ss">:vertical_boolean</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">datetime</span><span class="p">:</span> <span class="ss">:multi_select</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">date</span><span class="p">:</span> <span class="ss">:multi_select</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">time</span><span class="p">:</span> <span class="ss">:multi_select</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因此，它所找到的就是我们一开始所配置的 wrapper，他们全部保存在 SimpleForm.wrappers 这个类变量里。
+现在让我们来看一看三个例子。</p>
+
+<h2>SimpleForm::Inputs::Base</h2>
+
+<p>在进入例子之前，有必要阐述 SimpleForm::Inputs::Base 这个类，它是所有 SimpleForm 抽象出来的表单控件的一个基类。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">SimpleForm</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">Inputs</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Base</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">ERB</span><span class="o">::</span><span class="no">Util</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">ActionView</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">TranslationHelper</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kp">extend</span> <span class="no">I18nCache</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Autofocus</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Disabled</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Readonly</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Required</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Helpers</span><span class="o">::</span><span class="no">Validators</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Errors</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Hints</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">HTML5</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">LabelInput</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Maxlength</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">MinMax</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Pattern</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Placeholders</span>
+</span><span class='line'>      <span class="kp">include</span> <span class="no">SimpleForm</span><span class="o">::</span><span class="no">Components</span><span class="o">::</span><span class="no">Readonly</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1"># ...</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的代码我们可以看到，其 include 了许多 Components，这些 Components 其实是为 SimpleForm::Inputs::StringInput、
+SimpleForm::Inputs::FileInput 这些真正的表单控件注入一些方法，这些方法可能是用来改变 Input 实例的一些配置，
+也可能是生成一段 HTML 文本，下面的例子会阐述这么一点。</p>
+
+<h2>b.use :input</h2>
+
+<p>从之前的讲解我们知道 <code>b.use :input</code> 将会生成一个 SimpleForm::Wrappers::Root 实例，
+然后其 @compoennts 就会存储着与此相关的 SimpleForm::Wrappers::Leaf 实例。</p>
+
+<p>假如我们这里的 input 是一个 SimpleForm::Inputs::StringInput 的一个实例，而 component 就是
+SimpleForm::Wrappers::Leaf 的一个实例，那么我们来看看 component.render 里的这个方法定义：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/wrappers/leaf.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1"># 我们先前在 Rails Console 中打出来的文本里有这么一段</span>
+</span><span class='line'>  <span class="c1"># &lt;SimpleForm::Wrappers::Leaf:0x007fedd7298188 @namespace=:input, @options={:class=&gt;&quot;form-control&quot;}&gt;</span>
+</span><span class='line'>  <span class="c1"># 所以这里的 @namespace 的值为 :input</span>
+</span><span class='line'>  <span class="nb">method</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="vi">@namespace</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="nb">method</span><span class="o">.</span><span class="n">arity</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Deprecation</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="no">SimpleForm</span><span class="o">::</span><span class="no">CUSTOM_INPUT_DEPRECATION_WARN</span> <span class="o">%</span> <span class="p">{</span> <span class="nb">name</span><span class="p">:</span> <span class="vi">@namespace</span> <span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">method</span><span class="o">.</span><span class="n">call</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="nb">method</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="vi">@options</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到，这个 render 方法其实是让 input 这个 StringInput 实例去调用自己的 input 方法，
+找到 StringInput 的 input 方法定义：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/inputs/strin_input.rb</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">unless</span> <span class="n">string?</span>
+</span><span class='line'>    <span class="n">input_html_classes</span><span class="o">.</span><span class="n">unshift</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">input_html_options</span><span class="o">[</span><span class="ss">:type</span><span class="o">]</span> <span class="o">||=</span> <span class="n">input_type</span> <span class="k">if</span> <span class="n">html5?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">merged_input_options</span> <span class="o">=</span> <span class="n">merge_wrapper_options</span><span class="p">(</span><span class="n">input_html_options</span><span class="p">,</span> <span class="n">wrapper_options</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="vi">@builder</span><span class="o">.</span><span class="n">text_field</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">,</span> <span class="n">merged_input_options</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以我们可以看到，最后的输出内容其实是使用 @builder (SimpleForm::FormBuilder 的一个实例) 的 text_field 方法
+来生成一个类似这样的 <code>&lt;input type="text" name='resource[attribute_name]' /&gt;</code> 一段文本。</p>
+
+<h2>b.use :label</h2>
+
+<p>同理， Label 标签的生成也是类似。 SimpleForm::Component::Label 的里 label 方法定义如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">label_options</span> <span class="o">=</span> <span class="n">merge_wrapper_options</span><span class="p">(</span><span class="n">label_html_options</span><span class="p">,</span> <span class="n">wrapper_options</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="n">generate_label_for_attribute?</span>
+</span><span class='line'>      <span class="vi">@builder</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">label_target</span><span class="p">,</span> <span class="n">label_text</span><span class="p">,</span> <span class="n">label_options</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="n">template</span><span class="o">.</span><span class="n">label_tag</span><span class="p">(</span><span class="kp">nil</span><span class="p">,</span> <span class="n">label_text</span><span class="p">,</span> <span class="n">label_options</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也是让 @builder 调用 label 来生成类似这样的 <code>&lt;label class="col-sm-3"&gt;Email&lt;/label&gt;</code> 一段文本。</p>
+
+<h2>b.use :placeholder</h2>
+
+<p>placeholder，html5，readonly 这一类的 Component，并没有实际的 HTML 文本输出，而是修改 input 这种表单控件的
+一些配置，我们来看看 placholder 的代码。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># lib/simple_form/components/placeholders.rb</span>
+</span><span class='line'><span class="k">module</span> <span class="nn">SimpleForm</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">Components</span>
+</span><span class='line'>    <span class="c1"># Needs to be enabled in order to do automatic lookups.</span>
+</span><span class='line'>    <span class="k">module</span> <span class="nn">Placeholders</span>
+</span><span class='line'>      <span class="k">def</span> <span class="nf">placeholder</span><span class="p">(</span><span class="n">wrapper_options</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">input_html_options</span><span class="o">[</span><span class="ss">:placeholder</span><span class="o">]</span> <span class="o">||=</span> <span class="n">placeholder_text</span>
+</span><span class='line'>        <span class="kp">nil</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">def</span> <span class="nf">placeholder_text</span>
+</span><span class='line'>        <span class="n">placeholder</span> <span class="o">=</span> <span class="n">options</span><span class="o">[</span><span class="ss">:placeholder</span><span class="o">]</span>
+</span><span class='line'>        <span class="n">placeholder</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span> <span class="p">?</span> <span class="n">placeholder</span> <span class="p">:</span> <span class="n">translate_from_namespace</span><span class="p">(</span><span class="ss">:placeholders</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到，它修改的是 input 这个 StringInput 实例的 input_html_options 里的 placeholder 配置，然后返回 nil，
+即没有 HTML 文本输出。</p>
+
+<p>之所以能修改，是因为 component.render(input) 在这里是让 input 自己去调用自己的 placeholder 方法，
+而 SimpleForm::Inputs::StringInput 继承了 SimpleForm::Inputs::Base， SimpleForm::Inputs::Base 这个类引用了
+众多的 Components，因此 input 实例有了这些 components 所定义的方法。</p>
+
+<h2>总结</h2>
+
+<p>第一篇我们主要阐述了 SimpleForm 在 Rails 渲染表单这整个工作流的一个基本原理，
+而这一篇我们主要从 SimpleForm::Wrappers、 SimpleForm::Inputs、SimpleForm::Components 这几个 namespace 下面
+相关的类阐述了这几者在 wrapper 对表单控件进行包裹式地渲染这个过程所扮演的角色。</p>
+
+<p>至此，你可以通过详细阅读 SimpleForm::Inputs::Base 的代码和一些 Components 的代码，并做一些练习，
+即可完全掌握如何去编写一个 SimpleForm 的扩展。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-05-31T01:24:37+08:00'><span class='date'>2015-05-31 01:24:37</span> <span class='time'>1:24 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/05/31/inspect-simple-form-1/" title="Previous Post: Inspect SimpleForm (1)">&laquo; Inspect SimpleForm (1)</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/06/07/my-career-roadmap/" title="Next Post: 职业定位">职业定位 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/';
+        var disqus_url = 'http://www.justqyx.me/blog/2015/05/31/inspect-simple-form-2/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

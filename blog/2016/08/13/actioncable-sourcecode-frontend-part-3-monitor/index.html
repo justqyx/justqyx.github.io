@@ -1,0 +1,561 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>ActionCable 源码阅读笔记-前端部分-3 - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="Cable.ConnectionMonitor 通过心跳检测来确保连接处于健康的状态，如果连接出现了问题那么会重新连接而不需要，并且这对于维护来说是透明的，不需要开发人员关心。 心跳检测 Cable.Consumer 的构造函数实例化了 Cable.ConnectionMonitor 1
+2
+3 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">ActionCable 源码阅读笔记-前端部分-3</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-13T18:06:30+08:00'><span class='date'>2016-08-13 18:06:30</span> <span class='time'>6:06 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><code>Cable.ConnectionMonitor</code> 通过心跳检测来确保连接处于健康的状态，如果连接出现了问题那么会重新连接而不需要，并且这对于维护来说是透明的，不需要开发人员关心。</p>
+
+<h2>心跳检测</h2>
+
+<p><code>Cable.Consumer</code> 的构造函数实例化了 <code>Cable.ConnectionMonitor</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">constructor: </span><span class="nf">(@url) -&gt;</span>
+</span><span class='line'>    <span class="vi">@subscriptions = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">Subscriptions</span> <span class="k">this</span>
+</span><span class='line'>    <span class="vi">@connection = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">Connection</span> <span class="k">this</span>
+</span><span class='line'>    <span class="vi">@connectionMonitor = </span><span class="k">new</span> <span class="nx">Cable</span><span class="p">.</span><span class="nx">ConnectionMonitor</span> <span class="k">this</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看看 <code>Cable.ConnectionMonitor</code> 的构造函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">constructor: </span><span class="nf">(@consumer) -&gt;</span>
+</span><span class='line'>    <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>  <span class="c1"># 暂时忽略 </span>
+</span><span class='line'>    <span class="nx">@start</span><span class="p">()</span>                           <span class="c1"># 开始心跳检测</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>start 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">start: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="c1"># 下面三行代码做了一些连接的准备工作</span>
+</span><span class='line'>    <span class="nx">@reset</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">delete</span> <span class="nx">@stoppedAt</span>
+</span><span class='line'>    <span class="vi">@startedAt = </span><span class="nx">now</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># 开始定时往服务器发送心跳检测消息</span>
+</span><span class='line'>    <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># 兼容 Turbolinks：页面重新载入时，重建连接</span>
+</span><span class='line'>    <span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s">&quot;visibilitychange&quot;</span><span class="p">,</span> <span class="nx">@visibilityDidChange</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>poll 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">setTimeout</span> <span class="nf">=&gt;</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="nx">@stoppedAt</span>         <span class="c1"># 如果已经连接断开，那么重建连接</span>
+</span><span class='line'>        <span class="nx">@reconnectIfStale</span><span class="p">()</span>
+</span><span class='line'>        <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'><span class="p">,</span> <span class="nx">@getInterval</span><span class="p">()</span>              <span class="c1"># 随机间隔（3 ~ 30 秒）</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>reconnectIfStale 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># 如果连接已经过时，那么重建连接</span>
+</span><span class='line'><span class="c1"># 条件是：最后发送消息的时间，或者最后 ping 的时间已经过了 6 秒</span>
+</span><span class='line'><span class="c1"># class Cable.ConnectionMonitor</span>
+</span><span class='line'><span class="c1">#  @pollInterval:</span>
+</span><span class='line'><span class="c1">#    min: 3</span>
+</span><span class='line'><span class="c1">#    max: 30</span>
+</span><span class='line'><span class="c1">#  @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="k">if</span> <span class="nx">@connectionIsStale</span><span class="p">()</span>
+</span><span class='line'>    <span class="nx">@reconnectAttempts</span><span class="o">++</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="nx">@disconnectedRecently</span><span class="p">()</span>
+</span><span class='line'>        <span class="c1"># 调用 Cable.Connection 的实例进行连接的重建</span>
+</span><span class='line'>        <span class="nx">@consumer</span><span class="p">.</span><span class="nx">connection</span><span class="p">.</span><span class="nx">reopen</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过心跳检测来检测连接的健康情况属于主动式的检测，下面阐释基于 WebSocket 的 onclose、onerror 回调的连接重建逻辑。</p>
+
+<h2>WebSocket 回调</h2>
+
+<p>在上一篇里提及到在 Cable.Connection 连接的建立是通过 WebSocket 的实例化来实现，同时绑定了以下四个回调</p>
+
+<ul>
+<li>onmessage</li>
+<li>onopen</li>
+<li>onclose</li>
+<li>onerror</li>
+</ul>
+
+
+<p>关键源码部分如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">installEventHandlers: </span><span class="nf">-&gt;</span>  <span class="c1"># 向 @webSocket 注入各个回调</span>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">eventName</span> <span class="k">of</span> <span class="nx">@events</span>
+</span><span class='line'>        <span class="nv">handler = </span><span class="nx">@events</span><span class="p">[</span><span class="nx">eventName</span><span class="p">].</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+</span><span class='line'>        <span class="nx">@webSocket</span><span class="p">[</span><span class="s">&quot;on</span><span class="si">#{</span><span class="nx">eventName</span><span class="si">}</span><span class="s">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">handler</span>
+</span><span class='line'>    <span class="k">return</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">events:</span>
+</span><span class='line'>    <span class="nv">message: </span><span class="nf">(event) -&gt;</span> <span class="c1"># onmessage 回调</span>
+</span><span class='line'>        <span class="p">{</span><span class="nx">identifier</span><span class="p">,</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">type</span><span class="p">}</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">switch</span> <span class="nx">type</span>
+</span><span class='line'>            <span class="k">when</span> <span class="nx">message_types</span><span class="p">.</span><span class="nx">confirmation</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notify</span><span class="p">(</span><span class="nx">identifier</span><span class="p">,</span> <span class="s">&quot;connected&quot;</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">when</span> <span class="nx">message_types</span><span class="p">.</span><span class="nx">rejection</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">identifier</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">else</span>
+</span><span class='line'>                <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notify</span><span class="p">(</span><span class="nx">identifier</span><span class="p">,</span> <span class="s">&quot;received&quot;</span><span class="p">,</span> <span class="nx">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="nv">open: </span><span class="nf">-&gt;</span> <span class="c1"># onopen 回调</span>
+</span><span class='line'>        <span class="vi">@disconnected = </span><span class="kc">false</span>
+</span><span class='line'>        <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">reload</span><span class="p">()</span>
+</span><span class='line'>    <span class="nv">close: </span><span class="nf">-&gt;</span> <span class="c1"># onclose 回调</span>
+</span><span class='line'>        <span class="nx">@disconnect</span><span class="p">()</span>
+</span><span class='line'>    <span class="nv">error: </span><span class="nf">-&gt;</span> <span class="c1"># onerror 回调</span>
+</span><span class='line'>        <span class="nx">@disconnect</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>disconnect 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">disconnect: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">if</span> <span class="nx">@disconnected</span> <span class="c1"># 如果已经断开则直接返回</span>
+</span><span class='line'>    <span class="vi">@disconnected = </span><span class="kc">true</span>    <span class="c1"># 标识已经断开</span>
+</span><span class='line'>    <span class="nx">@consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">notifyAll</span><span class="p">(</span><span class="s">&quot;disconnected&quot;</span><span class="p">)</span> <span class="c1"># 通知所有的 subscript 已经断开</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Cable.Subscriptions</code> 里的 <code>notifyAll</code> 和 <code>notify</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">notifyAll: </span><span class="nf">(callbackName, args...) -&gt;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">subscription</span> <span class="k">in</span> <span class="nx">@subscriptions</span>
+</span><span class='line'>        <span class="c1"># 通知各个 subscription 调用各自的 disconnected 函数</span>
+</span><span class='line'>        <span class="nx">@notify</span><span class="p">(</span><span class="nx">subscription</span><span class="p">,</span> <span class="nx">callbackName</span><span class="p">,</span> <span class="nx">args</span><span class="p">...)</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">notify: </span><span class="nf">(subscription, callbackName, args...) -&gt;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="k">typeof</span> <span class="nx">subscription</span> <span class="o">is</span> <span class="s">&quot;string&quot;</span>
+</span><span class='line'>        <span class="nv">subscriptions = </span><span class="nx">@findAll</span><span class="p">(</span><span class="nx">subscription</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>        <span class="nv">subscriptions = </span><span class="p">[</span><span class="nx">subscription</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="nx">subscription</span> <span class="k">in</span> <span class="nx">subscriptions</span>
+</span><span class='line'>        <span class="c1"># subscription 调用 disconnected 函数</span>
+</span><span class='line'>        <span class="c1">#   subscription[callbackName]?(args...) 的意思是</span>
+</span><span class='line'>        <span class="c1">#   subscription = subscriptions[i];</span>
+</span><span class='line'>        <span class="c1">#   if (typeof subscription[callbackName] === &quot;function&quot;) {</span>
+</span><span class='line'>        <span class="c1">#       subscription[callbackName].apply(subscription, args);</span>
+</span><span class='line'>        <span class="c1">#   }</span>
+</span><span class='line'>        <span class="nx">subscription</span><span class="p">[</span><span class="nx">callbackName</span><span class="p">]</span><span class="o">?</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span>
+</span><span class='line'>        <span class="c1"># 以下先不理会，否则会脱离内容的主线</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nx">callbackName</span> <span class="k">in</span> <span class="p">[</span><span class="s">&quot;initialized&quot;</span><span class="p">,</span> <span class="s">&quot;connected&quot;</span><span class="p">,</span> <span class="s">&quot;disconnected&quot;</span><span class="p">,</span> <span class="s">&quot;rejected&quot;</span><span class="p">]</span>
+</span><span class='line'>            <span class="p">{</span><span class="nx">identifier</span><span class="p">}</span> <span class="o">=</span> <span class="nx">subscription</span>
+</span><span class='line'>            <span class="nx">@record</span><span class="p">(</span><span class="nv">notification: </span><span class="p">{</span><span class="nx">identifier</span><span class="p">,</span> <span class="nx">callbackName</span><span class="p">,</span> <span class="nx">args</span><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好了，回去看 <code>Cable.ConnectionMonitor</code> 的 <code>disconnected</code> 函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">disconnected: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="vi">@disconnectedAt = </span><span class="nx">now</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，心跳检测时就会发现连接已断开，就会重建连接，相关代码如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">poll: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">setTimeout</span> <span class="nf">=&gt;</span>
+</span><span class='line'>        <span class="k">unless</span> <span class="nx">@stoppedAt</span>
+</span><span class='line'>            <span class="nx">@reconnectIfStale</span><span class="p">()</span>
+</span><span class='line'>            <span class="nx">@poll</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">,</span> <span class="nx">@getInterval</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">reconnectIfStale: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nx">@connectionIsStale</span><span class="p">()</span>
+</span><span class='line'>        <span class="nx">@reconnectAttempts</span><span class="o">++</span>
+</span><span class='line'>        <span class="k">unless</span> <span class="nx">@disconnectedRecently</span><span class="p">()</span>
+</span><span class='line'>            <span class="nx">@consumer</span><span class="p">.</span><span class="nx">connection</span><span class="p">.</span><span class="nx">reopen</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">connectionIsStale: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">secondsSince</span><span class="p">(</span><span class="nx">@pingedAt</span> <span class="o">?</span> <span class="nx">@startedAt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nx">@constructor</span><span class="p">.</span><span class="nx">staleThreshold</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">disconnectedRecently: </span><span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">@disconnectedAt</span> <span class="o">and</span> <span class="nx">secondsSince</span><span class="p">(</span><span class="nx">@disconnectedAt</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nx">@constructor</span><span class="p">.</span><span class="nx">staleThreshold</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>连接的监控也简单，通过自主的心跳检测，以及 <code>WebSocket</code> 的 <code>onerror</code>、<code>onclose</code> 回调来自动地重建连接，因此使用者可以不需要去关心当前的连接是否正常。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-08-13T18:06:30+08:00'><span class='date'>2016-08-13 18:06:30</span> <span class='time'>6:06 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/" title="Previous Post: ActionCable 源码阅读笔记-前端部分-2">&laquo; ActionCable 源码阅读笔记-前端部分-2</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2017/02/19/rubocop/" title="Next Post: Use Rubocop to control your Ruby code's quality">Use Rubocop to control your Ruby code's quality &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

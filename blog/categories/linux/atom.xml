@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: linux | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2021-09-27T06:28:44+00:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Crontab]]></title>
+    <link href="http://www.justqyx.me/blog/2013/10/18/crontab/"/>
+    <updated>2013-10-18T09:39:00+00:00</updated>
+    <id>http://www.justqyx.me/blog/2013/10/18/crontab</id>
+    <content type="html"><![CDATA[<h2>需求</h2>
+
+<p>盛大云的服务器，其时间每隔一段时间后，便会慢于世界标准时间，因此需要每天定时去更新服务器的时间。</p>
+
+<h2>方案</h2>
+
+<p>这种采用 <code>cron</code> 来做是最合适的，<a href="http://mouse-lin.github.io/system/2013/08/09/crontab/">这里有简单的介绍</a></p>
+
+<p>1、NTP 从授时服务器获取时间</p>
+
+<pre><code> sudo ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>2、添加 crontab 任务</p>
+
+<pre><code> 02 12 * * * root ntpdate asia.pool.ntp.org
+
+ 59 23 * * * root ntpdate asia.pool.ntp.org
+</code></pre>
+
+<p>3、重启 crond</p>
+
+<pre><code> sudo service cron reload
+
+ sudo service cron restart
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Working With Timezone in Rails(03) - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="前面两篇分别阐述了数据库对时区的不同处理处理方式和Rails中有关时区的两个选项设置。
+这篇主要阐述在不同数据库对时区不同的支持情况下，Rails项目里改如何去选择时区。 不支持时区 这里说的 不支持时区 是指数据库表里的字段没有时区的概念，如 MySQL5.5 版本。 在这种情况下， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Working With Timezone in Rails(03)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T16:17:30+08:00'><span class='date'>2014-05-18 16:17:30</span> <span class='time'>4:17 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前面两篇分别阐述了数据库对时区的不同处理处理方式和Rails中有关时区的两个选项设置。
+这篇主要阐述在不同数据库对时区不同的支持情况下，Rails项目里改如何去选择时区。</p>
+
+<h2>不支持时区</h2>
+
+<p>这里说的 <code>不支持时区</code> 是指数据库表里的字段没有时区的概念，如 MySQL5.5 版本。</p>
+
+<p>在这种情况下，如果项目使用人群是跨时区的，那么很明显地，在日期数据的存储和操作的过程中，我们都应该使用 UTC 时区，而日期数据的显示再根据本地的时区去显示。</p>
+
+<p>如果项目的使用人群并不跨时区（或着相当长的一段时间内是确定不跨时区的），那么我们的选择就比较自由了。日期数据的存储和操作可以使用 UTC，也可以使用本地时区，而显示的时候，统一用本地时区去显示。
+不过建议都统一采用本地时区，这样能避免在开发过程中出现的认为错误，如自己拼写SQL、使用AR但是非日期类型。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 日期的存储采用了 UTC，并且字段不支持时区，但是拼写 SQL 时，以东八时区去做查询</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="s2">&quot;SELECT * FROM users WHERE created_at &gt;= &#39;2014-05-18 08:00:00&#39;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># bad</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;users.created_at &gt;= ?&quot;</span><span class="p">,</span> <span class="s1">&#39;2014-05-18 00:00:00&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="c1"># good</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;users.created_at &gt;= ?&quot;</span><span class="p">,</span> <span class="no">Time</span><span class="o">.</span><span class="n">zone</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;2014-05-18 00:00:00&#39;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>支持时区</h2>
+
+<p>如果数据库的字段支持带数据，那么在建立的时候，建议都带上时区。 虽然会带上性能上的消耗，但是在数据库处理这个层面上处理保证不出错。</p>
+
+<p>这样就简单了，如果项目的使用人群时跨时区的，那么在日期的处理和存储上都选用UTC，在显示时使用本地的时区去显示；如果项目的使用人群不跨时区，那么选用UTC和本地时区都可以（建议使用本地时区）。</p>
+
+<h2>双数据库</h2>
+
+<p>项目有时候会遇到要使用双数据库的情况，如数据平台，通常本身有会有数据库，而元数据则来自业务项目。
+这种情况下，建议采用同一种数据库，即如果业务项目里使用的是 MySQL 那么就都用 MySQL， 对于时区的选择上也使用同一种时区方案。这样开发人员就不需要总是切换思维方式，能够避免许多错误。如果已有的项目选择的是不同的数据库并且还将继续开发维护相当长一段时间，那么建议尽早迁移成同样的数据库，毕竟后期的维护成本要高于迁移的成本。</p>
+
+<h2>总结</h2>
+
+<p>总的来说，对于日期的存储和处理上取决于项目的使用人群以及开发设计人员所选择的数据库，如果选择的数据库支持时区，那么建议创建表时相应的字段都带上时区，以避免日常的开发维护中由于人员可能引起的错误。而对于多数据库，建议尽量采用同种数据库，除非你喜欢折腾并且还能保证不出错。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T16:17:30+08:00'><span class='date'>2014-05-18 16:17:30</span> <span class='time'>4:17 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/04/27/working-with-timezone-in-rails-02/" title="Previous Post: Working with timezone in Rails(02)">&laquo; Working with timezone in Rails(02)</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/05/18/buy-a-fkbn87m-slash-eb2-majestouch-2/" title="Next Post: Buy a Mechanical Keyboard">Buy a Mechanical Keyboard &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

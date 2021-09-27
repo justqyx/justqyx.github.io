@@ -1,0 +1,568 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="现在，很多网站和手机app都支持使用第三方帐号登录，如 QQ、微博、Yammer、Github等。 而在这其中，最为重要的就是 Oauth 协议，即“开放授权”协议。 Oauth 是一个协议、一个标准，它允许用户授权第三方网站访问他们存储在另外的服务器的信息， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/posts/6/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/19/using-oauth-in-ruby-project/">Using Oauth in Ruby Project</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-05-19T21:40:00+00:00'><span class='date'>2013-05-19 21:40:00</span> <span class='time'>9:40 pm</span></time>
+        
+           | <a href="/blog/2013/05/19/using-oauth-in-ruby-project/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/05/19/using-oauth-in-ruby-project/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>现在，很多网站和手机app都支持使用第三方帐号登录，如 QQ、微博、Yammer、Github等。 而在这其中，最为重要的就是 <code>Oauth</code> 协议，即“开放授权”协议。</p>
+
+<p><code>Oauth</code> 是一个协议、一个标准，它允许用户授权第三方网站访问他们存储在另外的服务器的信息，而不需要将用户的帐号和密码提供给第三方网站。这样使得我们只需要使用一个帐号，就可以登录很多网站了，再也不必去记住许多帐号，而且也不需要担心帐号的安全问题。</p>
+
+<h2>Ruby 实现</h2>
+
+<p>下面是使用 Ruby 实现的几个相关的插件</p>
+
+<ul>
+<li><a href="https://github.com/intridea/oauth2">oauth2</a></li>
+<li><a href="https://github.com/intridea/omniauth">omniauth</a></li>
+<li><a href="https://github.com/intridea/omniauth-oauth2">omniauth-oauth2</a></li>
+</ul>
+
+
+<h2>Oauth2</h2>
+
+<p>从名字就可以知道了，它就是 <code>Ruby</code> 对 <code>oatuh2</code> 协议的一个实现。</p>
+
+<p>它实现了 <code>oauth2</code> 提及到的相关接口，于是，利用这个gem，你就可以按照协议里面规定的去实现你的功能了。 下面是 <code>Github</code> 上给出的一个例子。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;oauth2&#39;</span>
+</span><span class='line'><span class="n">client</span> <span class="o">=</span> <span class="no">OAuth2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">,</span> <span class="s1">&#39;client_secret&#39;</span><span class="p">,</span> <span class="ss">:site</span> <span class="o">=&gt;</span> <span class="s1">&#39;https://example.org&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">client</span><span class="o">.</span><span class="n">auth_code</span><span class="o">.</span><span class="n">authorize_url</span><span class="p">(</span><span class="ss">:redirect_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;http://localhost:8080/oauth2/callback&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="c1"># =&gt; &quot;https://example.org/oauth/authorization?response_type=code&amp;client_id=client_id&amp;redirect_uri=http://localhost:8080/oauth2/callback&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">token</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">auth_code</span><span class="o">.</span><span class="n">get_token</span><span class="p">(</span><span class="s1">&#39;authorization_code_value&#39;</span><span class="p">,</span> <span class="ss">:redirect_uri</span> <span class="o">=&gt;</span> <span class="s1">&#39;http://localhost:8080/oauth2/callback&#39;</span><span class="p">,</span> <span class="ss">:headers</span> <span class="o">=&gt;</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Basic some_password&#39;</span><span class="p">})</span>
+</span><span class='line'><span class="n">response</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/api/resource&#39;</span><span class="p">,</span> <span class="ss">:params</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="s1">&#39;query_foo&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;bar&#39;</span> <span class="p">})</span>
+</span><span class='line'><span class="n">response</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span>
+</span><span class='line'><span class="c1"># =&gt; OAuth2::Response</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也是就会想，这样不就够了吗？怎么还多出另外两个gem来呢？确实，说得没错，仅仅一个 <code>Oauth2</code> 就够了。但是 &hellip;</p>
+
+<h2>OmniAuth</h2>
+
+<p>我们可以看到，现在有很多Web应用，都支持多个第三方登录，
+如QQ、新浪微博、Github、Facebook、Twitter等等。
+也就是说，如果仅仅使用 <code>Oauth2</code> ,你都必须要每一个都实现一次，oh no！那该会是多蛋疼的事情。
+<code>Omniauth</code>的出现，就是为了解决这样的一个问题而出现。
+来看看它的官方描述。</p>
+
+<blockquote><p>OmniAuth is a library that standardizes multi-provider authentication for web applications. It was created to be powerful, flexible, and do as little as possible. Any developer can create strategies for OmniAuth that can authenticate users via disparate systems. OmniAuth strategies have been created for everything from Facebook to LDAP.</p></blockquote>
+
+<p>本人英文不行，所以只能抓关键词了。<code>standardizes</code>, <code>multi-provider authentication</code>。</p>
+
+<p>这里已经说得很明白了，它是标准化了一个东西，这个东西就是支持多方登录，并且，它称之为“策略”。</p>
+
+<p>下面是它是使用的方法：</p>
+
+<p><code>config/initializers/omniauth.rb</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">use</span> <span class="no">OmniAuth</span><span class="o">::</span><span class="no">Builder</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">provider</span> <span class="ss">:developer</span> <span class="k">unless</span> <span class="no">Rails</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">production?</span>
+</span><span class='line'>  <span class="n">provider</span> <span class="ss">:twitter</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;TWITTER_KEY&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;TWITTER_SECRET&#39;</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">provider</span> <span class="ss">:weibo</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;WEIBO_KEY&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;WEIBO_SECRET&#39;</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样一来，就简单明了。既提供了开发时调试的developer策略，也提供了twitter和weibo登录的策略。
+（这里需要注意，twitter和weibo是需要自己实现的，omniauth仅仅是提供了一个developer策略而已）</p>
+
+<p>于是，又一个问题出来了：策略之间基本上都是大同小异，莫非我们每个也得去写一次，于是<code>omniath-oauth2</code>变出现了。</p>
+
+<h2>omniauth-oauth2</h2>
+
+<p>一看名字就知道，这个插件是整合了 <code>omniauth</code> 和 <code>oauth2</code> 着两个插件的。</p>
+
+<p>它的出现，通过提供一个标准化的模板，使我们能够快速开发QQ登录、微博登录插件。模板如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;omniauth-oauth2&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">OmniAuth</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">Strategies</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">SomeSite</span> <span class="o">&lt;</span> <span class="no">OmniAuth</span><span class="o">::</span><span class="no">Strategies</span><span class="o">::</span><span class="no">OAuth2</span>
+</span><span class='line'>      <span class="n">option</span> <span class="ss">:name</span><span class="p">,</span> <span class="s2">&quot;some_site&quot;</span>
+</span><span class='line'>      <span class="n">uid</span><span class="p">{</span> <span class="n">raw_info</span><span class="o">[</span><span class="s1">&#39;id&#39;</span><span class="o">]</span> <span class="p">}</span>
+</span><span class='line'>      <span class="n">info</span> <span class="k">do</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>          <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="n">raw_info</span><span class="o">[</span><span class="s1">&#39;name&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>          <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="n">raw_info</span><span class="o">[</span><span class="s1">&#39;email&#39;</span><span class="o">]</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">extra</span> <span class="k">do</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>          <span class="s1">&#39;raw_info&#39;</span> <span class="o">=&gt;</span> <span class="n">raw_info</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">def</span> <span class="nf">raw_info</span>
+</span><span class='line'>        <span class="vi">@raw_info</span> <span class="o">||=</span> <span class="n">access_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/me&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">parsed</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个插件出来以后，于是实现各个第三方登录就非常容易了，下面是常用到的几个插件。</p>
+
+<ul>
+<li><a href="https://github.com/kaichen/omniauth-qq-connect?source=c">omniauth-qq-connect</a></li>
+<li><a href="https://github.com/beenhero/omniauth-weibo-oauth2">omniauth-weibo-oauth2</a></li>
+<li><a href="https://github.com/arunagw/omniauth-twitter">omniauth-twitter</a></li>
+<li><a href="https://github.com/mkdynamic/omniauth-facebook">omniauth-facebook</a></li>
+<li><a href="https://github.com/le0pard/omniauth-yammer">omniauth-yammer</a></li>
+<li><a href="https://github.com/intridea/omniauth-github">omniauth-github</a></li>
+</ul>
+
+
+<p>在我们的Rails应用程序里的 <code>Gemfile</code> 文件加上下面一句代码，即可使用了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;omniauth-qq-connect&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实这三个gem都是同一个人写的，也可以看出，作者也是在不断地完善这个工具。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/19/rails-authentication/">Rails Admin Authentication</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-05-19T11:37:00+00:00'><span class='date'>2013-05-19 11:37:00</span> <span class='time'>11:37 am</span></time>
+        
+           | <a href="/blog/2013/05/19/rails-authentication/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/05/19/rails-authentication/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天想学习一下 omniauth 的使用，但是使用前，想重新整理出以前在做登录时是怎么做的。</p>
+
+<p>曾经，做个登录竟然花了3天，现在看来，怎么都不敢想象，责备自己怎么基础学得这么烂。</p>
+
+<p>天啊，以前的日子究竟都在干什么呀！</p>
+
+<h2>想法</h2>
+
+<p>一个小小的web app，分为前台和后台。前台的页面都不需要登录，后台的页面需要登录。</p>
+
+<h2>General Authentication Module</h2>
+
+<p>只需要包含进某个控制器就可以用了。</p>
+
+<figure class='code'><figcaption><span> (authenticate_user.rb)</span> <a href='/downloads/code/authentication/authenticate_user.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="k">module</span> <span class="nn">AuthenticateUser</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">included</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">base</span><span class="o">.</span><span class="n">helper_method</span> <span class="ss">:current_user</span><span class="p">,</span> <span class="ss">:user_signed_in?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">current_user</span>
+</span><span class='line'>    <span class="vi">@current_user</span> <span class="o">||=</span> <span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:user_id</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_id</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:user_id</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">user_signed_in?</span>
+</span><span class='line'>    <span class="o">!!</span><span class="n">current_user</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>helper_method</code> 使得包含这个模块的控制器拥有<code>current_user</code>和<code>user_signed_in?</code>这两个方法，并且在视图里面也可以使用。</p>
+
+<p><code>SessionsController</code>控制器 和 <code>User</code>模型，一般都是根据自己的需要自己去写实际的逻辑。</p>
+
+<h2>Implementation: Admin Scope</h2>
+
+<p>为了实现后台必须登录的逻辑，可以这样实现</p>
+
+<ul>
+<li><code>/admin/controller/action</code> 开头的，都是后台页面的，需要登录</li>
+<li><code>/controller/action</code> 类似的，都是普通的页面，用户可以随便浏览</li>
+</ul>
+
+
+<p>于是我们可以这样</p>
+
+<p><code>rails g controller Admin::Base</code>，基本代码为</p>
+
+<figure class='code'><figcaption><span> (base_controller.rb)</span> <a href='/downloads/code/authentication/base_controller.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Admin</span><span class="o">::</span><span class="no">BaseController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">AuthenticateUser</span>
+</span><span class='line'>  <span class="n">protect_from_forgery</span> <span class="ss">with</span><span class="p">:</span> <span class="ss">:exception</span>
+</span><span class='line'>  <span class="n">before_filter</span> <span class="ss">:require_login</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">protected</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">require_login</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kp">true</span> <span class="k">if</span> <span class="n">user_signed_in?</span>
+</span><span class='line'>    <span class="n">redirect_to</span> <span class="n">root_path</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>  现在有一些关于登录校验一些不错的插件，最熟悉的莫过于<code>devise</code>。</p>
+
+<p>  但是基本都是这样的一个原理，个人觉得，有机会还是要多学习最原始的，最基础的东西，出来工作就比较难了。</p>
+
+<p>  因为公司一般不想培养人，成本太高，又基本很难留住，所以基本上要求的都是能直接开发的。</p>
+
+<p>  工具可以大大加快开发速度，但是对于新人来说，这并不是最好的。</p>
+
+<p>  新人需要有人去引导。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/18/helloworld/">Hello World</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-05-18T19:58:00+00:00'><span class='date'>2013-05-18 19:58:00</span> <span class='time'>7:58 pm</span></time>
+        
+           | <a href="/blog/2013/05/18/helloworld/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2013/05/18/helloworld/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>从今天起，就在这安家了。</p>
+
+<p>用博客，记录和分享自己的点点滴滴。</p>
+
+<figure class='code'><figcaption><span> (test.rb)</span> <a href='/downloads/code/test.rb'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">puts</span> <span class="s2">&quot;hello world!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/5">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

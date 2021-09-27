@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Captcha in Ruby - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="图片验证码的使用场景就不用说了，在这里分享一下我是如何做登录图片验证码的。 图片验证码的生成的简单流程 生成验证码字符 -> 生成图片验证码 [-> 使用] 第三步的意思是，当你拿到图片验证码时，看你的具体需求了，是直接随着 form 表单渲染，
+还是浏览器异步地请求图片验证码，或者其它什么的， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Captcha in Ruby</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-05-16T11:35:41+08:00'><span class='date'>2015-05-16 11:35:41</span> <span class='time'>11:35 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>图片验证码的使用场景就不用说了，在这里分享一下我是如何做登录图片验证码的。</p>
+
+<h2>图片验证码的生成的简单流程</h2>
+
+<p><code>生成验证码字符</code> -> <code>生成图片验证码</code> [-> <code>使用</code>]</p>
+
+<p>第三步的意思是，当你拿到图片验证码时，看你的具体需求了，是直接随着 form 表单渲染，
+还是浏览器异步地请求图片验证码，或者其它什么的，反正无所谓了。</p>
+
+<h2>谈一谈 simple_captcha2 的做法</h2>
+
+<p>simple_captcha2 是基于 ImageMagick 来生成图片，基于数据库来存储验证码数据的。
+提供了 <code>Controller Based</code> 和 <code>Model Based</code> 两种用法。</p>
+
+<p><strong>Controller Based</strong></p>
+
+<p>simple_captcha2 提供了一对方法： <code>show_simple_captcha</code> 和 <code>simple_captcha_valid?</code>。
+前者是一个 view helper，让我们能够在某个地方显示一张验证码图片，后者让我们可以去判定用户提交的验证码是否正确。
+想知道更多的用法可以移步到<a href="https://github.com/pludoni/simple-captcha">它的文档</a>。</p>
+
+<p><strong>实现原理</strong></p>
+
+<p>simple_captcha2 基于数据库维护了一对 key -> value 数据，数据结构如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                 Table "public.simple_captcha_data"
+</span><span class='line'>   Column   |            Type             |                            Modifiers
+</span><span class='line'>------------+-----------------------------+------------------------------------------------------------------
+</span><span class='line'> id         | integer                     | not null default nextval('simple_captcha_data_id_seq'::regclass)
+</span><span class='line'> key        | character varying(40)       |
+</span><span class='line'> value      | character varying(6)        |
+</span><span class='line'> created_at | timestamp without time zone |
+</span><span class='line'> updated_at | timestamp without time zone |
+</span><span class='line'>Indexes:
+</span><span class='line'>"simple_captcha_data_pkey" PRIMARY KEY, btree (id)
+</span><span class='line'>"simple_captcha_data_key" btree (key)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当我们调用 <code>show_simple_captcha</code> 时就会生成一对这样的值，然后存放到数据库（MySQL|Postgresql|Redis）， 然后在 view 里生成这样的内容。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;hidden&quot;</span><span class="err">,</span> <span class="na">name=</span><span class="s">&quot;captcha_key&quot;</span> <span class="na">value=</span><span class="s">&quot;d850ec25ca962ba6606cfe7c84f9568c8473e93e&quot;</span>
+</span><span class='line'><span class="err">&lt;</span><span class="na">img</span> <span class="na">alt=</span><span class="s">&quot;captcha&quot;</span> <span class="na">src=</span><span class="s">&quot;/simple_captcha?code=d850ec25ca962ba6606cfe7c84f9568c8473e93e&amp;time=1431749439&quot;</span> <span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，它的工作原理就很清楚了。</p>
+
+<p>key 的生成算法如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Digest</span><span class="o">::</span><span class="no">SHA1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="o">[</span><span class="n">session</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">,</span> <span class="s2">&quot;captcha&quot;</span><span class="p">,</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_s</span><span class="o">].</span><span class="n">join</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>value 的算法如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">generate_simple_captcha_data</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+</span><span class='line'>  <span class="k">case</span> <span class="n">code</span>
+</span><span class='line'>    <span class="k">when</span> <span class="s1">&#39;numeric&#39;</span> <span class="k">then</span>
+</span><span class='line'>      <span class="no">SimpleCaptcha</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">times</span><span class="p">{</span><span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">48</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span><span class="o">.</span><span class="n">chr</span><span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="no">SimpleCaptcha</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">times</span><span class="p">{</span><span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">65</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">26</span><span class="p">))</span><span class="o">.</span><span class="n">chr</span><span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>simple_captcha 实现了一个 middleware， 以返回验证码图片。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">SimpleCaptcha</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Middleware</span>
+</span><span class='line'>    <span class="c1"># ...</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span> <span class="c1"># :nodoc:</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">env</span><span class="o">[</span><span class="s2">&quot;REQUEST_METHOD&quot;</span><span class="o">]</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span> <span class="o">&amp;&amp;</span> <span class="n">captcha_path?</span><span class="p">(</span><span class="n">env</span><span class="o">[</span><span class="s1">&#39;PATH_INFO&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">make_image</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="vi">@app</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># ...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">make_image</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">status</span> <span class="o">=</span> <span class="mi">404</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">request</span> <span class="o">=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Request</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="o">[</span><span class="s2">&quot;code&quot;</span><span class="o">]</span>
+</span><span class='line'>      <span class="n">body</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">if</span> <span class="o">!</span><span class="n">code</span><span class="o">.</span><span class="n">blank?</span> <span class="o">&amp;&amp;</span> <span class="no">Utils</span><span class="o">::</span><span class="n">simple_captcha_value</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">generate_simple_captcha_image</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">,</span> <span class="ss">:disposition</span> <span class="o">=&gt;</span> <span class="s1">&#39;inline&#39;</span><span class="p">,</span> <span class="ss">:filename</span> <span class="o">=&gt;</span>  <span class="s1">&#39;simple_captcha.jpg&#39;</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">[</span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">body</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>    <span class="c1">#...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在生成验证码图片这一步，它是调用了 ImageMagick 的命令来生成图片的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">expected_outcodes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">command</span> <span class="o">=</span> <span class="sx">%Q[</span><span class="si">#{</span><span class="n">cmd</span><span class="si">}</span><span class="sx"> </span><span class="si">#{</span><span class="n">params</span><span class="si">}</span><span class="sx">]</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\s+/</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">command</span><span class="si">}</span><span class="s2"> 2&gt;&amp;1&quot;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">unless</span> <span class="p">(</span><span class="n">image_magick_path</span> <span class="o">=</span> <span class="no">SimpleCaptcha</span><span class="o">.</span><span class="n">image_magick_path</span><span class="p">)</span><span class="o">.</span><span class="n">blank?</span>
+</span><span class='line'>    <span class="n">command</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">image_magick_path</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># convert -size 100x100 -gravity &quot;Center&quot; -implode 0.2 &lt;path/to/file&gt;</span>
+</span><span class='line'>  <span class="n">output</span> <span class="o">=</span> <span class="sb">`</span><span class="si">#{</span><span class="n">command</span><span class="si">}</span><span class="sb">`</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">unless</span> <span class="o">[</span><span class="n">expected_outcodes</span><span class="o">].</span><span class="n">flatten</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="vg">$?</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">raise</span> <span class="o">::</span><span class="no">StandardError</span><span class="p">,</span> <span class="s2">&quot;Error while running </span><span class="si">#{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">output</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">output</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>总结</strong></p>
+
+<p>分三步走：</p>
+
+<ol>
+<li>生成一组 key, value，然后存进数据库</li>
+<li>浏览器根据 key 请求验证码图片</li>
+<li>根据 key 从数据库里取出 value，然后判定用户提交的验证码是否正确</li>
+</ol>
+
+
+<h2>我是这么做的</h2>
+
+<p>simple_captcha2 为图片验证码提供了一整套的解决方案，在 Rails 里使用非常简单。
+但仍有做得不足的地方，例如没有暴露生成验证码图片的接口给我们，使得我们能够直接通过 ajax 来请求验证码图片。
+虽然可以通过 mokey patch 来做的，但是我自己想了一个更简单的方案。</p>
+
+<p>我的思路：</p>
+
+<ol>
+<li>生成验证码字符串</li>
+<li>根据字符串生成验证码图片</li>
+<li>将验证码字符串放到 session 里</li>
+<li>将图片编码成 Base64 字符串，剩下的就看你的使用场景</li>
+</ol>
+
+
+<p>伪代码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># in someone controller</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># GET /captcha</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">captcha</span>
+</span><span class='line'>  <span class="n">text</span> <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">hex</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">upcase</span>
+</span><span class='line'>  <span class="n">session</span><span class="o">[</span><span class="ss">:captcha</span><span class="o">]</span> <span class="o">=</span> <span class="n">text</span>
+</span><span class='line'>  <span class="n">base64Image</span> <span class="o">=</span> <span class="no">Captcha</span><span class="o">.</span><span class="n">generate</span> <span class="n">text</span><span class="p">,</span> <span class="mi">126</span><span class="p">,</span> <span class="mi">40</span>  <span class="c1"># 验证码的内容，图片的宽度，图片的高度</span>
+</span><span class='line'>  <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="p">{</span> <span class="ss">image</span><span class="p">:</span> <span class="n">base64Image</span> <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最关键的就是如何实现 <code>Captcha.generate</code> 了，使用纯 Ruby 生成图片成本高，需要许多知识，所以我还是选择了依赖于 ImageMagick。
+思路也很简单：</p>
+
+<ol>
+<li>根据参数，生成关于 ImageMagick 中的 <code>convert</code> 命令所需要的参数</li>
+<li>使用系统调用来生成图片，并放在一个临时目录里</li>
+<li>读取图片的内容，完成后关闭这个临时文件，最后把图片内容返回</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Captcha</span>
+</span><span class='line'>  <span class="kp">extend</span> <span class="nb">self</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">generate</span> <span class="n">text</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="mi">28</span>
+</span><span class='line'>    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">upcase</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">params</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;-fill darkblue&#39;</span><span class="p">,</span> <span class="s1">&#39;-background white&#39;</span><span class="o">]</span>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;-size </span><span class="si">#{</span><span class="n">width</span><span class="si">}</span><span class="s2">x</span><span class="si">#{</span><span class="n">height</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;-wave </span><span class="si">#{</span><span class="n">distortion</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;-gravity &quot;Center&quot;&#39;</span>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;-pointsize 22&#39;</span>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;-implode 0.2&#39;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">dst</span> <span class="o">=</span> <span class="no">Tempfile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="o">[</span><span class="s1">&#39;neolion_captcha&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">Dir</span><span class="o">::</span><span class="n">tmpdir</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">dst</span><span class="o">.</span><span class="n">binmode</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">params</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;label:&#39;</span><span class="si">#{</span><span class="n">text</span><span class="si">}</span><span class="s2">&#39; </span><span class="se">\&quot;</span><span class="si">#{</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">run</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">dst</span><span class="o">.</span><span class="n">close</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">read_as_base64</span> <span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">distortion</span>
+</span><span class='line'>      <span class="o">[</span><span class="mi">0</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">80</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">run</span> <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">expected_outcodes</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>      <span class="n">command</span> <span class="o">=</span> <span class="sx">%Q[convert </span><span class="si">#{</span><span class="n">params</span><span class="si">}</span><span class="sx">]</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\s+/</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">command</span><span class="si">}</span><span class="s2"> 2&gt;&amp;1&quot;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">output</span> <span class="o">=</span> <span class="sb">`</span><span class="si">#{</span><span class="n">command</span><span class="si">}</span><span class="sb">`</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">unless</span> <span class="o">[</span><span class="n">expected_outcodes</span><span class="o">].</span><span class="n">flatten</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="vg">$?</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="o">::</span><span class="no">StandardError</span><span class="p">,</span> <span class="s2">&quot;Error while running </span><span class="si">#{</span><span class="n">command</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">output</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">read_as_base64</span> <span class="n">filepath</span>
+</span><span class='line'>      <span class="n">data</span> <span class="o">=</span> <span class="no">Base64</span><span class="o">.</span><span class="n">encode64</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">binread</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+</span><span class='line'>      <span class="o">[</span><span class="s1">&#39;data:image/png;base64,&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">].</span><span class="n">join</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\n/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至于判定用户的验证码是否正确，就很简单了</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">valid_captcha?</span>
+</span><span class='line'>    <span class="n">session</span><span class="o">[</span><span class="ss">:captcha</span><span class="o">]</span> <span class="o">==</span> <span class="n">params</span><span class="o">[</span><span class="ss">:captcha</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Digital_image">http://en.wikipedia.org/wiki/Digital_image</a></li>
+<li><a href="http://www.webascender.com/Blog/ID/529/Working-with-Bits-and-Bytes-in-Ruby#.VUuBvROUe58">http://www.webascender.com/Blog/ID/529/Working-with-Bits-and-Bytes-in-Ruby#.VUuBvROUe58</a></li>
+<li><a href="http://www.imagemagick.org/script/index.php">http://www.imagemagick.org/script/index.php</a></li>
+<li><a href="https://github.com/minimagick/minimagick">https://github.com/minimagick/minimagick</a></li>
+<li><a href="https://github.com/minimagick/minimagick/issues/59">https://github.com/minimagick/minimagick/issues/59</a></li>
+<li><a href="https://github.com/wvanbergen/chunky_png">https://github.com/wvanbergen/chunky_png</a></li>
+<li><a href="https://github.com/wvanbergen/oily_png">https://github.com/wvanbergen/oily_png</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-05-16T11:35:41+08:00'><span class='date'>2015-05-16 11:35:41</span> <span class='time'>11:35 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/04/25/last-two-years/" title="Previous Post: 审视自己">&laquo; 审视自己</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/05/31/inspect-simple-form-1/" title="Next Post: Inspect SimpleForm (1)">Inspect SimpleForm (1) &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/';
+        var disqus_url = 'http://www.justqyx.me/blog/2015/05/16/captcha-in-ruby/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

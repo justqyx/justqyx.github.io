@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Tree Data - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="对于树形结构的数据存储，schema 的设计通常很简单，难的是其查询是否简单、方便。
+这里我所选用的数据库为：PostgreSQL，版本为：9.3.5。 数据结构设计 对于树形结构数据的存储，如一个企业的部门，schema 通常设计成这样子： 1
+2
+3
+4
+5 Column | Type | &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/11/04/tree-data/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Tree Data</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-11-04T12:50:00+08:00'><span class='date'>2014-11-04 12:50:00</span> <span class='time'>12:50 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>对于树形结构的数据存储，schema 的设计通常很简单，难的是其查询是否简单、方便。<br/>
+这里我所选用的数据库为：PostgreSQL，版本为：<code>9.3.5</code>。</p>
+
+<h2>数据结构设计</h2>
+
+<p>对于树形结构数据的存储，如一个企业的部门，schema 通常设计成这样子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>   <span class="k">Column</span>   <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>                        <span class="n">Modifiers</span>
+</span><span class='line'><span class="c1">------------+-----------------------------+----------------------------------------------------------</span>
+</span><span class='line'> <span class="n">id</span>         <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span> <span class="k">not</span> <span class="k">null</span> <span class="k">default</span> <span class="n">nextval</span><span class="p">(</span><span class="s1">&#39;departments_id_seq&#39;</span><span class="p">::</span><span class="n">regclass</span><span class="p">)</span>
+</span><span class='line'> <span class="n">name</span>       <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'> <span class="n">parent_id</span>  <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>理论上，这样的设计可以支持无限级，但，这里我不针对这种设计做讨论。</p>
+
+<h2>ancestry，a rails gem</h2>
+
+<p>官方的一句话介绍</p>
+
+<blockquote><p>Organise ActiveRecord model into a tree structure</p></blockquote>
+
+<p>RUBY 有几个专门处理树形结构的 GEM，上 <a href="https://www.ruby-toolbox.com/projects/ancestry">RUBY TOOLBOX</a> 一搜就可知道有哪些。<br/>
+因为公司项目里采用了 <a href="https://github.com/stefankroes/ancestry">ancestry</a>，所以这里也只是分享在这方面的实践。</p>
+
+<p>采用 ancestry 后，我们的表 schema 变成：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>   <span class="k">Column</span>   <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>                        <span class="n">Modifiers</span>
+</span><span class='line'><span class="c1">------------+-----------------------------+----------------------------------------------------------</span>
+</span><span class='line'> <span class="n">id</span>         <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span> <span class="k">not</span> <span class="k">null</span> <span class="k">default</span> <span class="n">nextval</span><span class="p">(</span><span class="s1">&#39;departments_id_seq&#39;</span><span class="p">::</span><span class="n">regclass</span><span class="p">)</span>
+</span><span class='line'> <span class="n">name</span>       <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'> <span class="n">ancestry</span>   <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'><span class="n">Indexes</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">&quot;departments_id_pkey&quot;</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">btree</span> <span class="p">(</span><span class="n">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="ss">&quot;departments_ancestry&quot;</span> <span class="n">btree</span> <span class="p">(</span><span class="n">ancestry</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是一些 Demo Data：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>  <span class="n">id</span>  <span class="o">|</span>     <span class="n">name</span>     <span class="o">|</span> <span class="n">ancestry</span>
+</span><span class='line'><span class="c1">------+--------------+----------</span>
+</span><span class='line'>    <span class="mi">1</span> <span class="o">|</span> <span class="n">root</span>        <span class="o">|</span>
+</span><span class='line'>    <span class="mi">2</span> <span class="o">|</span> <span class="err">产品研发中心</span>  <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>    <span class="mi">5</span> <span class="o">|</span> <span class="err">研发部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>    <span class="mi">6</span> <span class="o">|</span> <span class="err">产品部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>   <span class="mi">11</span> <span class="o">|</span> <span class="err">运营部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>   <span class="mi">12</span> <span class="o">|</span> <span class="err">内容开发中心</span>  <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>   <span class="mi">13</span> <span class="o">|</span> <span class="err">内容部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">12</span>
+</span><span class='line'>   <span class="mi">15</span> <span class="o">|</span> <span class="err">视频部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">12</span>
+</span><span class='line'>   <span class="mi">16</span> <span class="o">|</span> <span class="err">行政中心</span>     <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>   <span class="mi">19</span> <span class="o">|</span> <span class="err">财务部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>   <span class="mi">21</span> <span class="o">|</span> <span class="err">人力资源部</span>   <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>   <span class="mi">25</span> <span class="o">|</span> <span class="err">行政部</span>      <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>    <span class="mi">8</span> <span class="o">|</span> <span class="err">品牌市场中心</span> <span class="o">|</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用字符串类型的 ancestry 字段类替代常用的 parent_id，用以说明它从根结点到它的直接父结点的路径。<br/>
+例如：id 为 11 的记录，ancestry 的值为 <code>1/2</code>，它的父结点的路径为：<code>root/产品研发中心</code>。</p>
+
+<p>使用这种规则，你可以很方便地查询一些数据，如产品研发中心这个节点下面的所有子结点：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">ancestry</span> <span class="k">LIKE</span> <span class="s1">&#39;1/%&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ancestry 提供了一些好用的函数，让你能够直接做一些数据查询。<a href="https://github.com/stefankroes/ancestry#navigating-your-tree">乖，点这里</a></p>
+
+<h2>arrange_serializable</h2>
+
+<p>ancestry 提供的 <code>arrange_serializable</code> 方法，可以将查询出来的数据，转换成数据结构的数据。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Department</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">client_id</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">arrange_serializable</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">[{</span>
+</span><span class='line'>    <span class="err">id:</span> <span class="err">1,</span>
+</span><span class='line'>    <span class="err">name:</span> <span class="nt">&quot;root&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="err">children:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">{</span> <span class="err">id:</span> <span class="err">2,</span> <span class="err">name:</span> <span class="nt">&quot;产品研发中心&quot;</span><span class="p">,</span> <span class="err">children:</span> <span class="err">[{...</span><span class="p">},{</span><span class="err">...</span><span class="p">}]</span> <span class="err">},</span>
+</span><span class='line'>        <span class="p">{</span> <span class="err">id:</span> <span class="err">12,</span> <span class="err">name:</span> <span class="nt">&quot;内容开发中心&quot;</span><span class="p">,</span> <span class="err">children:</span> <span class="err">[{...</span><span class="p">}</span><span class="err">,</span><span class="p">{</span><span class="err">...</span><span class="p">}</span><span class="err">]</span> <span class="err">}</span>
+</span><span class='line'>    <span class="err">]</span>
+</span><span class='line'><span class="err">},</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">#...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="err">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>使用数据库函数实现</h2>
+
+<p>除了上面 ancestry 所提供的方法，我们还可以在数据库里创建 <code>FUNCTION</code>，让其能够去收集一个结点的子结点的数据。<br/>
+使用 <code>PL/pgSQL</code> 脚本，代码如下：</p>
+
+<figure class='code'><figcaption><span> (select_subtree.sql)</span> <a href='/downloads/code/20141104/select_subtree.sql'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="c1">-- 创建获取子节点的函数</span>
+</span><span class='line'><span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept_id</span> <span class="nb">INTEGER</span><span class="p">,</span> <span class="n">ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span> <span class="k">RETURNS</span> <span class="nb">TEXT</span> <span class="k">AS</span> <span class="err">$$</span>
+</span><span class='line'><span class="k">DECLARE</span>
+</span><span class='line'>  <span class="c1">-- 初始化变量</span>
+</span><span class='line'>  <span class="n">child_ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">dept</span> <span class="n">RECORD</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">children</span> <span class="nb">TEXT</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">childs</span> <span class="nb">TEXT</span><span class="p">[]</span> <span class="o">=</span> <span class="s1">&#39;{}&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">BEGIN</span>
+</span><span class='line'>  <span class="c1">-- 得到查子节点的 ancestry 变量</span>
+</span><span class='line'>  <span class="n">IF</span> <span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span>
+</span><span class='line'>    <span class="n">child_ancestry</span> <span class="p">:</span><span class="o">=</span> <span class="n">dept_id</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">ELSE</span>
+</span><span class='line'>    <span class="n">child_ancestry</span> <span class="p">:</span><span class="o">=</span> <span class="p">(</span><span class="n">ancestry</span> <span class="o">||</span> <span class="s1">&#39;/&#39;</span> <span class="o">||</span> <span class="n">dept_id</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">-- 查询其子部门</span>
+</span><span class='line'>  <span class="k">FOR</span> <span class="n">dept</span> <span class="k">IN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">departments</span><span class="p">.</span><span class="n">ancestry</span> <span class="o">=</span> <span class="n">child_ancestry</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">departments</span><span class="p">.</span><span class="n">id</span> <span class="n">LOOP</span>
+</span><span class='line'>    <span class="n">IF</span> <span class="n">dept</span><span class="p">.</span><span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span>
+</span><span class='line'>      <span class="n">childs</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_APPEND</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;{ &quot;id&quot;: &#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">id</span> <span class="o">||</span> <span class="s1">&#39;, &quot;name&quot;: &quot;&#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">name</span> <span class="o">||</span> <span class="s1">&#39;&quot;, &quot;children&quot;: []}&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">ELSE</span>
+</span><span class='line'>      <span class="n">childs</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_APPEND</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;{ &quot;id&quot;: &#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">id</span> <span class="o">||</span> <span class="s1">&#39;, &quot;name&quot;: &quot;&#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">name</span> <span class="o">||</span> <span class="s1">&#39;&quot;, &quot;children&quot;:&#39;</span> <span class="o">||</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="n">dept</span><span class="p">.</span><span class="n">ancestry</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;}&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">END</span> <span class="n">LOOP</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">children</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_TO_STRING</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">children</span> <span class="p">:</span><span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">||</span> <span class="n">children</span> <span class="o">||</span> <span class="s1">&#39;]&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">RETURN</span> <span class="n">children</span><span class="p">;</span>
+</span><span class='line'><span class="k">END</span><span class="p">;</span>
+</span><span class='line'><span class="err">$$</span> <span class="k">LANGUAGE</span> <span class="n">plpgsql</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过 <code>psql -d dbname</code> 打开一个会话（即连接到数据库），执行上面的代码，然后就可以使用我们刚创建的 <code>FUNCTION</code> 了
+如下（项目里的 departments 表实际还有一个 <code>client_id</code> 字段）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="k">NULL</span><span class="p">)</span> <span class="k">AS</span> <span class="n">children</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">client_id</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> <span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>出来的结果大概是这样子的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">id</span>       <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">name</span>     <span class="o">|</span> <span class="n">root</span>
+</span><span class='line'><span class="n">children</span> <span class="o">|</span> <span class="p">[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;产品研发中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;研发部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;产品部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;运营部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;品牌市场中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;内容开发中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;内容部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;视频部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;行政中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;财务部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;人力资源部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;行政部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6237</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;新增部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6238</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;新增部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;体验客户&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2597</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;专家组&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5846</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;测试部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6390</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;质检部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6391</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;质检一组&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>得到的 children 是一个字符串类型，只需要简单 parse 一下，或者直接返回给客户端即可。</p>
+
+<p><strong>删除</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">DROP</span> <span class="k">FUNCTION</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept_id</span> <span class="nb">INTEGER</span><span class="p">,</span> <span class="n">ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>应用到 production</strong></p>
+
+<p>因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
+如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.cnblogs.com/yuyang-DataAnalysis/archive/2013/03/25/2981154.html">http://www.cnblogs.com/yuyang-DataAnalysis/archive/2013/03/25/2981154.html</a></li>
+<li><a href="http://www.postgresql.org/docs/9.3/static/functions.html">http://www.postgresql.org/docs/9.3/static/functions.html</a></li>
+<li><a href="http://www.postgresql.org/docs/9.1/static/sql-createaggregate.html">http://www.postgresql.org/docs/9.1/static/sql-createaggregate.html</a></li>
+<li><a href="http://www.felixgers.de/teaching/sql/sql_custom_aggregate.html">http://www.felixgers.de/teaching/sql/sql_custom_aggregate.html</a></li>
+<li><a href="http://www.cottinghams.com/david/aggregatePlPerl.shtml">http://www.cottinghams.com/david/aggregatePlPerl.shtml</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-11-04T12:50:00+08:00'><span class='date'>2014-11-04 12:50:00</span> <span class='time'>12:50 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/11/04/tree-data/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/11/04/tree-data/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/04/about-computer/" title="Previous Post: About Computer">&laquo; About Computer</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/11/06/minitest/" title="Next Post: Stub and Mock in Minitest">Stub and Mock in Minitest &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/11/04/tree-data/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/11/04/tree-data/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

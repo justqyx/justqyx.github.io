@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: docker | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/docker/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2021-09-27T06:28:44+00:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Run MySQL on Docker machine]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect/"/>
+    <updated>2016-08-05T23:59:58+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/05/docker-run-mysql-and-connect</id>
+    <content type="html"><![CDATA[<h2>使用 docker 来运行 MySQL</h2>
+
+<p>把 Docker Container 的 3306 端口映射到宿主机的端口 3306，这样我们的计算机就可以连接到虚拟机里的 3006 端口，
+从而能够连接到 Docker Container 里的 MySQL 服务。</p>
+
+<pre><code>docker run --name demo \
+           -p 3306:3306 \
+           -e MYSQL_ROOT_PASSWORD=root
+           -d mysql:5.6.27 \
+           --character-set-server=utf8mb4 \
+           --collation-server=utf8mb4_unicode_ci
+</code></pre>
+
+<p>连接到该 MySQL 服务</p>
+
+<pre><code>mysql -h 192.168.99.100 -u root -p
+</code></pre>
+
+<p>相关的日志</p>
+
+<pre><code>➜  ~ mysql -h 192.168.99.100 -u root -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.6.27 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+3 rows in set (0.01 sec)
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

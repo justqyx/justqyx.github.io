@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ruby App Server 常用的三种 I/O 模型 - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="所有的 Web 应用都遵循着一个基本模型。首先，它们需要从一些 I/O 通道接收 HTTP 请求，
+然后处理这些请求，最后输出 HTTP 响应体，这个响应体将会被发送回 HTTP 客户端。
+这个 HTTP 客户端通常是 Web 浏览器，又或者是一些像 curl 这一类的工具，又或者是搜索引擎的爬虫 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/02/17/ruby-app-server/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Ruby App Server 常用的三种 I/O 模型</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-17T11:06:27+08:00'><span class='date'>2016-02-17 11:06:27</span> <span class='time'>11:06 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>所有的 Web 应用都遵循着一个基本模型。首先，它们需要从一些 I/O 通道接收 HTTP 请求，
+然后处理这些请求，最后输出 HTTP 响应体，这个响应体将会被发送回 HTTP 客户端。
+这个 HTTP 客户端通常是 Web 浏览器，又或者是一些像 curl 这一类的工具，又或者是搜索引擎的爬虫。</p>
+
+<h2>Ruby app server</h2>
+
+<p>Ruby app server 其实就是 HTTP Server，能与 HTTP client 直接进行对话的服务。<br/>
+Ruby 里常见的 app server 的有 thin、Unicorn、Puma、Passenger。</p>
+
+<h2>Ruby web app</h2>
+
+<p>Ruby web app 是基于像 Rails、Sinatra 这一类框架所构建出来的应用，它并不直接与 HTTP 打交道。</p>
+
+<p>如果 Ruby web app 直接与 HTTP 请求打交道的话，那么每一个 Ruby Web app 都需要实现与 HTTP 打交道，
+所以为了简化这一过程，Ruby web app 只需要与一个被抽象过的 HTTP 请求和响应打交道，在 Ruby 生态里，最流行的便是 Rack。</p>
+
+<p>Unicorn、Puma 和 Passenger 这一类的 app server 实现了 Rack 接口，因此 Ruby web app 能够和 Ruby app server
+进行无缝对接。</p>
+
+<p><img src="/downloads/images/rack.png"></p>
+
+<p>理解完 Ruby app server 和 Ruby web app 的概念后，让我们来看看常见的三种连接处理和 I/O 模型（Connection handling and I/O models）。</p>
+
+<h2>Multi-process blocking I/O</h2>
+
+<p><img src="/downloads/images/multi-process-io.png"></p>
+
+<p>一个进程每次只处理一个客户端（的请求），通过多进程的方式来实现并发。</p>
+
+<p>读操作会被阻塞如果另一端没有发送任何数据，同样写操作也会被阻塞如果另一端接收数据太慢。
+因为这样的特性，所以一个进程每次只能处理一个客户端（的请求）。
+想要处理多少个客户端（的请求），就需要多少个进程。</p>
+
+<p>这是一种传统的 I/O 模型，被 Unicorn 和 <a href="http://httpd.apache.org/docs/current/mod/prefork.html">Apache with the prefork NPM</a> 所采用。</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>使用非常简单</li>
+<li>线程安全</li>
+</ul>
+
+
+<p><strong>缺点</strong></p>
+
+<ul>
+<li>进程开销大</li>
+<li>I/O 阻塞导致吞吐量低</li>
+</ul>
+
+
+<h2>Multi-threaded blocking I/O</h2>
+
+<p><img src="/downloads/images/multithreaded-io.png"></p>
+
+<p>I/O 调用仍然会阻塞，但通过创建线程来替代进程。
+一个进程可以有许多线程，每一个线程一次处理一个客户端（的请求）。
+因为线程是轻量级的，你可以使用更少的内存处理同样数量的的 I/O 并发。
+要服务 5000 个 websocket 客户端，你总共需要 5000 个线程，假设你在一个台8核的机器上运行了
+8 个应用进程，那么每个进程需要配置 625 个线程，这对于 Ruby 和 OS 来说是非常容易的。
+一个进程可能需要 1GB 或者更少的内存，这样对于 8 个进程来说需要 8GB 的内存，
+比起多进程阻塞 I/O 模型来说的 1.2TB 来说是非常小的。</p>
+
+<p>这个 I/O 模型被 Torquebox 和 <a href="http://httpd.apache.org/docs/current/mod/worker.html">Apache with the worker MPM</a> 所使用。
+也是 Puma 经常使用的模型之一，Puma 采用了一种带限制的混合策略。</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>对于类似 <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel">embarassingly parallel</a> 的工作负载，
+比如 web 请求，使用线程来处理客户端 I/O 还是非常容易的。</li>
+</ul>
+
+
+<p><strong>缺点</strong></p>
+
+<ul>
+<li>应用程序所有的代码和依赖的库必须是线程安全的</li>
+<li>应用服务必须被反向代理保护，原因和多进程 I/O 模型一样，相比较而言，虽然多线程的应用服务不太容易受 slow client 影响，
+但是也并没有完全解决 slow client 的问题</li>
+</ul>
+
+
+<h2>Evented I/O</h2>
+
+<p><img src="/downloads/images/event-io.png"></p>
+
+<p>在这种模型里，I/O 调用完全不会被阻塞。
+当另一端没有发送数据，或者接收数据太慢，I/O 调用只是返回一个特定的错误。
+应用程序有一个持续监听并响应 I/O 事件的事件循环，当没有事件时，该循环会进入睡眠状态。</p>
+
+<p>这是目前最为怪异（weirdest）和难以编写的一种 I/O 模型。
+它需要与前面两种模型完全不同的方法，当多进程阻塞 I/O 模型的代码非常容易转换成为多线程阻塞 I/O 模型的代码，
+但是如果使用 Evented I/O 模型的话，通常情况下代码需要重写。使用 Evented I/O 模型的程序需要特定的设计。</p>
+
+<p>这样的 I/O 模型被 Nignx、Nodejs 和 Thin 所采用，同时它也被 Puma 部分采用以限制 slow client 达到保护的目的。</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>使用这个模型你可以仅仅使用一个进程和一个线程便可以处理无限量的 I/O 并发，同时资源使用也非常少。
+虽然多线程已经能够处理非常多的 I/O 并发，但 Evented I/O 还要多得多。</li>
+<li>采用该模型的服务器，对 slow client 是免疫的（immune），所以可以不需要一个缓冲反向代理。</li>
+</ul>
+
+
+<p><strong>缺点</strong></p>
+
+<ul>
+<li>相比于阻塞型 I/O 模型，事件模型要难掌握地多，并且需要你时刻记住应用代码和库要适配该模型。</li>
+</ul>
+
+
+<h2>经验</h2>
+
+<p>Nginx + Unicorn 是一个不错的选择，并且 Unicorn 支持 hot restart，部署过程对用户的使用影响较小。</p>
+
+<p>如果遇到 websocket 这一类的需求，那么 Puma (support hot restart) 单独部署这需求相关的功能是不错的。</p>
+
+<p>如果遇到高 I/O 的场景，如消息群发通知，那么使用 Node来实现与外部服务交互，性能是比较理想的。相信 Rubist 都会 Node。</p>
+
+<h2>Ref</h2>
+
+<ul>
+<li><a href="http://www.rubyraptor.org/how-we-made-raptor-up-to-4x-faster-than-unicorn-and-up-to-2x-faster-than-puma-torquebox">How we made raptor up to 4x faster than unicorn and up to 2x faster than puma torquebox</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-02-17T11:06:27+08:00'><span class='date'>2016-02-17 11:06:27</span> <span class='time'>11:06 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/02/17/ruby-app-server/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/02/17/ruby-app-server/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/02/16/books-reading-this-year/" title="Previous Post: 今年要读的书">&laquo; 今年要读的书</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/03/04/how-do-i-collect-tech-infomation/" title="Next Post: How do I collect tech infomation">How do I collect tech infomation &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/02/17/ruby-app-server/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/02/17/ruby-app-server/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

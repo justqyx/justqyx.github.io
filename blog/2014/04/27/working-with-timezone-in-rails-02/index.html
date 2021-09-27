@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Working With Timezone in Rails(02) - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="在 上一篇 里，
+我们讲了 MySQL 和 PostgreSQL 在时区处理上的区别，这一篇里，我们主要讲 Rails 里时区的处理。 日期地存储、处理、显示 对于一个带数据库的应用来说，你必须要去关注的几个问题：日期的存储、日期的处理、日期的显示。 日期的存储，即一个日期存入数据库时， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Working With Timezone in Rails(02)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-27T20:30:00+08:00'><span class='date'>2014-04-27 20:30:00</span> <span class='time'>8:30 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>在 <a href="/blog/2014/04/27/working-with-timezone-in-rails-01">上一篇</a> 里，
+我们讲了 MySQL 和 PostgreSQL 在时区处理上的区别，这一篇里，我们主要讲 Rails 里时区的处理。</p>
+
+<h2>日期地存储、处理、显示</h2>
+
+<p>对于一个带数据库的应用来说，你必须要去关注的几个问题：日期的存储、日期的处理、日期的显示。</p>
+
+<ul>
+<li>日期的存储，即一个日期存入数据库时，你要采用的是何种时区去存储；</li>
+<li>日期的处理，即从数据库拿到的日期数据，你要能把它正确地解析出来；</li>
+<li>日期的显示，即拿到正确的日期后，你要以何种时区去使用和显示。</li>
+</ul>
+
+
+<p>例如：<br>
+现在我们手里有一个本地的时间 <code>2014-04-27 08:00:00 +08:00</code>，
+当你以 UTC 格式 <code>2014-04-27 00:00:00 +00:00</code> 存入数据库，
+相应地，<br>
+在东八区，你要能显示成：<code>2014-04-27 08:00:00 +08:00</code> <br>
+在东七区，你要能显示成：<code>2014-04-27 07:00:00 +07:00</code></p>
+
+<h2>Rails 时区配置</h2>
+
+<p>在 Rails 里，时区的设置有下面两个选项，默认值都是 <code>:utc</code>，
+可以到 <a href="http://guides.rubyonrails.org/configuring.html">Rails Guide</a>  查看。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>config.active_record.default_timezone = :utc
+</span><span class='line'>config.time_zone = :utc</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>config.active_record.default_timezone</h2>
+
+<p>这个设置是指明当与数据库交互时使用的时区，即前一篇提到的 <code>当前session的时区</code>，
+它只支持 <code>:local</code> 和 <code>:utc</code> 两个选项。</p>
+
+<p>我曾经疑惑为什么只支持这两种，后来发现道理其实很简单。</p>
+
+<p>如果应用的使用人群有跨时区的话，那么存储和处理都应该使用 UTC，显示的时候再根据当地的时区去显示；<br>
+如果应用的使用人群不跨时区的话，那么存储和处理都可以随你自己定，一般都选择当地时区或者UTC，总不会说在东八区，然后你硬要用东七区的时区存，那么这在处理的时候得多蛋疼，稍微不注意就错了，这不是给自己找罪受么。</p>
+
+<h2>config.time_zone</h2>
+
+<p>这个设置指明，在 Ruby 代码里，处理和使用时所用的时区，天朝的码农一般都是配置成 <code>'Beijing'</code>。
+<code>'Beijing'</code> 这个值，其实是被映射成为了 <code>Asia/Shanghai</code> 这个值，
+可以从 <a href="http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html">这里</a> 看到。</p>
+
+<h2>例子</h2>
+
+<p>本例子基于：数据库的时区都设置为 <code>'+08:00'</code>，并且如果时 PG，存储的字段也不带时区。</p>
+
+<p>如果数据库里存的是: <code>2014-04-27 00:00:00</code>，则：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># Example 1</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">default_timezone</span> <span class="o">=</span> <span class="ss">:utc</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 08:00:00 +08:00</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># Example 2</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">default_timezone</span> <span class="o">=</span> <span class="ss">:local</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 00:00:00 +08:00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面提到了如果数据库是PG，那么字段也不带时区。这么说是因为，如果字段带了时区，即 <code>timestamp with time zone</code>，那么无论你当前 session 时区是什么，传过来的时间字符有没有带时区，PG都会自动帮你做相应的转换，结果就不再是上面的结果了，而是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config.active_record.default_timezone 无论是 :local 还是 :utc</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 08:00:00 +08:00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<ol>
+<li>对于一个带数据存储的应用来说，我们需要去考虑日期类数据的存储、处理和显示</li>
+<li>在 Rails 中，你需要了解时区的设置并根据你的需要配置好上面说的两个选项</li>
+<li>对于本地时间的显示，37singals 提供了一个解决方案， <a href="https://github.com/basecamp/local_time">查看这里</a></li>
+</ol>
+
+
+<p>而对于在实际项目中，数据库的时区设置应该如何去选择，
+而相应的在 Rails 里这两个选项应该如何设置
+以及一些需要注意的问题，将在<a href="/blog/2014/05/18/working-with-timezone-in-rails-03">下一篇</a>中阐述。</p>
+
+<p><br /></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-04-27T20:30:00+08:00'><span class='date'>2014-04-27 20:30:00</span> <span class='time'>8:30 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rails/'>rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/04/27/working-with-timezone-in-rails-01/" title="Previous Post: Working with timezone in Rails(01)">&laquo; Working with timezone in Rails(01)</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/05/18/working-with-timezone-in-rails-03/" title="Next Post: Working with timezone in Rails(03)">Working with timezone in Rails(03) &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/';
+        var disqus_url = 'http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

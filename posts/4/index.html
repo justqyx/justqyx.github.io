@@ -1,0 +1,1619 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="Create and configure lightweight, reproducible, and portable development environments.
+创建和配置轻量级的、可复制的和便于携带的开发环境。 Vagrant 是一个工具，可以快速地构建、 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/posts/4/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/19/vagrant/">Vagrant</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-12-19T14:42:37+08:00'><span class='date'>2014-12-19 14:42:37</span> <span class='time'>2:42 pm</span></time>
+        
+           | <a href="/blog/2014/12/19/vagrant/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/12/19/vagrant/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>Create and configure lightweight, reproducible, and portable development environments.<br/>
+创建和配置轻量级的、可复制的和便于携带的开发环境。</p></blockquote>
+
+<p><a href="https://www.vagrantup.com/">Vagrant</a> 是一个工具，可以快速地构建、重建一个干净的或配置好的虚拟机环境，以供开发和测试。 <br/>
+同时还可以将虚拟机打包，并复制分发给其他人使用，这样能保证所有开发环境是完全一致，<br/>
+无论他们是在 Linux 还是 Windows 下，还是 OSX 下。</p>
+
+<h2>基本操作</h2>
+
+<p>在项目根目录下，通过 <code>vagrant init {box_name}</code> 可初始化一切基本的配置，并再通过 <code>vagrant up</code> 即可启动虚拟机。<br/></p>
+
+<p>至此，就拥有了一个只与当前项目相关的完整的虚拟机环境。例如，如果你选择的是 ubuntu 的话，<br/>
+那么你就拥有了一个 ubuntu 环境，通过<code>vagrant ssh</code>即可登陆到虚拟机。</p>
+
+<p>另外，它还会自动地把项目目录挂载到虚拟机的 <code>/vagrant</code> 目录下，<br/>
+你当前项目目录下所有目录文件修改，都会实时反馈到虚拟机里。</p>
+
+<p>例如，我们正在开发一个 rails 项目，那么我们可以在虚拟机里，启动一个 rails server，<br/>
+并通过在 Vagrantfile 配置文件里设置端口映射，我们就可以在本机的浏览器直接访问虚拟机里的服务了，<br/>
+而写代码，则可以在我们的主机里写，想想还是挺鸡冻的 😄，Mac 用户可直接无视。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 将本机的3000端口映射到虚拟机里的3000端口</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="ss">:forwarded_port</span><span class="p">,</span> <span class="ss">guest</span><span class="p">:</span> <span class="mi">3000</span><span class="p">,</span> <span class="ss">host</span><span class="p">:</span> <span class="mi">3000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当虚拟机的环境被搞烂了，我们还可以<br/>
+通过 <code>vagrant destroy</code> 即可删除 box，即虚拟机。<br/>
+通过 <code>vagrant up</code> 即可重新启动，并载入干净的 box。</p>
+
+<p>当我们在调试 chef app 的时候，经常就需要这么干！这整个过程一般在一两分钟内即可完成。<br/>
+并且如果选择 Virtual Box 作为虚拟机平台的时候，我们还可以禁用掉了窗口，这酸爽啊！</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 在 Vagrantfile 配置文件里注释掉这几行代码</span>
+</span><span class='line'><span class="c1"># config.vm.provider :virtualbox do |vb|</span>
+</span><span class='line'><span class="c1">#   # Don&#39;t boot with headless mode</span>
+</span><span class='line'><span class="c1">#   vb.gui = true</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1">#   # Use VBoxManage to customize the VM. For example to change memory:</span>
+</span><span class='line'><span class="c1">#   vb.customize [&quot;modifyvm&quot;, :id, &quot;--memory&quot;, &quot;1024&quot;]</span>
+</span><span class='line'><span class="c1"># end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面是 vagrant 的全部命令，通过 vagrant list-commands 即可获得。</p>
+
+<pre><code>➜  chef_pratice git:(master) vagrant list-commands
+Below is a listing of all available Vagrant commands and a brief
+description of what they do.
+
+box             manages boxes: installation, removal, etc.
+connect         connect to a remotely shared Vagrant environment
+destroy         stops and deletes all traces of the vagrant machine
+docker-logs     outputs the logs from the Docker container
+docker-run      run a one-off command in the context of a container
+global-status   outputs status Vagrant environments for this user
+halt            stops the vagrant machine
+help            shows the help for a subcommand
+init            initializes a new Vagrant environment by creating a Vagrantfile
+list-commands   outputs all available Vagrant subcommands, even non-primary ones
+login           log in to HashiCorp's Atlas
+package         packages a running vagrant environment into a box
+plugin          manages plugins: install, uninstall, update, etc.
+provision       provisions the vagrant machine
+push            deploys code in this environment to a configured destination
+rdp             connects to machine via RDP
+reload          restarts vagrant machine, loads new Vagrantfile configuration
+resume          resume a suspended vagrant machine
+rsync           syncs rsync synced folders to remote machine
+rsync-auto      syncs rsync synced folders automatically when files change
+share           share your Vagrant environment with anyone in the world
+ssh             connects to machine via SSH
+ssh-config      outputs OpenSSH valid configuration to connect to the machine
+status          outputs status of the vagrant machine
+suspend         suspends the machine
+up              starts and provisions the vagrant environment
+version         prints current and latest Vagrant version
+</code></pre>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://docs.vagrantup.com/v2/getting-started/index.html">Vagrant Doc</a></li>
+<li><a href="http://www.vagrantbox.es/">Vagrant Boxes</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/10/kill-postgres-hang-query/">Kill Postgres Hang Query</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-12-10T16:20:05+08:00'><span class='date'>2014-12-10 16:20:05</span> <span class='time'>4:20 pm</span></time>
+        
+           | <a href="/blog/2014/12/10/kill-postgres-hang-query/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/12/10/kill-postgres-hang-query/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天，在服务器上面拉了一份数据后，导入了单张表的数据，但发现索引都没有了。</p>
+
+<p>于是开了两个 session，两边都跑创建索引的 SQL，没想到这时候竟然出现了 <code>deadlock detected</code> 的错误。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ERROR:  deadlock detected
+</span><span class='line'>DETAIL:  Process 18131 waits for ShareLock on virtual transaction 3/221; blocked by process 18295.
+</span><span class='line'>Process 18295 waits for ShareUpdateExclusiveLock on relation 693783 of database 577626; blocked by process 18131.
+</span><span class='line'>HINT:  See server log for query details.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看数据库的 pg_stat_activity，看看有哪些 query 在进行。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SELECT * from pg_stat_activity</span></code></pre></td></tr></table></div></figure>
+
+
+<p>得到的其中相关的数据</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>datid            | 577626
+</span><span class='line'>datname          | test_db
+</span><span class='line'>pid              | 18131
+</span><span class='line'>usesysid         | 10
+</span><span class='line'>usename          | John
+</span><span class='line'>application_name | psql
+</span><span class='line'>client_addr      |
+</span><span class='line'>client_hostname  |
+</span><span class='line'>client_port      | -1
+</span><span class='line'>backend_start    | 2014-12-10 15:48:28.064723+08
+</span><span class='line'>xact_start       | 2014-12-10 16:23:59.189095+08
+</span><span class='line'>query_start      | 2014-12-10 16:23:59.189095+08
+</span><span class='line'>state_change     | 2014-12-10 16:23:59.189098+08
+</span><span class='line'>waiting          | t
+</span><span class='line'>state            | active
+</span><span class='line'>query            | CREATE INDEX index_events_on_source_event ON events USING btree (source_event);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现，这个 query 一直处于等待的状态。解决方案就是移除这个 query 就好了。</p>
+
+<p>打开另外一个终端，执行 <code>ps -ef | grep postgres</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>➜  ~  ps -ef | grep postgres
+</span><span class='line'>  501   642   357   0  9:58PM ??         0:03.91 postgres: checkpointer process
+</span><span class='line'>  501   643   357   0  9:58PM ??         0:00.70 postgres: writer process
+</span><span class='line'>  501   644   357   0  9:58PM ??         0:02.41 postgres: wal writer process
+</span><span class='line'>  501   645   357   0  9:58PM ??         0:02.68 postgres: autovacuum launcher process
+</span><span class='line'>  501   646   357   0  9:58PM ??         0:05.16 postgres: stats collector process
+</span><span class='line'>  501 18131   357   0  3:48PM ??         7:36.41 postgres: John test_db [local] idle
+</span><span class='line'>  501 18295   357   0  3:54PM ??        12:46.07 postgres: John test_db [local] CREATE INDEX
+</span><span class='line'>  501 18963 18753   0  4:16PM ttys000    0:00.00 grep postgres</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时候就看到了 <code>CREATE INDEX</code>，干掉这个进程就可以了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>kill -TERM 18295</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/06/minitest/">Stub and Mock in Minitest</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-11-06T20:32:48+08:00'><span class='date'>2014-11-06 20:32:48</span> <span class='time'>8:32 pm</span></time>
+        
+           | <a href="/blog/2014/11/06/minitest/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/11/06/minitest/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Stubs 和 Mocks 在写测试时，经常会需要用到，
+而 minitest（5.4.x） 文档在这两个地方有点难懂。</p>
+
+<p>官方的对 Stub 的实现很弱，基本不可用，
+有个 <em>minitest-stub_any_instance</em> 扩展可以满足我们的需要，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gem install minitest-stub_any_instance -v '1.0.0'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来看例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s2">&quot;minitest/autorun&quot;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s2">&quot;minitest/stub_any_instance&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Book</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="nb">name</span><span class="p">;</span> <span class="vi">@name</span> <span class="o">=</span> <span class="nb">name</span><span class="p">;</span> <span class="k">end</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">name</span><span class="p">;</span> <span class="vi">@name</span><span class="p">;</span> <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">describe</span> <span class="no">Book</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">it</span> <span class="s2">&quot;stub example&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">Book</span><span class="o">.</span><span class="n">stub_any_instance</span> <span class="ss">:name</span><span class="p">,</span> <span class="s2">&quot;Computer Systems&quot;</span> <span class="k">do</span>
+</span><span class='line'>      <span class="n">book</span> <span class="o">=</span> <span class="no">Book</span><span class="o">.</span><span class="n">new</span> <span class="s2">&quot;SICP&quot;</span>
+</span><span class='line'>      <span class="n">book</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">must_equal</span> <span class="s2">&quot;Computer Systems&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而对于 mock，官方的实现不错，下面是一个例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s2">&quot;minitest/autorun&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Book</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="nb">name</span><span class="p">;</span> <span class="vi">@name</span> <span class="o">=</span> <span class="nb">name</span><span class="p">;</span> <span class="k">end</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">name</span><span class="p">;</span> <span class="vi">@name</span><span class="p">;</span> <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">describe</span> <span class="no">Book</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">it</span> <span class="s2">&quot;mock example&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">book</span> <span class="o">=</span> <span class="no">MiniTest</span><span class="o">::</span><span class="no">Mock</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:name</span><span class="p">,</span> <span class="s2">&quot;Computer Systems&quot;</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:price</span><span class="p">,</span> <span class="mi">100</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">expect</span> <span class="ss">:can_buy?</span><span class="p">,</span> <span class="kp">false</span><span class="p">,</span> <span class="o">[</span><span class="mi">80</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">must_equal</span> <span class="s2">&quot;Computer Systems&quot;</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">price</span><span class="o">.</span><span class="n">must_equal</span> <span class="mi">100</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">can_buy?</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">book</span><span class="o">.</span><span class="n">verify</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://docs.seattlerb.org/minitest/Minitest/Mock.html#method-i-expect">官方的文档</a>里有 <code>expect</code> 和 <code>verify</code> 这两个函数的文档。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/04/tree-data/">Tree Data</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-11-04T12:50:00+08:00'><span class='date'>2014-11-04 12:50:00</span> <span class='time'>12:50 pm</span></time>
+        
+           | <a href="/blog/2014/11/04/tree-data/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/11/04/tree-data/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>对于树形结构的数据存储，schema 的设计通常很简单，难的是其查询是否简单、方便。<br/>
+这里我所选用的数据库为：PostgreSQL，版本为：<code>9.3.5</code>。</p>
+
+<h2>数据结构设计</h2>
+
+<p>对于树形结构数据的存储，如一个企业的部门，schema 通常设计成这样子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>   <span class="k">Column</span>   <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>                        <span class="n">Modifiers</span>
+</span><span class='line'><span class="c1">------------+-----------------------------+----------------------------------------------------------</span>
+</span><span class='line'> <span class="n">id</span>         <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span> <span class="k">not</span> <span class="k">null</span> <span class="k">default</span> <span class="n">nextval</span><span class="p">(</span><span class="s1">&#39;departments_id_seq&#39;</span><span class="p">::</span><span class="n">regclass</span><span class="p">)</span>
+</span><span class='line'> <span class="n">name</span>       <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'> <span class="n">parent_id</span>  <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>理论上，这样的设计可以支持无限级，但，这里我不针对这种设计做讨论。</p>
+
+<h2>ancestry，a rails gem</h2>
+
+<p>官方的一句话介绍</p>
+
+<blockquote><p>Organise ActiveRecord model into a tree structure</p></blockquote>
+
+<p>RUBY 有几个专门处理树形结构的 GEM，上 <a href="https://www.ruby-toolbox.com/projects/ancestry">RUBY TOOLBOX</a> 一搜就可知道有哪些。<br/>
+因为公司项目里采用了 <a href="https://github.com/stefankroes/ancestry">ancestry</a>，所以这里也只是分享在这方面的实践。</p>
+
+<p>采用 ancestry 后，我们的表 schema 变成：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>   <span class="k">Column</span>   <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>                        <span class="n">Modifiers</span>
+</span><span class='line'><span class="c1">------------+-----------------------------+----------------------------------------------------------</span>
+</span><span class='line'> <span class="n">id</span>         <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span> <span class="k">not</span> <span class="k">null</span> <span class="k">default</span> <span class="n">nextval</span><span class="p">(</span><span class="s1">&#39;departments_id_seq&#39;</span><span class="p">::</span><span class="n">regclass</span><span class="p">)</span>
+</span><span class='line'> <span class="n">name</span>       <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'> <span class="n">ancestry</span>   <span class="o">|</span> <span class="nb">character</span> <span class="nb">varying</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>      <span class="o">|</span>
+</span><span class='line'><span class="n">Indexes</span><span class="p">:</span>
+</span><span class='line'>    <span class="ss">&quot;departments_id_pkey&quot;</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">btree</span> <span class="p">(</span><span class="n">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="ss">&quot;departments_ancestry&quot;</span> <span class="n">btree</span> <span class="p">(</span><span class="n">ancestry</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是一些 Demo Data：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'>  <span class="n">id</span>  <span class="o">|</span>     <span class="n">name</span>     <span class="o">|</span> <span class="n">ancestry</span>
+</span><span class='line'><span class="c1">------+--------------+----------</span>
+</span><span class='line'>    <span class="mi">1</span> <span class="o">|</span> <span class="n">root</span>        <span class="o">|</span>
+</span><span class='line'>    <span class="mi">2</span> <span class="o">|</span> <span class="err">产品研发中心</span>  <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>    <span class="mi">5</span> <span class="o">|</span> <span class="err">研发部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>    <span class="mi">6</span> <span class="o">|</span> <span class="err">产品部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>   <span class="mi">11</span> <span class="o">|</span> <span class="err">运营部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+</span><span class='line'>   <span class="mi">12</span> <span class="o">|</span> <span class="err">内容开发中心</span>  <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>   <span class="mi">13</span> <span class="o">|</span> <span class="err">内容部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">12</span>
+</span><span class='line'>   <span class="mi">15</span> <span class="o">|</span> <span class="err">视频部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">12</span>
+</span><span class='line'>   <span class="mi">16</span> <span class="o">|</span> <span class="err">行政中心</span>     <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'>   <span class="mi">19</span> <span class="o">|</span> <span class="err">财务部</span>       <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>   <span class="mi">21</span> <span class="o">|</span> <span class="err">人力资源部</span>   <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>   <span class="mi">25</span> <span class="o">|</span> <span class="err">行政部</span>      <span class="o">|</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>
+</span><span class='line'>    <span class="mi">8</span> <span class="o">|</span> <span class="err">品牌市场中心</span> <span class="o">|</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用字符串类型的 ancestry 字段类替代常用的 parent_id，用以说明它从根结点到它的直接父结点的路径。<br/>
+例如：id 为 11 的记录，ancestry 的值为 <code>1/2</code>，它的父结点的路径为：<code>root/产品研发中心</code>。</p>
+
+<p>使用这种规则，你可以很方便地查询一些数据，如产品研发中心这个节点下面的所有子结点：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">ancestry</span> <span class="k">LIKE</span> <span class="s1">&#39;1/%&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ancestry 提供了一些好用的函数，让你能够直接做一些数据查询。<a href="https://github.com/stefankroes/ancestry#navigating-your-tree">乖，点这里</a></p>
+
+<h2>arrange_serializable</h2>
+
+<p>ancestry 提供的 <code>arrange_serializable</code> 方法，可以将查询出来的数据，转换成数据结构的数据。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Department</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">client_id</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">arrange_serializable</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">[{</span>
+</span><span class='line'>    <span class="err">id:</span> <span class="err">1,</span>
+</span><span class='line'>    <span class="err">name:</span> <span class="nt">&quot;root&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="err">children:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">{</span> <span class="err">id:</span> <span class="err">2,</span> <span class="err">name:</span> <span class="nt">&quot;产品研发中心&quot;</span><span class="p">,</span> <span class="err">children:</span> <span class="err">[{...</span><span class="p">},{</span><span class="err">...</span><span class="p">}]</span> <span class="err">},</span>
+</span><span class='line'>        <span class="p">{</span> <span class="err">id:</span> <span class="err">12,</span> <span class="err">name:</span> <span class="nt">&quot;内容开发中心&quot;</span><span class="p">,</span> <span class="err">children:</span> <span class="err">[{...</span><span class="p">}</span><span class="err">,</span><span class="p">{</span><span class="err">...</span><span class="p">}</span><span class="err">]</span> <span class="err">}</span>
+</span><span class='line'>    <span class="err">]</span>
+</span><span class='line'><span class="err">},</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">#...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="err">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>使用数据库函数实现</h2>
+
+<p>除了上面 ancestry 所提供的方法，我们还可以在数据库里创建 <code>FUNCTION</code>，让其能够去收集一个结点的子结点的数据。<br/>
+使用 <code>PL/pgSQL</code> 脚本，代码如下：</p>
+
+<figure class='code'><figcaption><span> (select_subtree.sql)</span> <a href='/downloads/code/20141104/select_subtree.sql'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="c1">-- 创建获取子节点的函数</span>
+</span><span class='line'><span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept_id</span> <span class="nb">INTEGER</span><span class="p">,</span> <span class="n">ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span> <span class="k">RETURNS</span> <span class="nb">TEXT</span> <span class="k">AS</span> <span class="err">$$</span>
+</span><span class='line'><span class="k">DECLARE</span>
+</span><span class='line'>  <span class="c1">-- 初始化变量</span>
+</span><span class='line'>  <span class="n">child_ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">dept</span> <span class="n">RECORD</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">children</span> <span class="nb">TEXT</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">childs</span> <span class="nb">TEXT</span><span class="p">[]</span> <span class="o">=</span> <span class="s1">&#39;{}&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">BEGIN</span>
+</span><span class='line'>  <span class="c1">-- 得到查子节点的 ancestry 变量</span>
+</span><span class='line'>  <span class="n">IF</span> <span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span>
+</span><span class='line'>    <span class="n">child_ancestry</span> <span class="p">:</span><span class="o">=</span> <span class="n">dept_id</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">ELSE</span>
+</span><span class='line'>    <span class="n">child_ancestry</span> <span class="p">:</span><span class="o">=</span> <span class="p">(</span><span class="n">ancestry</span> <span class="o">||</span> <span class="s1">&#39;/&#39;</span> <span class="o">||</span> <span class="n">dept_id</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">-- 查询其子部门</span>
+</span><span class='line'>  <span class="k">FOR</span> <span class="n">dept</span> <span class="k">IN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">departments</span><span class="p">.</span><span class="n">ancestry</span> <span class="o">=</span> <span class="n">child_ancestry</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">departments</span><span class="p">.</span><span class="n">id</span> <span class="n">LOOP</span>
+</span><span class='line'>    <span class="n">IF</span> <span class="n">dept</span><span class="p">.</span><span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span>
+</span><span class='line'>      <span class="n">childs</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_APPEND</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;{ &quot;id&quot;: &#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">id</span> <span class="o">||</span> <span class="s1">&#39;, &quot;name&quot;: &quot;&#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">name</span> <span class="o">||</span> <span class="s1">&#39;&quot;, &quot;children&quot;: []}&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">ELSE</span>
+</span><span class='line'>      <span class="n">childs</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_APPEND</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;{ &quot;id&quot;: &#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">id</span> <span class="o">||</span> <span class="s1">&#39;, &quot;name&quot;: &quot;&#39;</span> <span class="o">||</span> <span class="n">dept</span><span class="p">.</span><span class="n">name</span> <span class="o">||</span> <span class="s1">&#39;&quot;, &quot;children&quot;:&#39;</span> <span class="o">||</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="n">dept</span><span class="p">.</span><span class="n">ancestry</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;}&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">END</span> <span class="n">LOOP</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">children</span> <span class="p">:</span><span class="o">=</span> <span class="n">ARRAY_TO_STRING</span><span class="p">(</span><span class="n">childs</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">children</span> <span class="p">:</span><span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">||</span> <span class="n">children</span> <span class="o">||</span> <span class="s1">&#39;]&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">RETURN</span> <span class="n">children</span><span class="p">;</span>
+</span><span class='line'><span class="k">END</span><span class="p">;</span>
+</span><span class='line'><span class="err">$$</span> <span class="k">LANGUAGE</span> <span class="n">plpgsql</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过 <code>psql -d dbname</code> 打开一个会话（即连接到数据库），执行上面的代码，然后就可以使用我们刚创建的 <code>FUNCTION</code> 了
+如下（项目里的 departments 表实际还有一个 <code>client_id</code> 字段）：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="k">NULL</span><span class="p">)</span> <span class="k">AS</span> <span class="n">children</span> <span class="k">FROM</span> <span class="n">departments</span> <span class="k">WHERE</span> <span class="n">client_id</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> <span class="n">ancestry</span> <span class="k">IS</span> <span class="k">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>出来的结果大概是这样子的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">id</span>       <span class="o">|</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">name</span>     <span class="o">|</span> <span class="n">root</span>
+</span><span class='line'><span class="n">children</span> <span class="o">|</span> <span class="p">[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;产品研发中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;研发部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;产品部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;运营部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;品牌市场中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;内容开发中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;内容部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;视频部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;行政中心&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;财务部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;人力资源部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;行政部&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6237</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;新增部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6238</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;新增部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;体验客户&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2597</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;专家组&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5846</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;测试部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">,</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6390</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;质检部门&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[</span><span class="err">{</span> <span class="ss">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6391</span><span class="p">,</span> <span class="ss">&quot;name&quot;</span><span class="p">:</span> <span class="ss">&quot;质检一组&quot;</span><span class="p">,</span> <span class="ss">&quot;children&quot;</span><span class="p">:[]</span><span class="err">}</span><span class="p">]</span><span class="err">}</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>得到的 children 是一个字符串类型，只需要简单 parse 一下，或者直接返回给客户端即可。</p>
+
+<p><strong>删除</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">DROP</span> <span class="k">FUNCTION</span> <span class="n">collect_childs_func</span><span class="p">(</span><span class="n">dept_id</span> <span class="nb">INTEGER</span><span class="p">,</span> <span class="n">ancestry</span> <span class="nb">CHARACTER</span> <span class="nb">VARYING</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>应用到 production</strong></p>
+
+<p>因为创建函数需要较高的权限，所以为避免错误，直接在线上的数据库跑一下代码即可，而不要写在 migration 里，然后在项目文档里写一下说明即可。
+如果你的项目的数据库有很多台，就再去考虑自动化的事情就好了。</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.cnblogs.com/yuyang-DataAnalysis/archive/2013/03/25/2981154.html">http://www.cnblogs.com/yuyang-DataAnalysis/archive/2013/03/25/2981154.html</a></li>
+<li><a href="http://www.postgresql.org/docs/9.3/static/functions.html">http://www.postgresql.org/docs/9.3/static/functions.html</a></li>
+<li><a href="http://www.postgresql.org/docs/9.1/static/sql-createaggregate.html">http://www.postgresql.org/docs/9.1/static/sql-createaggregate.html</a></li>
+<li><a href="http://www.felixgers.de/teaching/sql/sql_custom_aggregate.html">http://www.felixgers.de/teaching/sql/sql_custom_aggregate.html</a></li>
+<li><a href="http://www.cottinghams.com/david/aggregatePlPerl.shtml">http://www.cottinghams.com/david/aggregatePlPerl.shtml</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/04/about-computer/">About Computer</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-11-04T12:49:44+08:00'><span class='date'>2014-11-04 12:49:44</span> <span class='time'>12:49 pm</span></time>
+        
+           | <a href="/blog/2014/11/04/about-computer/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/11/04/about-computer/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在互联网开始崛起的时候，「学习」和「沟通」是人们使用电脑的主旋律。<br/>
+而到了今天，我们除了这两样，又增加了「工作」、「娱乐」这两个旋律。</p>
+
+<p>而我最疑惑的时，在今天的时代里，我们在这四者的分配分别是如何的，并且其效率有分别是怎么样的？<br/>
+而这些又是否是我们活着所必须的，又或者说，难道就没有其他活着的方式么？</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/18/about-code-refactoring/">Code Refactoring</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T17:46:10+08:00'><span class='date'>2014-05-18 17:46:10</span> <span class='time'>5:46 pm</span></time>
+        
+           | <a href="/blog/2014/05/18/about-code-refactoring/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/05/18/about-code-refactoring/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>无论是代码的编写者还是阅读者，对于一段程序本身就有很强的主观性。<br>
+代码质量的评判，决定于代码阅读者的水平而非代码编写者，因为本来就没有一个明确的标准。</p>
+
+<h2>为何要进行代码重构</h2>
+
+<ol>
+<li>已有的代码随着数据的增长或者环境的变更而暴露出的BUG</li>
+<li>已有的代码无法很好地支撑起新的需求</li>
+<li>对已有代码的极度不满，让你很不爽</li>
+</ol>
+
+
+<h2>重构成功与否的标准</h2>
+
+<p><strong>对于公司来说</strong></p>
+
+<p>不出错？什么事情也不会发生。<br>
+出错了？你干了一件非常愚蠢后果非常严重的事情!!!</p>
+
+<p><strong>对于项目来说</strong></p>
+
+<p>不出错？你干了一件不错的事情。<br>
+出错了？你怎么那么多事！</p>
+
+<p>无论你在这次重构中付出了多少心血，多少个夜晚的奋斗，
+又或者本来就不关你的事然后你为了项目里能有更好的代码你主动付出了许多个小时的奋斗，
+你还是错的。</p>
+
+<p><strong>对于个人来说</strong></p>
+
+<p>不出错？你觉得爽了、高兴了就是成功的。<br>
+出错了？你觉得爽了、高兴了就是成功的。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/18/buy-a-fkbn87m-slash-eb2-majestouch-2/">Buy a Mechanical Keyboard</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T17:04:58+08:00'><span class='date'>2014-05-18 17:04:58</span> <span class='time'>5:04 pm</span></time>
+        
+           | <a href="/blog/2014/05/18/buy-a-fkbn87m-slash-eb2-majestouch-2/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/05/18/buy-a-fkbn87m-slash-eb2-majestouch-2/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在长达一个月的犹豫纠结里，上周终于下定决心在京东上买了<a href="http://item.jd.com/959148.html">斐尔可（FILCO） FKBN87M/EB2 Majestouch 2「87圣手二代」黑色茶轴 机械键盘</a>。</p>
+
+<p><img src="/downloads/images/flico_87.jpg"></p>
+
+<p>机械键盘一般有四种轴心：黑轴、红轴、茶轴、青轴。黑轴打字声音较小，红轴跟黑轴类似，茶轴有轻微的段落感，青轴段落感最强。我的想法是既然买机械键盘，当然要买段落感比较强的，这样敲起来也很爽，但是之所以选择了茶轴而不是青轴，是因为不想在上班时被旁边的同事打。<a href="http://www.pcviva.com/dazishengyin.html">几种轴心的声音可以到这里去试听一下</a>。</p>
+
+<p>另外因为用的是 Macbook Pro，再加上此款键盘以适应 windows 系统为主，所以需要单独将这个USB外置键盘的alt和win键反过来，这样在OSX下使用起来才会比较舒服点。</p>
+
+<p>这款键盘属于千元以内的，当然比不上<a href="http://thekaiway.com/2012/08/01/got-a-hhkb-pro2">HHKB Pro2</a>，但是相对普通键盘来说，敲击所带来的感觉还是有非常大的不同的。不过有能力的话还是去购买一个更好的机械键盘。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/18/working-with-timezone-in-rails-03/">Working With Timezone in Rails(03)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-05-18T16:17:30+08:00'><span class='date'>2014-05-18 16:17:30</span> <span class='time'>4:17 pm</span></time>
+        
+           | <a href="/blog/2014/05/18/working-with-timezone-in-rails-03/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/05/18/working-with-timezone-in-rails-03/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前面两篇分别阐述了数据库对时区的不同处理处理方式和Rails中有关时区的两个选项设置。
+这篇主要阐述在不同数据库对时区不同的支持情况下，Rails项目里改如何去选择时区。</p>
+
+<h2>不支持时区</h2>
+
+<p>这里说的 <code>不支持时区</code> 是指数据库表里的字段没有时区的概念，如 MySQL5.5 版本。</p>
+
+<p>在这种情况下，如果项目使用人群是跨时区的，那么很明显地，在日期数据的存储和操作的过程中，我们都应该使用 UTC 时区，而日期数据的显示再根据本地的时区去显示。</p>
+
+<p>如果项目的使用人群并不跨时区（或着相当长的一段时间内是确定不跨时区的），那么我们的选择就比较自由了。日期数据的存储和操作可以使用 UTC，也可以使用本地时区，而显示的时候，统一用本地时区去显示。
+不过建议都统一采用本地时区，这样能避免在开发过程中出现的认为错误，如自己拼写SQL、使用AR但是非日期类型。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># 日期的存储采用了 UTC，并且字段不支持时区，但是拼写 SQL 时，以东八时区去做查询</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="s2">&quot;SELECT * FROM users WHERE created_at &gt;= &#39;2014-05-18 08:00:00&#39;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># bad</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;users.created_at &gt;= ?&quot;</span><span class="p">,</span> <span class="s1">&#39;2014-05-18 00:00:00&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="c1"># good</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;users.created_at &gt;= ?&quot;</span><span class="p">,</span> <span class="no">Time</span><span class="o">.</span><span class="n">zone</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;2014-05-18 00:00:00&#39;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>支持时区</h2>
+
+<p>如果数据库的字段支持带数据，那么在建立的时候，建议都带上时区。 虽然会带上性能上的消耗，但是在数据库处理这个层面上处理保证不出错。</p>
+
+<p>这样就简单了，如果项目的使用人群时跨时区的，那么在日期的处理和存储上都选用UTC，在显示时使用本地的时区去显示；如果项目的使用人群不跨时区，那么选用UTC和本地时区都可以（建议使用本地时区）。</p>
+
+<h2>双数据库</h2>
+
+<p>项目有时候会遇到要使用双数据库的情况，如数据平台，通常本身有会有数据库，而元数据则来自业务项目。
+这种情况下，建议采用同一种数据库，即如果业务项目里使用的是 MySQL 那么就都用 MySQL， 对于时区的选择上也使用同一种时区方案。这样开发人员就不需要总是切换思维方式，能够避免许多错误。如果已有的项目选择的是不同的数据库并且还将继续开发维护相当长一段时间，那么建议尽早迁移成同样的数据库，毕竟后期的维护成本要高于迁移的成本。</p>
+
+<h2>总结</h2>
+
+<p>总的来说，对于日期的存储和处理上取决于项目的使用人群以及开发设计人员所选择的数据库，如果选择的数据库支持时区，那么建议创建表时相应的字段都带上时区，以避免日常的开发维护中由于人员可能引起的错误。而对于多数据库，建议尽量采用同种数据库，除非你喜欢折腾并且还能保证不出错。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/27/working-with-timezone-in-rails-02/">Working With Timezone in Rails(02)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-27T20:30:00+08:00'><span class='date'>2014-04-27 20:30:00</span> <span class='time'>8:30 pm</span></time>
+        
+           | <a href="/blog/2014/04/27/working-with-timezone-in-rails-02/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-02/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在 <a href="/blog/2014/04/27/working-with-timezone-in-rails-01">上一篇</a> 里，
+我们讲了 MySQL 和 PostgreSQL 在时区处理上的区别，这一篇里，我们主要讲 Rails 里时区的处理。</p>
+
+<h2>日期地存储、处理、显示</h2>
+
+<p>对于一个带数据库的应用来说，你必须要去关注的几个问题：日期的存储、日期的处理、日期的显示。</p>
+
+<ul>
+<li>日期的存储，即一个日期存入数据库时，你要采用的是何种时区去存储；</li>
+<li>日期的处理，即从数据库拿到的日期数据，你要能把它正确地解析出来；</li>
+<li>日期的显示，即拿到正确的日期后，你要以何种时区去使用和显示。</li>
+</ul>
+
+
+<p>例如：<br>
+现在我们手里有一个本地的时间 <code>2014-04-27 08:00:00 +08:00</code>，
+当你以 UTC 格式 <code>2014-04-27 00:00:00 +00:00</code> 存入数据库，
+相应地，<br>
+在东八区，你要能显示成：<code>2014-04-27 08:00:00 +08:00</code> <br>
+在东七区，你要能显示成：<code>2014-04-27 07:00:00 +07:00</code></p>
+
+<h2>Rails 时区配置</h2>
+
+<p>在 Rails 里，时区的设置有下面两个选项，默认值都是 <code>:utc</code>，
+可以到 <a href="http://guides.rubyonrails.org/configuring.html">Rails Guide</a>  查看。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>config.active_record.default_timezone = :utc
+</span><span class='line'>config.time_zone = :utc</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>config.active_record.default_timezone</h2>
+
+<p>这个设置是指明当与数据库交互时使用的时区，即前一篇提到的 <code>当前session的时区</code>，
+它只支持 <code>:local</code> 和 <code>:utc</code> 两个选项。</p>
+
+<p>我曾经疑惑为什么只支持这两种，后来发现道理其实很简单。</p>
+
+<p>如果应用的使用人群有跨时区的话，那么存储和处理都应该使用 UTC，显示的时候再根据当地的时区去显示；<br>
+如果应用的使用人群不跨时区的话，那么存储和处理都可以随你自己定，一般都选择当地时区或者UTC，总不会说在东八区，然后你硬要用东七区的时区存，那么这在处理的时候得多蛋疼，稍微不注意就错了，这不是给自己找罪受么。</p>
+
+<h2>config.time_zone</h2>
+
+<p>这个设置指明，在 Ruby 代码里，处理和使用时所用的时区，天朝的码农一般都是配置成 <code>'Beijing'</code>。
+<code>'Beijing'</code> 这个值，其实是被映射成为了 <code>Asia/Shanghai</code> 这个值，
+可以从 <a href="http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html">这里</a> 看到。</p>
+
+<h2>例子</h2>
+
+<p>本例子基于：数据库的时区都设置为 <code>'+08:00'</code>，并且如果时 PG，存储的字段也不带时区。</p>
+
+<p>如果数据库里存的是: <code>2014-04-27 00:00:00</code>，则：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># Example 1</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">default_timezone</span> <span class="o">=</span> <span class="ss">:utc</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 08:00:00 +08:00</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># Example 2</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">default_timezone</span> <span class="o">=</span> <span class="ss">:local</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 00:00:00 +08:00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面提到了如果数据库是PG，那么字段也不带时区。这么说是因为，如果字段带了时区，即 <code>timestamp with time zone</code>，那么无论你当前 session 时区是什么，传过来的时间字符有没有带时区，PG都会自动帮你做相应的转换，结果就不再是上面的结果了，而是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># config.active_record.default_timezone 无论是 :local 还是 :utc</span>
+</span><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s1">&#39;Beijing&#39;</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># And then in console</span>
+</span><span class='line'><span class="n">user</span><span class="o">.</span><span class="n">created_at</span> <span class="c1"># =&gt; 2014-04-27 08:00:00 +08:00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<ol>
+<li>对于一个带数据存储的应用来说，我们需要去考虑日期类数据的存储、处理和显示</li>
+<li>在 Rails 中，你需要了解时区的设置并根据你的需要配置好上面说的两个选项</li>
+<li>对于本地时间的显示，37singals 提供了一个解决方案， <a href="https://github.com/basecamp/local_time">查看这里</a></li>
+</ol>
+
+
+<p>而对于在实际项目中，数据库的时区设置应该如何去选择，
+而相应的在 Rails 里这两个选项应该如何设置
+以及一些需要注意的问题，将在<a href="/blog/2014/05/18/working-with-timezone-in-rails-03">下一篇</a>中阐述。</p>
+
+<p><br /></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/27/working-with-timezone-in-rails-01/">Working With Timezone in Rails(01)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-27T19:05:00+08:00'><span class='date'>2014-04-27 19:05:00</span> <span class='time'>7:05 pm</span></time>
+        
+           | <a href="/blog/2014/04/27/working-with-timezone-in-rails-01/#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me/blog/2014/04/27/working-with-timezone-in-rails-01/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在讲 Rails 里对时区的处理前，得先来看看数据库对时区的处理到底时怎样的。</p>
+
+<p>在对时区的处理上，MySQL(v5.5) 与 PostgreSQL(v9.3) 是有一些不同的。</p>
+
+<h2>MySQL</h2>
+
+<p>通过自己的几次验证，我得到了下面的结论：</p>
+
+<ol>
+<li>MySQL 的时区默认跟系统时区是一样的，通过 <code>SELECT @@global.time_zone, @@session.time_zone;</code> 可以查看MySQL的时区和当前对话的时区</li>
+<li>当前 session 时区会影响到 <code>now()</code> 这一类内置函数的结果</li>
+<li>插入或更新数据时，MySQL 并不会去处理插入的值是否有带时区</li>
+</ol>
+
+
+<p>可以来看看下面的例子：</p>
+
+<p>查看时区和 <code>select now()</code> 的结果</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mysql&gt; SELECT @@global.time_zone, @@session.time_zone;
+</span><span class='line'>+--------------------+---------------------+
+</span><span class='line'>| @@global.time_zone | @@session.time_zone |
+</span><span class='line'>+--------------------+---------------------+
+</span><span class='line'>| SYSTEM             | SYSTEM              |
+</span><span class='line'>+--------------------+---------------------+
+</span><span class='line'>1 row in set (0.00 sec)
+</span><span class='line'>mysql&gt; select now();
+</span><span class='line'>+---------------------+
+</span><span class='line'>| now()               |
+</span><span class='line'>+---------------------+
+</span><span class='line'>| 2014-04-27 19:19:11 |
+</span><span class='line'>+---------------------+
+</span><span class='line'>1 row in set (0.00 sec)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>设置当前 session 的时区，并通过 <code>select now();</code> 来查看结果：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mysql&gt; set time_zone = '+08:00';
+</span><span class='line'>Query OK, 0 rows affected (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; select now();
+</span><span class='line'>+---------------------+
+</span><span class='line'>| now()               |
+</span><span class='line'>+---------------------+
+</span><span class='line'>| 2014-04-27 19:19:59 |
+</span><span class='line'>+---------------------+
+</span><span class='line'>1 row in set (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; set time_zone = '+00:00';
+</span><span class='line'>Query OK, 0 rows affected (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; select now();
+</span><span class='line'>+---------------------+
+</span><span class='line'>| now()               |
+</span><span class='line'>+---------------------+
+</span><span class='line'>| 2014-04-27 11:20:10 |
+</span><span class='line'>+---------------------+
+</span><span class='line'>1 row in set (0.00 sec)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>设置当前 session 的时区为 &lsquo;+08:00'（即东八区），但是插入数据时，我们用 UTC 时区的值，我们来看看结果：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mysql&gt; describe users;
+</span><span class='line'>+------------+--------------+------+-----+---------+-------+
+</span><span class='line'>| Field      | Type         | Null | Key | Default | Extra |
+</span><span class='line'>+------------+--------------+------+-----+---------+-------+
+</span><span class='line'>| name       | varchar(255) | YES  |     | NULL    |       |
+</span><span class='line'>| created_at | datetime     | YES  |     | NULL    |       |
+</span><span class='line'>+------------+--------------+------+-----+---------+-------+
+</span><span class='line'>2 rows in set (0.03 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; insert into users (name, created_at) values ('张三', '1990-01-01 00:00:00 +0000');
+</span><span class='line'>Query OK, 1 row affected, 1 warning (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; insert into users (name, created_at) values ('李四', '1990-01-01 00:00:00 +0800');
+</span><span class='line'>Query OK, 1 row affected, 1 warning (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; insert into users (name, created_at) values ('李四', '1990-01-01 00:00:00 +8:00');
+</span><span class='line'>Query OK, 1 row affected, 1 warning (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; insert into users (name, created_at) values ('李四', '1990-01-01 00:00:00 +08:00');
+</span><span class='line'>Query OK, 1 row affected, 1 warning (0.04 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; insert into users (name, created_at) values ('李四', '1990-01-01 00:00:00');
+</span><span class='line'>Query OK, 1 row affected (0.00 sec)
+</span><span class='line'>
+</span><span class='line'>mysql&gt; select * from users;
+</span><span class='line'>+--------+---------------------+
+</span><span class='line'>| name   | created_at          |
+</span><span class='line'>+--------+---------------------+
+</span><span class='line'>| 张三   | 1990-01-01 00:00:00 |
+</span><span class='line'>| 李四   | 1990-01-01 00:00:00 |
+</span><span class='line'>| 李四   | 1990-01-01 00:00:00 |
+</span><span class='line'>| 李四   | 1990-01-01 00:00:00 |
+</span><span class='line'>| 李四   | 1990-01-01 00:00:00 |
+</span><span class='line'>+--------+---------------------+
+</span><span class='line'>5 rows in set (0.00 sec)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的结果我们可以看到，只要你带了时区，MySQL 就会给你个警告，然后就不管了，截取前面时间直接就存进去了。</p>
+
+<h2>PostgreSQL</h2>
+
+<p>同样的，在 PG 中，做了一组测试之后，我得出的结论：</p>
+
+<ol>
+<li>默认时区为 GMT，具体可参考 <a href="http://www.baike.com/wiki/GMT">here</a></li>
+<li>当前 session 的设置会影响到内置的一些函数，如：now()</li>
+<li>插入或更新数据，如果更改的字段是带有时区的，那么 PG 是会对其进行转换的</li>
+</ol>
+
+
+<p>下面来看看一些验证的例子：</p>
+
+<p>不设置时区，可以看到默认为 GMT，时间可以认为跟时间标准时间(UTC)一致</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>test=# show timezone;
+</span><span class='line'> TimeZone
+</span><span class='line'>----------
+</span><span class='line'> GMT
+</span><span class='line'>(1 row)
+</span><span class='line'>
+</span><span class='line'>test=# select now();
+</span><span class='line'>              now
+</span><span class='line'>-------------------------------
+</span><span class='line'> 2014-04-27 11:57:14.541743+00
+</span><span class='line'>(1 row)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从现在开始，我们将时区设置为 &lsquo;PRC'（即东八区，中华人民共和国） 来验证</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>test=# show timezone;
+</span><span class='line'> TimeZone
+</span><span class='line'>----------
+</span><span class='line'> PRC
+</span><span class='line'>(1 row)
+</span><span class='line'>
+</span><span class='line'>test=# select now();
+</span><span class='line'>              now
+</span><span class='line'>-------------------------------
+</span><span class='line'> 2014-04-27 19:59:47.312923+08
+</span><span class='line'>(1 row)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>建立一张表，其中一个字段带有时区，一个则没有</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>test=# \d users;
+</span><span class='line'>                 Table "public.users"
+</span><span class='line'>   Column   |            Type             | Modifiers
+</span><span class='line'>------------+-----------------------------+-----------
+</span><span class='line'> name       | character varying(255)      |
+</span><span class='line'> created_at | timestamp with time zone    |
+</span><span class='line'> updated_at | timestamp without time zone |</span></code></pre></td></tr></table></div></figure>
+
+
+<p>分别插入不带时区、带不同时区的几组值，然后查看结果</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>test=# insert into users values ('张三', '2014-04-27 08:00:00', '2014-04-27 08:00:00');
+</span><span class='line'>INSERT 0 1
+</span><span class='line'>test=# insert into users values ('张三', '2014-04-27 08:00:00 +00:00', '2014-04-27 08:00:00 +00:00');
+</span><span class='line'>INSERT 0 1
+</span><span class='line'>test=# insert into users values ('张三', '2014-04-27 08:00:00 +08:00', '2014-04-27 08:00:00 +08:00');
+</span><span class='line'>INSERT 0 1
+</span><span class='line'>test=# insert into users values ('张三', '2014-04-27 08:00:00 +09:00', '2014-04-27 08:00:00 +09:00');
+</span><span class='line'>INSERT 0 1
+</span><span class='line'>test=# select * from users;
+</span><span class='line'> name |       created_at       |     updated_at
+</span><span class='line'>------+------------------------+---------------------
+</span><span class='line'> 张三 | 2014-04-27 08:00:00+08 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-27 16:00:00+08 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-27 08:00:00+08 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-27 07:00:00+08 | 2014-04-27 08:00:00
+</span><span class='line'>(4 rows)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们改变一下当前 session 的时区，并查看刚插入的值：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>test=# set timezone = '+00:00';
+</span><span class='line'>SET
+</span><span class='line'>test=# select now();
+</span><span class='line'>              now
+</span><span class='line'>-------------------------------
+</span><span class='line'> 2014-04-27 12:09:10.931947+00
+</span><span class='line'>(1 row)
+</span><span class='line'>
+</span><span class='line'>test=# select * from users;
+</span><span class='line'> name |       created_at       |     updated_at
+</span><span class='line'>------+------------------------+---------------------
+</span><span class='line'> 张三 | 2014-04-27 00:00:00+00 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-27 08:00:00+00 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-27 00:00:00+00 | 2014-04-27 08:00:00
+</span><span class='line'> 张三 | 2014-04-26 23:00:00+00 | 2014-04-27 08:00:00
+</span><span class='line'>(4 rows)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面我们可以得到不带时区和带时区的字段结果：</p>
+
+<p>不带时区的字段：</p>
+
+<ol>
+<li>无论插入的数据带不带时区，只截取前面的字符串，并不会对值进行处理</li>
+<li>当前 session 的时区，不会影响插入的值</li>
+</ol>
+
+
+<p>带时区的字段：</p>
+
+<ol>
+<li>若不带时区，则插入的数据会被加上当前 session 的时区</li>
+<li>若带时区，则按这个值指定时区存入，取数据时，会根据当前的 session 时区进行相应的转换</li>
+</ol>
+
+
+<h2>总结</h2>
+
+<p>综上，我们可以得到以下的一些结论：</p>
+
+<p>MySQL 和 PostgreSQL 在时区处理上共同的地方</p>
+
+<ol>
+<li>当前 session 的时区会影响到内置的一些函数的值，如：now() 等</li>
+<li>PG 里不带时区的字段与 MySQL 的处理方式是一样的</li>
+</ol>
+
+
+<p>不同的地方</p>
+
+<ol>
+<li>MySQL 并不支持有时区的字段，而 PG 支持</li>
+<li>MySQL 并不会去处理插入或更新的值是否带有时区，而 PG 如果时遇到带时区的字段，则会进行处理</li>
+</ol>
+
+
+<p><br /></p>
+
+<p><a href="/blog/2014/04/27/working-with-timezone-in-rails-02">下一篇：Working with timezone in Rails(02)</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/5">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/3">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

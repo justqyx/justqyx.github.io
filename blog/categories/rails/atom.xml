@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: rails | JustQyx]]></title>
+  <link href="http://www.justqyx.me/blog/categories/rails/atom.xml" rel="self"/>
+  <link href="http://www.justqyx.me/"/>
+  <updated>2021-09-27T06:28:44+00:00</updated>
+  <id>http://www.justqyx.me/</id>
+  <author>
+    <name><![CDATA[邱源鑫]]></name>
+    <email><![CDATA[hzuqiuyuanxin@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[字段加密存储-Rails]]></title>
+    <link href="http://www.justqyx.me/blog/2017/11/26/keep-attribute-safe-in-rails/"/>
+    <updated>2017-11-26T15:11:10+08:00</updated>
+    <id>http://www.justqyx.me/blog/2017/11/26/keep-attribute-safe-in-rails</id>
+    <content type="html"><![CDATA[<h2>方案</h2>
+
+<ol>
+<li>存储前，加密后再存储到数据库</li>
+<li>读取后，利用 KEY 进行解密</li>
+</ol>
+
+
+<h2>实现</h2>
+
+<p><a href="http://api.rubyonrails.org/v4.2.7.1/classes/ActiveSupport/MessageEncryptor.html">ActiveSupport::MessageEncryptor</a>
+是 Rails 基于 openssl 封装实现的一个类，可用于对一个对象进行加密、解密操作。例如：</p>
+
+<pre><code class="ruby">salt  = SecureRandom.random_bytes(64)
+key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt) # =&gt; "\x89\xE0\x156\xAC..."
+crypt = ActiveSupport::MessageEncryptor.new(key)                       # =&gt; #&lt;ActiveSupport::MessageEncryptor ...&gt;
+encrypted_data = crypt.encrypt_and_sign('my secret data')              # =&gt; "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
+crypt.decrypt_and_verify(encrypted_data)                               # =&gt; "my secret data"
+</code></pre>
+
+<p><a href="http://api.rubyonrails.org/v4.2.7.1/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize">serialize</a>
+是 Rails ActiveRecord 里的一个类方法，可用于执行一个 column 如何存储到数据库，以及从数据库读取出来后要如何处理，例如：</p>
+
+<pre><code class="ruby">class User &lt; ActiveRecord::Base
+  serialize :preferences, Hash
+end
+
+user = User.new
+user.preferences = {
+  gender: 'male',
+  age: 18
+}
+user.save!
+</code></pre>
+
+<p>另外，Rails 还允许自定义 Serizlizer，使得开发者能够自行决定如何做进行序列化和反序列化。例如：</p>
+
+<pre><code class="ruby">class CustomerSerializer
+  def self.load(value)
+    value.to_s.blank? ? "" : JSON.parse(value)
+  end
+
+  def self.dump(value)
+    (value || {}).to_json
+  end
+end
+
+class User &lt; ActiveRecord::Base
+  serialize :preferences, CustomerSerializer
+end
+</code></pre>
+
+<p>基于此，我们可以自己实现一个 serializer，使得我们能够进行对字段进行加密存储，同时读取出来时能够自行进行解密。</p>
+
+<pre><code class="ruby">class EncryptedStringSerializer
+  def self.load(value)
+    value.to_s.blank? ? '' : decrypt(value)
+  end
+
+  def self.dump(value)
+    encrypt(value || '')
+  end
+
+  private
+
+  def self.encrypt(value)
+    encryptor.encrypt_and_sign(value)
+  end
+
+  def self.decrypt(value)
+    encryptor.decrypt_and_verify(value)
+  end
+
+  def self.encryptor
+    @encryptor ||= ActiveSupport::MessageEncryptor.new(Settings.message_encryptor_key)
+  end
+end
+
+class UserAddress &lt; ActiveRecord::Base
+  serialize :phone, EncryptedStringSerializer
+  serialize :first_name, EncryptedStringSerializer
+  serialize :last_name, EncryptedStringSerializer
+  serialize :country, EncryptedStringSerializer
+  serialize :state, EncryptedStringSerializer
+  serialize :city, EncryptedStringSerializer
+  serialize :address1, EncryptedStringSerializer
+  serialize :address2, EncryptedStringSerializer
+  serialize :zipcode, EncryptedStringSerializer
+end
+</code></pre>
+
+<p>可以改进的点</p>
+
+<ol>
+<li>加解密用的 KEY 是否过于简单？</li>
+<li>针对现有数据，如何平滑过渡？</li>
+<li>多个字段需要加密时这种方式不友好</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-3]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/"/>
+    <updated>2016-08-13T18:06:30+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor</id>
+    <content type="html"><![CDATA[<p><code>Cable.ConnectionMonitor</code> 通过心跳检测来确保连接处于健康的状态，如果连接出现了问题那么会重新连接而不需要，并且这对于维护来说是透明的，不需要开发人员关心。</p>
+
+<h2>心跳检测</h2>
+
+<p><code>Cable.Consumer</code> 的构造函数实例化了 <code>Cable.ConnectionMonitor</code></p>
+
+<pre><code class="coffeescript">constructor: (@url) -&gt;
+    @subscriptions = new Cable.Subscriptions this
+    @connection = new Cable.Connection this
+    @connectionMonitor = new Cable.ConnectionMonitor this
+</code></pre>
+
+<p>看看 <code>Cable.ConnectionMonitor</code> 的构造函数</p>
+
+<pre><code class="coffeescript">constructor: (@consumer) -&gt;
+    @consumer.subscriptions.add(this)  # 暂时忽略 
+    @start()                           # 开始心跳检测
+</code></pre>
+
+<p>start 函数</p>
+
+<pre><code class="coffeescript">start: -&gt;
+    # 下面三行代码做了一些连接的准备工作
+    @reset()
+    delete @stoppedAt
+    @startedAt = now()
+
+    # 开始定时往服务器发送心跳检测消息
+    @poll()
+
+    # 兼容 Turbolinks：页面重新载入时，重建连接
+    document.addEventListener("visibilitychange", @visibilityDidChange) 
+</code></pre>
+
+<p>poll 函数</p>
+
+<pre><code class="coffeescript">setTimeout =&gt;
+    unless @stoppedAt         # 如果已经连接断开，那么重建连接
+        @reconnectIfStale()
+        @poll()
+, @getInterval()              # 随机间隔（3 ~ 30 秒）
+</code></pre>
+
+<p>reconnectIfStale 函数</p>
+
+<pre><code class="coffeescript">#
+# 如果连接已经过时，那么重建连接
+# 条件是：最后发送消息的时间，或者最后 ping 的时间已经过了 6 秒
+# class Cable.ConnectionMonitor
+#  @pollInterval:
+#    min: 3
+#    max: 30
+#  @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
+#
+if @connectionIsStale()
+    @reconnectAttempts++
+    unless @disconnectedRecently()
+        # 调用 Cable.Connection 的实例进行连接的重建
+        @consumer.connection.reopen()
+</code></pre>
+
+<p>通过心跳检测来检测连接的健康情况属于主动式的检测，下面阐释基于 WebSocket 的 onclose、onerror 回调的连接重建逻辑。</p>
+
+<h2>WebSocket 回调</h2>
+
+<p>在上一篇里提及到在 Cable.Connection 连接的建立是通过 WebSocket 的实例化来实现，同时绑定了以下四个回调</p>
+
+<ul>
+<li>onmessage</li>
+<li>onopen</li>
+<li>onclose</li>
+<li>onerror</li>
+</ul>
+
+
+<p>关键源码部分如下</p>
+
+<pre><code class="coffeescript">installEventHandlers: -&gt;  # 向 @webSocket 注入各个回调
+    for eventName of @events
+        handler = @events[eventName].bind(this)
+        @webSocket["on#{eventName}"] = handler
+    return
+
+events:
+    message: (event) -&gt; # onmessage 回调
+        {identifier, message, type} = JSON.parse(event.data)
+        switch type
+            when message_types.confirmation
+                @consumer.subscriptions.notify(identifier, "connected")
+            when message_types.rejection
+                @consumer.subscriptions.reject(identifier)
+            else
+                @consumer.subscriptions.notify(identifier, "received", message)
+    open: -&gt; # onopen 回调
+        @disconnected = false
+        @consumer.subscriptions.reload()
+    close: -&gt; # onclose 回调
+        @disconnect()
+    error: -&gt; # onerror 回调
+        @disconnect()
+</code></pre>
+
+<p>disconnect 函数</p>
+
+<pre><code class="coffeescript">disconnect: -&gt;
+    return if @disconnected # 如果已经断开则直接返回
+    @disconnected = true    # 标识已经断开
+    @consumer.subscriptions.notifyAll("disconnected") # 通知所有的 subscript 已经断开
+</code></pre>
+
+<p><code>Cable.Subscriptions</code> 里的 <code>notifyAll</code> 和 <code>notify</code></p>
+
+<pre><code class="coffeescript">notifyAll: (callbackName, args...) -&gt;
+    for subscription in @subscriptions
+        # 通知各个 subscription 调用各自的 disconnected 函数
+        @notify(subscription, callbackName, args...)
+
+notify: (subscription, callbackName, args...) -&gt;
+    if typeof subscription is "string"
+        subscriptions = @findAll(subscription)
+    else
+        subscriptions = [subscription]
+
+    for subscription in subscriptions
+        # subscription 调用 disconnected 函数
+        #   subscription[callbackName]?(args...) 的意思是
+        #   subscription = subscriptions[i];
+        #   if (typeof subscription[callbackName] === "function") {
+        #       subscription[callbackName].apply(subscription, args);
+        #   }
+        subscription[callbackName]?(args...)
+        # 以下先不理会，否则会脱离内容的主线
+        if callbackName in ["initialized", "connected", "disconnected", "rejected"]
+            {identifier} = subscription
+            @record(notification: {identifier, callbackName, args})
+</code></pre>
+
+<p>好了，回去看 <code>Cable.ConnectionMonitor</code> 的 <code>disconnected</code> 函数</p>
+
+<pre><code class="coffeescript">disconnected: -&gt;
+    @disconnectedAt = now()
+</code></pre>
+
+<p>这样，心跳检测时就会发现连接已断开，就会重建连接，相关代码如下</p>
+
+<pre><code class="coffeescript">poll: -&gt;
+    setTimeout =&gt;
+        unless @stoppedAt
+            @reconnectIfStale()
+            @poll()
+    , @getInterval()
+
+reconnectIfStale: -&gt;
+    if @connectionIsStale()
+        @reconnectAttempts++
+        unless @disconnectedRecently()
+            @consumer.connection.reopen()
+
+connectionIsStale: -&gt;
+    secondsSince(@pingedAt ? @startedAt) &gt; @constructor.staleThreshold
+
+disconnectedRecently: -&gt;
+    @disconnectedAt and secondsSince(@disconnectedAt) &lt; @constructor.staleThreshold
+</code></pre>
+
+<h2>总结</h2>
+
+<p>连接的监控也简单，通过自主的心跳检测，以及 <code>WebSocket</code> 的 <code>onerror</code>、<code>onclose</code> 回调来自动地重建连接，因此使用者可以不需要去关心当前的连接是否正常。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-2]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/"/>
+    <updated>2016-08-13T17:48:30+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection</id>
+    <content type="html"><![CDATA[<p>本节将会阐述 ActionCable 浏览器端是如何建立连接、以及收发消息的。</p>
+
+<h2>Cable.Consumer</h2>
+
+<p>Cable.Consumer 维护了下面三个类的实例对象</p>
+
+<p>1、 Cable.Subscriptions</p>
+
+<blockquote><p>维护多个 subscription，是消息的发布者和消费者。</p></blockquote>
+
+<p>2、 Cable.Connection</p>
+
+<blockquote><p>维护与服务端的连接，给 subscription 提供基础的服务。</p></blockquote>
+
+<p>3、 Cable.ConnectionMonitor</p>
+
+<blockquote><p>用来监控连接的健康状态。</p></blockquote>
+
+<p><strong>具体源码如下</strong></p>
+
+<pre><code class="coffeescript">class Cable.Consumer
+  constructor: (@url) -&gt;
+    @subscriptions = new Cable.Subscriptions this
+    @connection = new Cable.Connection this
+    @connectionMonitor = new Cable.ConnectionMonitor this
+
+  send: (data) -&gt;
+    @connection.send(data)
+
+  inspect: -&gt;
+    JSON.stringify(this, null, 2)
+
+  toJSON: -&gt;
+    {@url, @subscriptions, @connection, @connectionMonitor}
+</code></pre>
+
+<p><strong>架构</strong></p>
+
+<p><img src="/downloads/images/actioncable_frontend_arch.png"></p>
+
+<h2>建立 WebSocket 连接</h2>
+
+<p>创建一个 Connection 实例</p>
+
+<pre><code class="coffeescript">new Cable.Connection(this)
+</code></pre>
+
+<p>调用构造方法</p>
+
+<pre><code class="coffeescript">constructor: (@consumer) -&gt;
+    @open()
+</code></pre>
+
+<p>打开 <code>WebSocket</code> 连接</p>
+
+<pre><code class="coffeescript">open: =&gt;
+    if @webSocket and not @isState('closed')
+        throw new Error('Existing connection must be closed before opening')
+    else
+        @webSocket = new WebSocket(@consumer.url)
+        @installEventHandlers()
+        true
+</code></pre>
+
+<p>注册事件处理器</p>
+
+<pre><code class="coffeescript">installEventHandlers: -&gt;
+    for eventName of @events
+        handler = @events[eventName].bind(this)
+        @webSocket["on#{eventName}"] = handler
+    return
+</code></pre>
+
+<p>我们来看看 <code>@events</code> 究竟是哪些</p>
+
+<pre><code class="coffeescript">events:
+    message: (event) -&gt;
+      {identifier, message, type} = JSON.parse(event.data)
+
+      switch type
+        when message_types.confirmation
+          @consumer.subscriptions.notify(identifier, "connected")
+        when message_types.rejection
+          @consumer.subscriptions.reject(identifier)
+        else
+          @consumer.subscriptions.notify(identifier, "received", message)
+
+    open: -&gt;
+      @disconnected = false
+      @consumer.subscriptions.reload()
+
+    close: -&gt;
+      @disconnect()
+
+    error: -&gt;
+      @disconnect()
+</code></pre>
+
+<p>从上面的源码可以看到，最后 <code>@webSocket</code> 注册的事件回调有</p>
+
+<pre><code>onmessage
+onopen
+onclose
+onerror
+</code></pre>
+
+<p>这些回调，本身就是浏览器 <code>WebSocket</code> 实例对象所提供的，<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Attributes">可以从这里查询到</a>。</p>
+
+<h2>发送消息</h2>
+
+<p>从上一篇的例子可以知道，通过 <code>@perform('appear', { message: "Hello, John" })</code> 可以发送消息到服务器并调用服务器相应的 <code>AppearanceChannel</code> 类的实例对象的 <code>appear</code> 方法。</p>
+
+<p>所以我们来看看 <code>Cable.Subscription</code> 相关的函数体</p>
+
+<pre><code class="coffeescript">perform: (action, data = {}) -&gt;
+    data.action = action
+    @send(data)
+
+send: (data) -&gt;
+    @consumer.send(command: "message", identifier: @identifier, data:   JSON.stringify(data))
+</code></pre>
+
+<p>继续看 Cable.Consumer 里的 <code>send</code> 函数体</p>
+
+<pre><code class="coffeescript">send: (data) -&gt;
+    @connection.send(data)
+</code></pre>
+
+<p>所以它是通过 <code>Cable.Connection</code> 的实例对象 <code>@connection</code> 来发送数据的</p>
+
+<pre><code class="coffeescript">send: (data) -&gt;
+    if @isOpen()
+        @webSocket.send(JSON.stringify(data))
+        true
+    else
+        false
+</code></pre>
+
+<p>到此已经结束，通过浏览器 <code>WebSocket</code> 实例对象的 <code>send</code> 方法来发送消息到服务端。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ActionCable 源码阅读笔记-前端部分-1]]></title>
+    <link href="http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/"/>
+    <updated>2016-08-13T17:37:26+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello</id>
+    <content type="html"><![CDATA[<p>本节将会简单阐述如何使用 ActionCable 收发消息，着重前端部分。</p>
+
+<h2>Cable.Consumer</h2>
+
+<p><strong>基本概念</strong></p>
+
+<p>负责建立到服务端的连接。
+在连接建立之后，<code>Cable.ConnectionMonitor</code> 会通过心跳检测来确保连接的状态。
+Consumer 实例对象通过 <code>createSubscription</code> 方法来建立一个连接到特定频道的订阅。</p>
+
+<p><strong>例子</strong></p>
+
+<pre><code class="js">window.App = {};
+App.cable = Cable.createConsumer('ws://example.com/accounts/1');
+App.appearance = App.cable.subscriptions.create('AppearanceChannel');
+</code></pre>
+
+<p>这样就可以通过 <code>App.appearance</code> 来发送消息到服务器，同样其也可以接收来自服务器的消息。</p>
+
+<h2>Cable.Subscription</h2>
+
+<p>对应着服务端的 Channel 实例，通过提供 <code>callbacks</code>、<code>methods</code> 来实现远程过程调用（RPC, Remote Procedure Calls）。</p>
+
+<p>如果你在浏览器创建了一个 <code>AppearanceChannel</code> 的 <code>subcription</code>，那么 <code>subscription</code> 的调用将会直接等同于调用服务端的 <code>AppearanceChannel</code> 示例里相应的方法。</p>
+
+<p><strong>例子</strong></p>
+
+<pre><code class="coffeescript">// 前端
+App.appearance = App.cable.subscription.create('AppearanceChannel', {
+    connected: -&gt;
+        console.info("连接已经建立好啦");
+
+    received: (data) -&gt;
+        console.info("接收到了来自服务端的消息");
+
+    appear: (data) -&gt;
+        this.perform('appear', data);
+});
+</code></pre>
+
+<pre><code class="ruby"># 服务端代码
+class AppearanceChannel &lt; ApplicationCable::Channel
+  def subscribed
+    stop_all_streams
+    stream_from 'appearance_channel'
+  end
+
+  def unsubscribed
+    stop_all_streams
+  end
+
+  def appear data
+    # do something
+  end
+end
+</code></pre>
+
+<p>上面中，如果你这么使用</p>
+
+<pre><code class="js">App.appearance.appear({ message: "Hello, John" });
+</code></pre>
+
+<p>那么对应着服务端，<code>appear</code> 方法将会调用，并且你可以用过 <code>ActionCable.server.broadcast('appearance_channel', message: 'Hello, Katy')</code> 来响应，这样浏览器端的 <code>received</code> 回调将会被调用。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Disable heartbeats logs in Rails]]></title>
+    <link href="http://www.justqyx.me/blog/2016/06/04/disable-heartbeats-logs-in-rails/"/>
+    <updated>2016-06-04T13:15:18+08:00</updated>
+    <id>http://www.justqyx.me/blog/2016/06/04/disable-heartbeats-logs-in-rails</id>
+    <content type="html"><![CDATA[<p>为了监测我们的 Rails 应用是否存活，我们在应用里会提供一个接口，让监控服务调用。如：</p>
+
+<pre><code class="ruby">Rails.application.routes.draw do
+    get '/heartbeats', to: proc { [200, { 'Context-Type' =&gt; 'text/plain' }, ['']] }
+end
+</code></pre>
+
+<p>这样日志里就会有这样的文本</p>
+
+<pre><code>Started GET "/heartbeats" for ::1 at 2016-06-04 13:35:14 +0800
+</code></pre>
+
+<p>但因为监控服务会每秒调用一次，所以日志就会不断地打印出来，并且这些日志其实没有任何作用，因为部署到线上后，nginx 的日志同样也会有一份，所以我就在想能不能把它去掉。</p>
+
+<pre><code class="ruby"># lib/quiet_heartbeats.rb
+module QuietHeartbeats
+  class Railtie &lt; ::Rails::Railtie
+    initializer 'quiet_heartbeat.initialize' do |app|
+      PATH_PREFIX_REGEX = /\A(\/heartbeats)/
+      Rails::Rack::Logger.class_eval do
+        def call_with_quiet_heartbeat_request(env)
+          if env['PATH_INFO'] =~ PATH_PREFIX_REGEX
+            previous_level = Rails.logger.level
+            Rails.logger.level = Logger::ERROR
+            call_without_quiet_heartbeat_request(env).tap do
+              Rails.logger.level = previous_level
+            end
+          else
+            call_without_quiet_heartbeat_request(env)
+          end
+        end
+        alias_method_chain :call, :quiet_heartbeat_request
+      end
+    end
+  end
+end
+</code></pre>
+
+<p>在 <code>config/application.rb</code> 载入这段代码</p>
+
+<pre><code class="ruby">module YourApplicationName
+  class Application &lt; Rails::Application
+    require 'quiet_heartbeats'
+  end
+end
+</code></pre>
+
+<p>Done.</p>
+
+<hr />
+
+<p><strong>2016-06-21 更新</strong></p>
+
+<p>上面那段代码，在生产环境跑仍然会有问题，这里提供使用 middleware 的方式解决</p>
+
+<pre><code># lib/quiet_heartbeats_middleware.rb
+class QuietHeartbeatsMiddleware
+  PATH_PREFIX_REGEX = /\A(\/heartbeats)/
+
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    if env['PATH_INFO'] =~ PATH_PREFIX_REGEX
+      [200, { 'Context-Type' =&gt; 'text/plain' }, ['']]
+      # 如果你仅仅只是想不打印 log，那么可以这样写
+      # Rails.logger.silence do
+      #   @app.call(env)
+      # end
+    else
+      @app.call(env)
+    end
+  end
+end
+</code></pre>
+
+<p>然后在 <code>config/application.rb</code> 初始化</p>
+
+<pre><code>module Your_App
+  class Application &lt; Rails::Application
+    # ...
+
+    require 'quiet_heartbeats_middleware'
+    config.middleware.insert_before Rack::Lock, QuietHeartbeatsMiddleware
+
+    # ...
+  end
+end
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

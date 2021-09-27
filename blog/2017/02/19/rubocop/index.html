@@ -1,0 +1,582 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Use Rubocop to Control Your Ruby Code's Quality - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="代码质量控制，是项目自始至终都应该去掌控的事情。
+虽然每个团队的风格总会有一些出入，但是达成共识是一件并不困难的事情。
+达成共识以后，我们需要借助工具，以及达成一套流程来帮助我们半自动化或自动化地做这样的一件事情。 在 Ruby 社区里，目前最广泛使用的是 Rubocop。 Rubocop &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2017/02/19/rubocop/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Use Rubocop to Control Your Ruby Code's Quality</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2017-02-19T15:18:35+08:00'><span class='date'>2017-02-19 15:18:35</span> <span class='time'>3:18 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>代码质量控制，是项目自始至终都应该去掌控的事情。
+虽然每个团队的风格总会有一些出入，但是达成共识是一件并不困难的事情。
+达成共识以后，我们需要借助工具，以及达成一套流程来帮助我们半自动化或自动化地做这样的一件事情。</p>
+
+<p>在 Ruby 社区里，目前最广泛使用的是 <a href="https://github.com/bbatsov/rubocop">Rubocop</a>。</p>
+
+<h2>Rubocop</h2>
+
+<p>Rubocop 是一个 Ruby 静态代码分析。
+其默认遵循的是一个由社区驱动的 <a href="https://github.com/bbatsov/ruby-style-guide">Ruby Style Guide</a>。</p>
+
+<p><strong>优点</strong></p>
+
+<ol>
+<li>配置简单，定制化好，快速集成</li>
+<li>遵循 Rails 所提倡的 COC 原则</li>
+<li>兼容性好，支持 Ruby 2.0+</li>
+</ol>
+
+
+<p><strong>缺点</strong></p>
+
+<ol>
+<li>无法做到像编译性语言那么准确，这当然也跟 Ruby 语言本身的灵活性有关系</li>
+</ol>
+
+
+<h2>Rails 集成 Rubocop</h2>
+
+<p>在 Gemfile 增加</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:develop</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;rubocop&#39;</span><span class="p">,</span> <span class="nb">require</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install
+</span><span class='line'>bundle <span class="nb">exec </span>rubocop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>自定义</h3>
+
+<p>每个团队的风格不一样，一定会有自定义的需求，只需要 Rails 项目根目录下，新建文件</p>
+
+<p><code>.rubocop.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">AllCops</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;vendor/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/fixtures/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;tmp/**/*&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">TargetRubyVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2.1</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/Encoding</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">when_needed</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/FrozenStringLiteralComment</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">always</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/IndentHeredoc</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">powerpack</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/BlockLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;Rakefile&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/*.rake&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/**/*.rb&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果想要自定义，可以参考文件 <code>https://github.com/bbatsov/rubocop/blob/master/config/default.yml</code>
+然后在 <code>.rubocop.yml</code> 添加即可。</p>
+
+<h2>推荐配置</h2>
+
+<p><code>.rubocop.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">inherit_from</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">.rubocop_todo.yml</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">AllCops</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Include</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/Gemfile&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;**/Rakefile&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;bin/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/migrate/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/seeds.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;db/schema.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;vendor/bundle/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;script/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="kt">!ruby</span><span class="l-Scalar-Plain">/regexp /old_and_unused\.rb$/</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">TargetRubyVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2.1</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Documentation</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/AsciiComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Style/MethodDefParentheses</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="c1"># EnforcedStyle: require_no_parentheses_except_multiline</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">require_parentheses</span>
+</span><span class='line'>  <span class="c1"># SupportedStyles:</span>
+</span><span class='line'>  <span class="c1">#     - require_parentheses</span>
+</span><span class='line'>  <span class="c1">#     - require_no_parentheses</span>
+</span><span class='line'>  <span class="c1">#     - require_no_parentheses_except_multiline</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/LineLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/ClassLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/MethodLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/ModuleLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1200</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>.rubocop_todo.yml</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="c1"># This configuration was generated by</span>
+</span><span class='line'><span class="c1"># `rubocop --auto-gen-config`</span>
+</span><span class='line'><span class="c1"># on 2016-04-19 10:48:45 +0800 using RuboCop version 0.39.0.</span>
+</span><span class='line'><span class="c1"># The point is for the user to remove these configuration records</span>
+</span><span class='line'><span class="c1"># one by one as the offenses are removed from the code base.</span>
+</span><span class='line'><span class="c1"># Note that changes in the inspected code, or installation of new</span>
+</span><span class='line'><span class="c1"># versions of RuboCop, may require this file to be generated again.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 25</span>
+</span><span class='line'><span class="c1"># Configuration parameters: AllowHeredoc, AllowURI, URISchemes.</span>
+</span><span class='line'><span class="c1"># URISchemes: http, https</span>
+</span><span class='line'><span class="l-Scalar-Plain">Metrics/LineLength</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Max</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">120</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 5</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/AsciiComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;Gemfile&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 1</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/BlockComments</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/spec_helper.rb&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 3</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/Documentation</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;spec/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;test/**/*&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;app/controllers/application_controller.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;app/helpers/application_helper.rb&#39;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;config/application.rb&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 1</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: AllowForAlignment, ForceEqualSignAlignment.</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/ExtraSpacing</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Exclude</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="s">&#39;bin/setup&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 3</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: SupportedStyles.</span>
+</span><span class='line'><span class="c1"># SupportedStyles: call, braces</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/LambdaCall</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">EnforcedStyle</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">braces</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Offense count: 20</span>
+</span><span class='line'><span class="c1"># Cop supports --auto-correct.</span>
+</span><span class='line'><span class="c1"># Configuration parameters: EnforcedStyle, SupportedStyles, ConsistentQuotesInMultiline.</span>
+</span><span class='line'><span class="c1"># SupportedStyles: single_quotes, double_quotes</span>
+</span><span class='line'><span class="l-Scalar-Plain">Style/StringLiterals</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">Enabled</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2017-02-19T15:18:35+08:00'><span class='date'>2017-02-19 15:18:35</span> <span class='time'>3:18 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2017/02/19/rubocop/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2017/02/19/rubocop/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/" title="Previous Post: ActionCable 源码阅读笔记-前端部分-3">&laquo; ActionCable 源码阅读笔记-前端部分-3</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2017/11/26/keep-attribute-safe-in-rails/" title="Next Post: 字段加密存储-Rails">字段加密存储-Rails &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2017/02/19/rubocop/';
+        var disqus_url = 'http://www.justqyx.me/blog/2017/02/19/rubocop/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

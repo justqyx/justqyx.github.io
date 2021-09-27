@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>TCP 链路是如何 Keep-Alive 的 - JustQyx</title>
+  <meta name="author" content="邱源鑫">
+
+  
+  <meta name="description" content="之前一直没有搞明白，HTTP 链路（即 TCP 链路）是如何 Keep-Alive 的。
+这其实只是一个基础知识，只有知道与不知道的区别而已。 如何定义一条 TCP 连接 1
+&lt;源IP地址、源端口号、目的IP地址、目的端口号&gt; 这四个值一起唯一地定义了一条连接。两条不同的 TCP &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.justqyx.me/blog/2016/02/03/tcp-chain/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="JustQyx" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-65882934-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">JustQyx</a></h1>
+  
+    <h2>大道至简</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="hzuqiuyuanxin@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.justqyx.me">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/blog/categories">Categories</a></li>
+  <li><a href="/blog/blogs">Blogs</a></li>
+  <li><a href="/blog/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">TCP 链路是如何 Keep-Alive 的</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-03T13:51:50+08:00'><span class='date'>2016-02-03 13:51:50</span> <span class='time'>1:51 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.justqyx.me">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>之前一直没有搞明白，HTTP 链路（即 TCP 链路）是如何 Keep-Alive 的。
+这其实只是一个基础知识，只有知道与不知道的区别而已。</p>
+
+<h2>如何定义一条 TCP 连接</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;源IP地址、源端口号、目的IP地址、目的端口号&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这四个值一起唯一地定义了一条连接。两条不同的 TCP 连接不能拥有 4 个完全相同
+的地址组件值。</p>
+
+<h2>TCP 链路</h2>
+
+<p>数据从我们的计算机发出，在到达目标机器之前，需要经过许多其他结点。
+这其中的每一个结点，需要维护两个 TCP 连接对象，使其能够与上一个结点和下一个结点通讯，
+类似双向链表。</p>
+
+<p>于是，一条链路就这么形成了。</p>
+
+<p>一旦其中某个结点断开了连接，即移除了 TCP 连接对象，那么整条链路也就断开了，
+并以主动断开或主动探测或超时断开的机制，对整条链路的 TCP 连接对象进行回收。</p>
+
+<h2>TCP 连接是昂贵的</h2>
+
+<p>建立 TCP 连接需要首先建立起通讯链路，并完成三次握手，故建立 TCP 连接的操作是昂贵的。
+因此，以下依次出现的三种机制，是为了对 TCP 链路资源有更高效率的使用。</p>
+
+<p><strong>Keep-Alive</strong></p>
+
+<p>这是 HTTP/1.0 规范中增加的，但 HTTP/1.1 已经废弃。
+为的是在完成 HTTP 事务操作之后保持 TCP 连接不关闭，使得下一个请求发起时，不再需要重新建立 TCP 连接。</p>
+
+<p><strong>Persistent</strong></p>
+
+<p>与 HTTP/1.0+ 的 Keep-Alive 连接不同，HTTP/1.1 的连接在默认情况下是激活的，
+除非特别指明，否则 HTTP/1.1 假定所有连接都是持久的。要在事务处理结束之后将
+连接关闭，HTTP/1.1 应用程序必须向报文中显示地增加一个 <code>Connection: Close</code> 首部。
+这是与以前的 HTTP 协议版本很重要的区别，在以前的版本中，Kepp-Alive 连接要么是可选的，
+要么根本就不支持。</p>
+
+<p><strong>管道化连接</strong></p>
+
+<p>HTTP/1.1 允许在持久连接上可选地使用请求管道。这是相对于 Keep-Alive 连接的又一次性能优化。
+在响应到达之前，可以将多条请求放入队列。当第一条请求通过网络流向地球另一端的服务器时，
+第二条和第三条请求也可以开始发送了。在高时延网络条件下，这样做可以降低网络的环回时间，
+提高性能。</p>
+
+<p>无论是 Keep-Alive 还是 Persistent 还是管道，HTTP 客户端都必须做好所有可能出错的情况，
+因为在网络的世界里，每个结点都无法保证连接在那一刻是可用的，每个结点都可能随时关闭 TCP 连接。</p>
+
+<h2>参考</h2>
+
+<ul>
+<li>《HTTP 权威指南》</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">邱源鑫</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-02-03T13:51:50+08:00'><span class='date'>2016-02-03 13:51:50</span> <span class='time'>1:51 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/computer/'>computer</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.justqyx.me/blog/2016/02/03/tcp-chain/" data-via="justqyx" data-counturl="http://www.justqyx.me/blog/2016/02/03/tcp-chain/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/06/07/my-career-roadmap/" title="Previous Post: 职业定位">&laquo; 职业定位</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/02/03/frontend-talk/" title="Next Post: 关于最近的前端界吵架">关于最近的前端界吵架 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/11/26/keep-attribute-safe-in-rails/">字段加密存储-Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/02/19/rubocop/">Use Rubocop to Control Your Ruby Code's Quality</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-3-monitor/">ActionCable 源码阅读笔记-前端部分-3</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-2-connection/">ActionCable 源码阅读笔记-前端部分-2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/actioncable-sourcecode-frontend-part-1-hello/">ActionCable 源码阅读笔记-前端部分-1</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/justqyx">@justqyx</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'justqyx',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - 邱源鑫 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yuanxin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.justqyx.me/blog/2016/02/03/tcp-chain/';
+        var disqus_url = 'http://www.justqyx.me/blog/2016/02/03/tcp-chain/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
